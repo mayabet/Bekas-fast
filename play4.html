@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mita Betting - Play 4</title>
+    <style>
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #ffffff; font-family: sans-serif; }
+        .app-container { width: 100%; max-width: 400px; height: 100%; border: 3px solid #002d4b; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
+        .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
+        .game-title { font-weight: 900; font-size: 18px; color: #000; }
+        .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
+        .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
+        .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
+        .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
+        .number-grid { display: grid; grid-template-columns: repeat(10, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
+        .num-cell { border: 1px solid #002d4b; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #002d4b; cursor: pointer; }
+        .user-selected { background: #002d4b !important; color: #fff !important; }
+        .taken-selected { background: #e0e0e0; color: #999; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
+        .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
+        .bg-green { background: #00b050; color: white; }
+        .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
+        .scroll-area { overflow-y: auto; flex-grow: 1; }
+        .selected-list { width: 100%; border-collapse: collapse; }
+        .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
+        .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
+        .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
+        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
+        .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
+        .lang-btn { cursor: pointer; color: #002d4b; }
+        .lang-btn.active { color: #00b050; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="yellow-banner">
+        <span class="game-title" id="gt">20 BIRR IN TO 900 BIRR</span>
+        <span class="plus18">+18</span>
+    </div>
+
+    <div class="info-section">
+        <div>DATE: <span id="date-label"></span></div>
+        <div>TIME: <span id="time-label"></span></div>
+    </div>
+
+    <div class="balance-bar">
+        <span id="bl">BALANCE</span>
+        <span><span id="cash">0.00</span> <small>ETB</small></span>
+    </div>
+
+    <div class="instruction" id="ins">SELECT NUMBER 1 UP 50</div>
+
+    <div class="number-grid" id="grid-container"></div>
+
+    <table class="stats-table">
+        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box"></td></tr>
+        <tr><td class="bg-green" id="rn">ROUND</td><td id="round-val">1</td><td class="bg-green" id="ls">LAST</td><td id="last-val">0</td></tr>
+    </table>
+
+    <div class="list-container">
+        <div class="selected-header" id="sh">SELECTED NUMBERS</div>
+        <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
+    </div>
+
+    <div class="footer-nav">
+        <a href="index.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
+    </div>
+
+    <div class="lang-bar">
+        <span id="ll">LANGUAGE</span>
+        <div>
+            <span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | 
+            <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Balance Sync ---
+    let balance = parseFloat(localStorage.getItem('userBalance')) || 100.00;
+    function syncBalance() {
+        document.getElementById('cash').innerText = balance.toFixed(2);
+        localStorage.setItem('userBalance', balance.toFixed(2));
+    }
+
+    let currentLang = 'en', round = 1, selections = {}, isPlaying = false, autoTimer = null;
+    let others = [5, 12, 18, 24, 31, 38, 45]; 
+
+    const trans = {
+        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 900 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 900 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+    };
+
+    const grid = document.getElementById('grid-container');
+    for(let i=1; i<=50; i++) {
+        let cell = document.createElement('div');
+        cell.className = 'num-cell';
+        cell.id = `c-${i}`;
+        cell.innerText = i;
+        cell.onclick = () => pick(i);
+        grid.appendChild(cell);
+    }
+
+    function pick(n) {
+        if(isPlaying) return;
+        const msg = document.getElementById('msg-box');
+        if (selections[n] === "YOU") {
+            delete selections[n]; balance += 20; 
+            syncBalance(); msg.innerText = ""; updateUI(); checkAndStart(); return;
+        }
+        if (balance < 20) {
+            msg.innerText = trans[currentLang].low; msg.style.color = "red"; return;
+        }
+        if (others.includes(n) || (selections[n] && selections[n] !== "YOU")) {
+            msg.innerText = trans[currentLang].taken.replace('{n}', n);
+            msg.style.color = "red"; return;
+        }
+        selections[n] = "YOU"; balance -= 20;
+        syncBalance();
+        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
+        updateUI(); checkAndStart();
+    }
+
+    function checkAndStart() {
+        if(autoTimer) clearTimeout(autoTimer);
+        autoTimer = setTimeout(fillRemaining, 2000);
+    }
+
+    function fillRemaining() {
+        if(Object.keys(selections).filter(k => selections[k]==="YOU").length === 0) return;
+        isPlaying = true;
+        let fillInterval = setInterval(() => {
+            let rand = Math.floor(Math.random() * 50) + 1;
+            if(!selections[rand] && !others.includes(rand)) {
+                selections[rand] = "User_" + Math.floor(Math.random()*900+100);
+                updateUI();
+            }
+            if(Object.keys(selections).length + others.length >= 50) {
+                clearInterval(fillInterval); runGame();
+            }
+        }, 50);
+    }
+
+    function runGame() {
+        let win = Math.floor(Math.random() * 50) + 1;
+        document.getElementById('last-val').innerText = win;
+        const msg = document.getElementById('msg-box');
+        if(selections[win] === "YOU") {
+            balance += 900;
+            syncBalance();
+            msg.innerText = trans[currentLang].win; msg.style.color = "green";
+        } else {
+            msg.innerText = trans[currentLang].lost.replace('{n}', win);
+            msg.style.color = "red";
+        }
+        setTimeout(resetGame, 4000);
+    }
+
+    function resetGame() {
+        round++; document.getElementById('round-val').innerText = round;
+        selections = {}; isPlaying = false;
+        document.getElementById('msg-box').innerText = ""; updateUI();
+    }
+
+    function updateUI() {
+        const table = document.getElementById('sel-table'); table.innerHTML = "";
+        for(let i=1; i<=50; i++) {
+            const cell = document.getElementById(`c-${i}`);
+            let occupant = others.includes(i) ? "User_X" : (selections[i] || "");
+            cell.className = "num-cell" + (selections[i]==="YOU" ? " user-selected" : (occupant!=="" ? " taken-selected" : ""));
+            if(occupant !== "") {
+                table.innerHTML += `<tr><td class="id-col">${i}</td><td>${selections[i]==="YOU" ? "YOU" : occupant}</td></tr>`;
+            }
+        }
+    }
+
+    function setLang(l) {
+        currentLang = l;
+        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; }
+        document.getElementById('l-am').classList.toggle('active', l==='am');
+        document.getElementById('l-en').classList.toggle('active', l==='en');
+    }
+
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('time-label').innerText = now.toLocaleTimeString();
+        document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
+    }
+    setInterval(updateClock, 1000); updateClock(); updateUI(); syncBalance();
+</script>
+</body>
+</html>

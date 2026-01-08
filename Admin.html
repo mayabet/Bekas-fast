@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEKAS FAST - Ultimate Admin</title>
+    <style>
+        body { font-family: sans-serif; background: #eef2f3; padding: 10px; margin: 0; }
+        .container { max-width: 900px; margin: auto; background: white; border: 3px solid #000; padding: 15px; }
+        h2 { text-align: center; color: #00b050; border-bottom: 4px solid #001f3f; padding-bottom: 10px; margin-top: 0; }
+        
+        .section { margin-bottom: 20px; border: 1px solid #ccc; background: #fff; }
+        h3 { background: #001f3f; color: white; padding: 10px; margin: 0; font-size: 14px; text-transform: uppercase; }
+
+        .user-card { border-bottom: 2px solid #eee; padding: 15px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .online { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
+        .offline { background: #bbb; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; }
+        .info-grid div { background: #f9f9f9; padding: 8px; border: 1px solid #ddd; }
+        
+        .edit-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
+        input { padding: 8px; border: 1.5px solid #00b050; font-weight: bold; width: 100%; box-sizing: border-box; }
+        
+        .btn-group { display: flex; gap: 5px; }
+        .btn { border: none; padding: 10px; color: white; cursor: pointer; font-weight: bold; font-size: 11px; flex: 1; text-transform: uppercase; }
+        .save-btn { background: #00b050; }
+        .del-btn { background: #c00000; }
+        
+        .scroll-area { max-height: 600px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>BEKAS FAST ULTIMATE ADMIN</h2>
+
+    <div class="section">
+        <h3>Live Requests (Deposits & Withdrawals)</h3>
+        <div id="req-list" class="scroll-area">Waiting for updates...</div>
+    </div>
+
+    <div class="section">
+        <h3>User Control Panel (Realtime)</h3>
+        <div id="user-control-list" class="scroll-area">Syncing users...</div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
+        authDomain: "bekas-fast-d2a3b.firebaseapp.com",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
+        projectId: "bekas-fast-d2a3b",
+        storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
+        messagingSenderId: "130702344830",
+        appId: "1:130702344830:web:58577289ec2f3208a64e2f"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ተጠቃሚዎች ኦንላይን መሆናቸውንና ዳታቸውን በሪል ታይም መጫን
+    db.ref('users').on('value', snap => {
+        let html = "";
+        snap.forEach(child => {
+            const u = child.val();
+            const phone = child.key;
+            // ተጠቃሚው ላለፉት 5 ደቂቃዎች ውስጥ ገብቶ ከሆነ ኦንላይን እንደሆነ እንቆጥረዋለን
+            const isOnline = u.lastActive && (Date.now() - u.lastActive < 300000); 
+            
+            html += `
+            <div class="user-card">
+                <div class="info-grid">
+                    <div><span class="status-dot ${isOnline ? 'online' : 'offline'}"></span> <b>${isOnline ? 'ONLINE' : 'OFFLINE'}</b></div>
+                    <div><b>Phone:</b> ${phone}</div>
+                    <div><b>Name:</b> ${u.username}</div>
+                    <div><b>Password:</b> <span style="color:red; font-weight:bold;">${u.password}</span></div>
+                    <div><b>Current Bal:</b> ETB ${u.balance}</div>
+                    <div><b>Joined:</b> ${u.joinedDate ? new Date(u.joinedDate).toLocaleDateString() : 'N/A'}</div>
+                </div>
+                <div class="edit-inputs">
+                    <input type="text" id="n-${phone}" value="${u.username}" placeholder="Name">
+                    <input type="text" id="p-${phone}" value="${u.password}" placeholder="Pass">
+                    <input type="number" id="b-${phone}" value="${u.balance}" placeholder="Bal">
+                </div>
+                <div class="btn-group">
+                    <button class="btn save-btn" onclick="updateUser('${phone}')">Save Changes</button>
+                    <button class="btn del-btn" onclick="deleteUser('${phone}')">Terminate Account</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('user-control-list').innerHTML = html;
+    });
+
+    // Requests (Deposits/Withdraws) በሪል ታይም መጫን
+    db.ref().on('value', snap => {
+        const data = snap.val();
+        let html = "";
+        if(data.withdraw_requests) {
+            for(let id in data.withdraw_requests) {
+                const r = data.withdraw_requests[id];
+                html += `<div class="user-card" style="border-left: 8px solid #c00000; background:#fff5f5;">
+                    <b>WITHDRAW:</b> ${r.phone} wants <b>ETB ${r.amount}</b>
+                    <button class="btn save-btn" onclick="approveWith('${id}','${r.phone}',${r.amount})">Approve & Pay</button>
+                </div>`;
+            }
+        }
+        if(data.deposit_requests) {
+            for(let id in data.deposit_requests) {
+                const r = data.deposit_requests[id];
+                html += `<div class="user-card" style="border-left: 8px solid #00b050; background:#f5fff5;">
+                    <b>DEPOSIT:</b> ${r.phone} (Code: ${r.code}) <b>ETB ${r.amount}</b>
+                    <button class="btn save-btn" onclick="approveDep('${id}','${r.phone}',${r.amount})">Verify & Add</button>
+                </div>`;
+            }
+        }
+        document.getElementById('req-list').innerHTML = html || "No live requests.";
+    });
+
+    function updateUser(ph) {
+        const name = document.getElementById(`n-${ph}`).value;
+        const pass = document.getElementById(`p-${ph}`).value;
+        const bal = parseFloat(document.getElementById(`b-${ph}`).value);
+        db.ref('users/' + ph).update({ username: name, password: pass, balance: bal })
+        .then(() => alert("Updated!"));
+    }
+
+    function deleteUser(ph) {
+        if(confirm("Delete this user forever?")) db.ref('users/' + ph).remove();
+    }
+
+    function approveDep(id, ph, amt) {
+        db.ref('users/'+ph+'/balance').transaction(c => (c||0) + amt).then(() => db.ref('deposit_requests/'+id).remove());
+    }
+
+    function approveWith(id, ph, amt) {
+        db.ref('users/'+ph+'/balance').transaction(c => (c||0) - amt).then(() => db.ref('withdraw_requests/'+id).remove());
+    }
+</script>
+</body>
+</html>

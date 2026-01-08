@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BEKAS FAST - Admin Panel</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 15px; margin: 0; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 15px; border: 2.5px solid #000; }
+        h2 { text-align: center; color: #00b050; border-bottom: 3px solid #001f3f; padding-bottom: 10px; margin-top: 0; font-weight: 900; }
+        
+        .section { margin-bottom: 20px; padding: 12px; border: 1px solid #ccc; background: #fff; }
+        h3 { margin-top: 0; font-size: 16px; text-transform: uppercase; border-left: 5px solid #00b050; padding-left: 10px; }
+
+        /* User Card - መጀመሪያ እንደወደድከው አይነት ቀላል ዲዛይን */
+        .user-card { background: #f9f9f9; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-left: 5px solid #001f3f; }
+        
+        /* Online Status */
+        .online-status { font-size: 11px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+        .on { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
+        .off { background: #bbb; }
+
+        /* መረጃዎችን ማሳያ */
+        .user-info { font-size: 14px; margin-bottom: 8px; line-height: 1.5; }
+        .user-info b { color: #c00000; } /* ፓስወርዱን በግልጽ ለማየት */
+
+        /* ማስተካከያ ፎርም */
+        .edit-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+        input { width: 100%; padding: 8px; border: 1px solid #00b050; font-weight: bold; box-sizing: border-box; }
+        
+        .btn-row { display: flex; gap: 5px; }
+        .btn { flex: 1; padding: 10px; border: none; font-weight: bold; cursor: pointer; color: white; text-transform: uppercase; font-size: 11px; }
+        .save { background: #00b050; }
+        .del { background: #c00000; }
+
+        /* ጥያቄዎች ማሳያ (Deposit/Withdraw) */
+        .req-card { background: #fff5f5; border: 1px solid #c00000; padding: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .dep-card { background: #f5fff5; border-color: #00b050; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>BEKAS FAST ADMIN</h2>
+
+    <div class="section">
+        <h3>Pending Transactions</h3>
+        <div id="req-list">Loading...</div>
+    </div>
+
+    <div class="section">
+        <h3>User Management (Full List)</h3>
+        <div id="user-list">Syncing Users...</div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
+        authDomain: "bekas-fast-d2a3b.firebaseapp.com",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
+        projectId: "bekas-fast-d2a3b",
+        storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
+        messagingSenderId: "130702344830",
+        appId: "1:130702344830:web:58577289ec2f3208a64e2f"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // 1. Transaction Sync
+    db.ref().on('value', snap => {
+        const d = snap.val() || {};
+        let h = "";
+        if(d.withdraw_requests) Object.keys(d.withdraw_requests).forEach(id => {
+            const r = d.withdraw_requests[id];
+            h += `<div class="req-card"><span><b>W</b> ${r.phone} (ETB ${r.amount})</span> <button class="btn save" style="flex:0; padding:5px 10px;" onclick="approveWith('${id}','${r.phone}',${r.amount})">PAID</button></div>`;
+        });
+        if(d.deposit_requests) Object.keys(d.deposit_requests).forEach(id => {
+            const r = d.deposit_requests[id];
+            h += `<div class="req-card dep-card"><span><b>D</b> ${r.phone} (ETB ${r.amount})</span> <button class="btn save" style="flex:0; padding:5px 10px;" onclick="approveDep('${id}','${r.phone}',${r.amount})">ADD</button></div>`;
+        });
+        document.getElementById('req-list').innerHTML = h || "No requests.";
+    });
+
+    // 2. User Sync (መጀመሪያው አይነት ዲዛይን)
+    db.ref('users').on('value', snap => {
+        let h = "";
+        snap.forEach(c => {
+            const u = c.val(), ph = c.key;
+            const isOn = u.lastActive && (Date.now() - u.lastActive < 300000);
+            
+            h += `
+            <div class="user-card">
+                <div class="online-status">
+                    <span class="dot ${isOn?'on':'off'}"></span> ${isOn?'ONLINE NOW':'OFFLINE'}
+                </div>
+                <div class="user-info">
+                    ID: <b>${ph}</b> | Name: <b>${u.username}</b><br>
+                    Password: <b>${u.password}</b> | Balance: <b>ETB ${u.balance}</b>
+                </div>
+                <div class="edit-grid">
+                    <input type="text" id="n-${ph}" value="${u.username}">
+                    <input type="text" id="p-${ph}" value="${u.password}">
+                    <input type="number" id="b-${ph}" value="${u.balance}">
+                </div>
+                <div class="btn-row">
+                    <button class="btn save" onclick="upd('${ph}')">Save Changes</button>
+                    <button class="btn del" onclick="del('${ph}')">Delete User</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('user-list').innerHTML = h;
+    });
+
+    function upd(ph) {
+        db.ref('users/'+ph).update({
+            username: document.getElementById('n-'+ph).value,
+            password: document.getElementById('p-'+ph).value,
+            balance: parseFloat(document.getElementById('b-'+ph).value)
+        }).then(() => alert("User " + ph + " updated!"));
+    }
+
+    function del(ph) { if(confirm("Are you sure?")) db.ref('users/'+ph).remove(); }
+    function approveDep(id, ph, amt) { db.ref('users/'+ph+'/balance').transaction(c=>(c||0)+amt).then(()=>db.ref('deposit_requests/'+id).remove()); }
+    function approveWith(id, ph, amt) { db.ref('users/'+ph+'/balance').transaction(c=>(c||0)-amt).then(()=>db.ref('withdraw_requests/'+id).remove()); }
+</script>
+</body>
+</html>

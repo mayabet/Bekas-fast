@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ቤካስ ፈጣን - Sporty Grid</title>
+    <style>
+        body { background: #1a1a1a; font-family: sans-serif; display: flex; justify-content: center; margin: 0; }
+        .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; }
+        .top-banner { background: #ffcc00; padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #000; }
+        .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
+        .title { font-weight: 900; font-size: 20px; color: #000; }
+        .content { padding: 12px; flex-grow: 1; }
+        .live-info { background: #002d4b; color: #fff; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; display: flex; justify-content: space-between; font-weight: bold; }
+        .user-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; border: 2px solid #000; border-radius: 8px; }
+        .greet { color: #00b050; font-weight: 900; font-size: 16px; text-transform: uppercase; }
+        .bal { font-weight: 900; font-size: 18px; color: #002d4b; }
+        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .q-btn { padding: 10px; border: none; color: white; font-weight: bold; border-radius: 4px; text-align: center; text-decoration: none; }
+        .q-dep { background: #c00000; }
+        .q-with { background: #00b050; }
+        .sport-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        .sport-table th { background: #f0f0f0; color: #333; font-size: 14px; padding: 8px; border: 1px solid #ddd; font-weight: 900; }
+        .sport-table td { border: 1px solid #ddd; padding: 10px 5px; text-align: center; }
+        .amt-v { font-size: 18px; font-weight: 900; color: #002d4b; display: block; }
+        .sub-v { font-size: 13px; color: #000; font-weight: 900; }
+        .play-now { background: #00b050; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 13px; display: block; }
+        .coming-soon { background: #fffbe6; border-left: 5px solid #ffcc00; padding: 10px; color: #c00000; font-weight: bold; font-size: 13px; margin-bottom: 15px; }
+        .footer-nav { margin-top: auto; display: grid; gap: 8px; }
+        .f-link { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; border-radius: 4px; }
+        .l-info { background: #00b050; }
+        .l-out { background: #ff0000; }
+        .lang-bar { background: #f9f9f9; padding: 15px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; margin-top: 10px; border-top: 2px solid #000; }
+        .lang-btn { cursor: pointer; color: #002d4b; font-weight: 900; padding: 0 5px; }
+        .lang-btn.active { color: #00b050 !important; text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="app-card">
+    <div class="top-banner"><span class="title" id="title-text">BEKAS FAST</span><span class="plus18">+18</span></div>
+    <div class="content">
+        <div class="live-info"><span id="date-label"></span><span id="time-label"></span></div>
+        <div class="user-section">
+            <div class="greet"><span id="hello-text">HELLO</span>, <span id="user-nick">USER</span></div>
+            <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency">ETB</small></div>
+        </div>
+        <div class="quick-actions">
+            <a href="diposit.html" class="q-btn q-dep" id="dep-btn">DEPOSIT</a>
+            <a href="diposit.html" class="q-btn q-with" id="with-btn">WITHDRAW</a>
+        </div>
+        <table class="sport-table">
+            <thead><tr><th id="th-class">CLASS</th><th id="th-qty">QTY</th><th id="th-reach">REACH</th><th id="th-play-head">PLAY</th></tr></thead>
+            <tbody>
+                <tr><td><span class="amt-v">10</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">10</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">80</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play1.html" class="play-now p-btn">PLAY</a></td></tr>
+                <tr><td><span class="amt-v">10</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">20</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">160</span><span class="sub-v birr-text">BIRR</span></td><td><a href="Play2.html" class="play-now p-btn">PLAY</a></td></tr>
+                <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">20</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">350</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play3.html" class="play-now p-btn">PLAY</a></td></tr>
+                <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">50</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">900</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play4.html" class="play-now p-btn">PLAY</a></td></tr>
+            </tbody>
+        </table>
+        <div class="coming-soon" id="extra-msg">“EXTRA PLAY OPTION ARE COMING SOON, REACHING UP TO 20,000 BIRR.”</div>
+        <div class="footer-nav"><a href="info.html" class="f-link l-info" id="info-btn">INFORMATION AND RULE</a><a href="login.html" class="f-link l-out" id="out-btn">SIGN OUT</a></div>
+    </div>
+    <div class="lang-bar"><span id="lang-label">LANGUAGE</span><div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div></div>
+</div>
+<script>
+    let currentLang = 'en';
+    function getBalance() { return parseFloat(localStorage.getItem('userBalance')) || 100.00; }
+    function updateBalanceDisplay() { document.getElementById('user-balance').innerText = getBalance().toFixed(2); }
+    function updateClock() {
+        const now = new Date();
+        const monthsEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+        const monthsAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
+        const month = currentLang === 'am' ? monthsAM[now.getMonth()] : monthsEN[now.getMonth()];
+        let hours = now.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
+        const timeStr = hours.toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0') + ampm;
+        document.getElementById('date-label').innerText = (currentLang === 'am' ? "ቀን: " : "") + month + ", " + now.getDate() + ", " + now.getFullYear();
+        document.getElementById('time-label').innerText = (currentLang === 'am' ? "ሰዓት: " : "") + timeStr;
+    }
+    function setLang(l) {
+        currentLang = l;
+        const s = {
+            'am': { 'title': 'ቤካስ ፈጣን', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'extra': '“ተጨማሪ የጨዋታ አማራጮች በቅርቡ ይጠብቁ፣ እስከ 20,000 ብር የሚያሸልሙ።”', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'en': { 'title': 'BEKAS FAST', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'extra': '“EXTRA PLAY OPTION ARE COMING SOON, REACHING UP TO 20,000 BIRR.”', 'info': 'INFORMATION AND RULE', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'PEOPLE', 'birr': 'BIRR' }
+        }[l];
+        document.getElementById('title-text').innerText = s.title; document.getElementById('hello-text').innerText = s.hello;
+        document.getElementById('dep-btn').innerText = s.dep; document.getElementById('with-btn').innerText = s.with;
+        document.getElementById('th-class').innerText = s.class; document.getElementById('th-qty').innerText = s.qty;
+        document.getElementById('th-reach').innerText = s.reach; document.getElementById('th-play-head').innerText = s.playhead;
+        document.getElementById('extra-msg').innerText = s.extra; document.getElementById('info-btn').innerText = s.info;
+        document.getElementById('out-btn').innerText = s.out; document.getElementById('lang-label').innerText = s.lang;
+        document.getElementById('bal-currency').innerText = s.birr;
+        document.querySelectorAll('.p-btn').forEach(b => b.innerText = s.play);
+        document.querySelectorAll('.p-text').forEach(t => t.innerText = s.people);
+        document.querySelectorAll('.birr-text').forEach(t => t.innerText = s.birr);
+        document.getElementById('lang-am').classList.toggle('active', l === 'am');
+        document.getElementById('lang-en').classList.toggle('active', l === 'en');
+        updateClock();
+    }
+    setInterval(updateClock, 1000); updateClock(); updateBalanceDisplay();
+</script>
+</body>
+</html>

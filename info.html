@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BEKAS FAST - Rules</title>
+    <style>
+        body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 10px 0; }
+        .card { width: 92%; max-width: 380px; background: white; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; display: flex; flex-direction: column; }
+        .yellow-bar { background: #ffcc00; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 18px; }
+        .plus18 { color: red; font-size: 24px; font-weight: bold; }
+        .header-line { height: 2px; background: #000; width: 100%; }
+        
+        .content { padding: 10px 20px; overflow-y: auto; max-height: 40vh; text-align: left; background: #fff; }
+        .rule-item { margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .rule-number { color: #00b050; font-weight: bold; font-size: 17px; margin-right: 5px; }
+        .rule-text { font-weight: bold; color: #002d4b; font-size: 14px; line-height: 1.4; }
+        .highlight-red { color: #ff0000; font-size: 16px; font-weight: bold; }
+
+        /* አይኮን የሌለው የመገናኛ መረጃ ዲዛይን */
+        .contact-section { background: #f9f9f9; padding: 15px; border-top: 2px solid #000; border-bottom: 2px solid #000; }
+        .contact-header { color: #00b050; font-weight: bold; font-size: 16px; margin-bottom: 12px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+        .contact-detail { margin-bottom: 8px; font-weight: 900; font-size: 15px; color: #002d4b; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+        
+        .btn-container { padding: 10px 20px; background: #fff; }
+        .back-btn { width: 100%; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; background: #001f3f; color: white; }
+        
+        .footer { padding: 8px 15px; display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; background: #fff; }
+        .lang-btn { cursor: pointer; color: #002d4b; padding: 0 5px; }
+        
+        .content::-webkit-scrollbar { width: 5px; }
+        .content::-webkit-scrollbar-thumb { background: #00b050; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="yellow-bar">
+        <span id="top-title">RULES & INFO</span>
+        <span class="plus18">+18</span>
+    </div>
+    <div class="header-line"></div>
+
+    <div class="content" id="rules-container"></div>
+
+    <div class="contact-section">
+        <div class="contact-header" id="contact-title-text">CONTACT INFORMATION</div>
+        
+        <div class="contact-detail">
+            <span>PHONE 1:</span>
+            <span class="highlight-red">+251978272061</span>
+        </div>
+        
+        <div class="contact-detail">
+            <span>PHONE 2:</span>
+            <span class="highlight-red">+251972652185</span>
+        </div>
+        
+        <div class="contact-detail">
+            <span>FACEBOOK:</span>
+            <span style="color: #1877F2;">bekas0978</span>
+        </div>
+        
+        <div class="contact-detail">
+            <span>TELEGRAM:</span>
+            <span style="color: #0088cc;">@bkas0978</span>
+        </div>
+        
+        <div class="contact-detail">
+            <span>SMS:</span>
+            <span style="color: #00b050;">+251953426855</span>
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <button class="back-btn" id="back-btn-text" onclick="window.history.back()">BACK</button>
+    </div>
+
+    <div class="footer">
+        <div id="l-text">LANGUAGE</div>
+        <div>
+            <span class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
+            <span class="lang-btn" onclick="setLang('en')">ENGLISH</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentLang = 'en';
+
+    function getRules(l) {
+        if(l === 'am') {
+            return [
+                "የቴሌብር መቀበያ ቁጥራችን <span class='highlight-red'>+251978272061</span> ነው፤ ገንዘብ ሲልኩ የትራንዛክሽን ኮዱን ማስገባትዎን አይርሱ።",
+                "ከ 10 ብር በታች መወራረድ በጥብቅ የተከለከለ ነው።",
+                "ማንኛውም የማጭበርበር ተግባር አካውንትዎ ለዘላለም እንዲታገድ ያደርጋል።",
+                "ማንኛውም ውርርድ ጨዋታው ከመጀመሩ በፊት መደረግ አለበት።",
+                "የአሸናፊነት ክፍያ በጥያቄዎ መሰረት ክፍያው ይፈጸማል።",
+                "ከአንድ በላይ አካውንት መጠቀም በጥብቅ የተከለከለ ነው።",
+                "ጨዋታው ተሰርዞ ወይም ተቀይሮ ከ48 ሰዓት በላይ ከቆየ ውርርዱ ይሰረዛል።",
+                "በዚህ መጫወቻ ቦታ ላይ <span class='highlight-red'>ለአንድ ጨዋታ</span> የሚከፈለው ከፍተኛው ክፍያ 20,000 ብር ነው።",
+                "ተወራራሾች እድሜያቸው 18 ዓመት እና ከዚያ በላይ መሆን አለበት።"
+            ];
+        } else {
+            return [
+                "Our Telebirr number is <span class='highlight-red'>+251978272061</span>. Please enter the transaction code after sending money.",
+                "Minimum bet amount is 10 ETB per ticket.",
+                "Any fraudulent activity will lead to permanent account suspension.",
+                "Tickets must be placed before the match starts.",
+                "Payment of winnings will be made according to your request.",
+                "Duplicate accounts are strictly prohibited.",
+                "Matches cancelled or postponed for more than 48 hours will be void.",
+                "The maximum payout <span class='highlight-red'>per game</span> in this playground is 20,000 ETB.",
+                "Maximum payout for a single ticket is 500,000 ETB.",
+                "All users must be 18 years or older to play."
+            ];
+        }
+    }
+
+    function displayRules() {
+        const container = document.getElementById('rules-container');
+        container.innerHTML = '';
+        const rules = getRules(currentLang);
+        rules.forEach((rule, index) => {
+            const div = document.createElement('div');
+            div.className = 'rule-item';
+            div.innerHTML = `<span class="rule-number">${index + 1}.</span><span class="rule-text">${rule}</span>`;
+            container.appendChild(div);
+        });
+    }
+
+    function setLang(l) {
+        currentLang = l;
+        document.getElementById('top-title').innerText = l === 'am' ? 'ህጎች እና መመሪያዎች' : 'RULES & INFO';
+        document.getElementById('contact-title-text').innerText = l === 'am' ? 'ተጨማሪ መረጃዎች' : 'CONTACT INFORMATION';
+        document.getElementById('back-btn-text').innerText = l === 'am' ? 'ተመለስ' : 'BACK';
+        document.getElementById('l-text').innerText = l === 'am' ? 'ቋንቋ' : 'LANGUAGE';
+        displayRules();
+    }
+
+    displayRules();
+</script>
+
+</body>
+</html>
