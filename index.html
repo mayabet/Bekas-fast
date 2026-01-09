@@ -82,7 +82,6 @@
 </div>
 
 <script>
-    // 1. Firebase መረጃ
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -93,13 +92,10 @@
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const onlineRef = database.ref('online_users_count');
 
-    // 2. ሰዓት እና ቋንቋ ሎጂክ
     let currentLang = 'en';
     let globalOnlineCount = 0;
 
@@ -130,12 +126,9 @@
         document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
         document.getElementById('pass-input').placeholder = (l === 'am') ? "የይለፍ ቃል" : "PASSWORD";
         document.getElementById('lost-btn').innerText = (l === 'am') ? "ጠፋ" : "LOST";
-        
         updateOnlineDisplay();
-
         document.getElementById('lang-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
-        updateClock();
     }
 
     function updateOnlineDisplay() {
@@ -160,7 +153,6 @@
         updateOnlineDisplay();
     });
 
-    // --- የlogin ሂደቱን ያስተካከልኩት እዚህ ጋ ነው ---
     function handleLogin() {
         const phone = document.getElementById('p-input').value;
         const pass = document.getElementById('pass-input').value;
@@ -172,15 +164,12 @@
             return;
         }
 
-        // ዳታቤዝ ውስጥ ተጠቃሚውን መፈለግ
         database.ref('users/' + phone).once('value').then((snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
                 if (userData.password === pass) {
-                    // መረጃው ልክ ከሆነ ወደ index.html ይሄዳል
-                    // ለወደፊቱ አጠቃቀም ስልኩን በlocalStorage ማስቀመጥ ይቻላል
                     localStorage.setItem('loggedInUser', phone);
-                    window.location.href = "index.html";
+                    window.location.href = "home.html"; // ወደ አዲሱ home.html እንዲሄድ
                 } else {
                     errorMsg.innerText = currentLang === 'am' ? "የይለፍ ቃል ተሳስቷል" : "WRONG PASSWORD";
                     setTimeout(() => { errorMsg.innerText = ""; }, 3000);
@@ -189,8 +178,6 @@
                 errorMsg.innerText = currentLang === 'am' ? "ተጠቃሚው አልተገኘም" : "USER NOT FOUND";
                 setTimeout(() => { errorMsg.innerText = ""; }, 3000);
             }
-        }).catch((error) => {
-            errorMsg.innerText = "Error: " + error.message;
         });
     }
 </script>
