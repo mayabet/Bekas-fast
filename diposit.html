@@ -3,177 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mita Betting - Deposit & Withdraw</title>
+    <title>Bekas Fast - Deposit & Withdraw</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .card { width: 95%; max-width: 360px; height: 98vh; background: white; border: 3px solid #000; display: flex; flex-direction: column; box-sizing: border-box; }
-        
+        body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
+        .card { width: 95%; max-width: 360px; height: 96vh; background: white; border: 3px solid #000; display: flex; flex-direction: column; box-sizing: border-box; }
         .yellow-bar { background: #ffcc00; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; border-bottom: 3px solid #000; flex-shrink: 0; }
-        .plus18 { color: red; font-size: 26px; font-weight: bold; }
-
-        .content { padding: 8px 15px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        
+        .plus18 { color: red; font-size: 24px; font-weight: 900; }
+        .content { padding: 10px 15px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
         .dt-section { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; flex-shrink: 0; }
-        .dt-row { font-weight: 900; font-size: 15px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
-
-        .balance-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 2px solid #000; margin-bottom: 8px; flex-shrink: 0; }
-        .bal-label { font-size: 19px; font-weight: 900; color: #000; }
-
-        .tele-box { background: #002d4b; color: white; text-align: center; border: 2px solid #000; margin-bottom: 8px; flex-shrink: 0; }
-        .tele-head { font-size: 14px; padding: 4px; border-bottom: 1.5px solid white; font-weight: 900; }
-        .tele-num { font-size: 26px; font-weight: 900; padding: 6px; color: #ffcc00; display: block; }
-
-        #error-msg { color: red; font-size: 14px; font-weight: 900; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
-
-        .section-label { color: #00b050; font-weight: 900; font-size: 15px; text-transform: uppercase; margin-bottom: 4px; }
+        .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
+        .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
+        .tele-box { background: #f9f9f9; border: 2.5px dashed #00b050; padding: 6px; text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+        .tele-num { font-size: 24px; color: #c00000; font-weight: 900; display: block; }
+        .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
+        #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
         
-        .input-full { width: 100%; box-sizing: border-box; padding: 10px; border: 2.5px solid #00b050; font-size: 18px; font-weight: 900; outline: none; margin-bottom: 8px; height: 42px; }
+        /* እዚህ ጋር ነው ጽሁፎቹን ጎልተው እንዲታዩ ያደረግኳቸው */
+        .input-group { margin-bottom: 10px; flex-shrink: 0; }
+        .label-text { color: #000; font-weight: 900; font-size: 13px; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 42px; box-sizing: border-box; }
+        input { border: none; outline: none; width: 100%; font-size: 18px; font-weight: 900; background: transparent; color: #002d4b; }
         
-        .flex-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-        .amt-input { width: 100px; padding: 8px; border: 2.5px solid #00b050; font-size: 18px; font-weight: 900; text-align: center; height: 42px; box-sizing: border-box; }
-        
-        .btn { flex: 1; border: 2px solid #000; color: white; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; }
-        .dep-btn { background: #c00000; }
-        .with-btn { background: #00b050; }
-
-        .instr-text { font-size: 13px; font-weight: 900; color: #000; line-height: 1.2; border: 1px solid #000; padding: 6px; background: #fffbe6; text-align: center; margin-bottom: 8px; }
-
-        .nav-section { margin-top: auto; padding-bottom: 5px; }
-        .nav-btn { width: 100%; padding: 10px; font-weight: 900; font-size: 17px; color: white; text-decoration: none; text-align: center; border: 2.5px solid #000; margin-bottom: 6px; display: block; text-transform: uppercase; box-sizing: border-box; }
+        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
+        .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .dep-btn { background: #ffcc00; color: #000; }
+        .with-btn { background: #c00000; }
         .info-btn { background: #00b050; }
         .back-btn { background: #002d4b; }
-
-        .footer { border-top: 2.5px solid #000; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
-        .lang-text { font-size: 15px; font-weight: 900; color: #000; }
+        .footer { border-top: 3px solid #000; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
         .lang-btn { cursor: pointer; font-size: 15px; font-weight: 900; color: #002d4b; }
         .active { color: #00b050 !important; }
     </style>
 </head>
 <body>
-
 <div class="card">
-    <div class="yellow-bar">
-        <span id="top-title">DEPOSIT AND WITHDRAW</span>
-        <span class="plus18">+18</span>
-    </div>
-
+    <div class="yellow-bar"><span id="top-title">DEPOSIT / WITHDRAW</span><span class="plus18">+18</span></div>
     <div class="content">
         <div class="dt-section">
-            <div id="date-label" class="dt-row">DATE: JAN 7, 2026</div>
+            <div id="date-label" class="dt-row">DATE: JAN 9, 2026</div>
             <div id="time-label" class="dt-row">TIME: 00:00:00</div>
         </div>
-
-        <div class="balance-row">
-            <span id="bal-text" class="bal-label">BALANCE</span>
-            <span id="current-bal" style="font-weight:900; font-size:20px;">00000 ETB</span>
-        </div>
-
+        <div class="branding"><h1>BEKAS FAST</h1></div>
         <div class="tele-box">
-            <div class="tele-head" id="tele-head">TELE BIRR ADDRESS</div>
-            <span class="tele-num">+251978272061</span>
+            <span style="font-size: 12px; font-weight: 900; color: #000;" id="tele-msg">SEND DEPOSIT TO:</span>
+            <span class="tele-num">+2510978272061</span>
+        </div>
+        <div id="bal-display" class="balance-box">BALANCE: 0.00 ETB</div>
+        <div id="msg-display"></div>
+
+        <div class="input-group">
+            <span class="label-text" id="tr-label">TRANSACTION CODE (DEPOSIT ONLY)</span>
+            <div class="input-box"><input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10"></div>
+        </div>
+        <div class="input-group">
+            <span class="label-text" id="am-label">AMOUNT (MAX 5 DIGITS)</span>
+            <div class="input-box"><input type="number" id="am-input" placeholder="00000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)"></div>
         </div>
 
-        <div id="error-msg"></div>
-
-        <div class="section-label" id="trans-label">TRANSACTION NUMBER</div>
-        <input type="text" 
-               class="input-full" 
-               id="trans-input" 
-               maxlength="10" 
-               oninput="this.value = this.value.replace(/[^A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':\\|,.<>\/?]/g, '').substring(0, 10);"
-               placeholder="">
-
-        <div class="section-label" id="amt-label-1">AMOUNT OF BIRR (MAX 5)</div>
-        <div class="flex-row">
-            <input type="number" class="amt-input" id="dep-amt" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
+        <div class="btn-group">
             <button class="btn dep-btn" id="dep-btn" onclick="handleDeposit()">DEPOSIT</button>
-        </div>
-
-        <div class="instr-text" id="instr">የትራንዛክሽን ኮድ እና የብር መጠን ያስገቡ።</div>
-
-        <div class="section-label" id="amt-label-2">WITHDRAW AMOUNT</div>
-        <div class="flex-row">
-            <input type="number" class="amt-input" id="with-amt" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
             <button class="btn with-btn" id="with-btn" onclick="handleWithdraw()">WITHDRAW</button>
-        </div>
-
-        <div class="nav-section">
-            <a href="info.html" class="nav-btn info-btn" id="info-btn">INFORMATION AND RULE</a>
-            <a href="index.html" class="nav-btn back-btn" id="back-btn">BACK</a>
+            <a href="info.html" class="btn info-btn" id="info-btn">INFO</a>
+            <a href="home.html" class="btn back-btn" id="back-btn">BACK TO HOME</a>
         </div>
     </div>
-
     <div class="footer">
-        <div id="l-text" class="lang-text">LANGUAGE</div>
-        <div class="lang-options">
-            <span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
-            <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span>
-        </div>
+        <span id="l-text" style="font-weight: 900; font-size: 14px;">LANG:</span>
+        <div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div>
     </div>
 </div>
 
 <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
+        authDomain: "bekas-fast-d2a3b.firebaseapp.com",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
+        projectId: "bekas-fast-d2a3b",
+        storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
+        messagingSenderId: "130702344830",
+        appId: "1:130702344830:web:58577289ec2f3208a64e2f"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
     let currentLang = 'en';
-    let balance = 0;
+    let userPhone = localStorage.getItem('userPhone') || "0900000000";
+    let currentBalance = 0;
 
     function updateClock() {
         const n = new Date();
-        const mEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        const tStr = n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
-        document.getElementById('date-label').innerText = (currentLang === 'am' ? "ቀን: " : "DATE: ") + (currentLang === 'am' ? mAM[n.getMonth()] : mEN[n.getMonth()]) + " " + n.getDate() + ", " + n.getFullYear();
-        document.getElementById('time-label').innerText = "TIME: " + tStr;
+        document.getElementById('time-label').innerText = "TIME: " + n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
     }
-    setInterval(updateClock, 1000); updateClock();
+    setInterval(updateClock, 1000);
+
+    database.ref('users/' + userPhone + '/balance').on('value', (snap) => {
+        currentBalance = snap.val() || 0;
+        document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+    });
+
+    function showMsg(txt, color) {
+        const d = document.getElementById('msg-display');
+        d.innerText = txt; d.style.color = color;
+        setTimeout(() => d.innerText = "", 3000);
+    }
+
+    function handleDeposit() {
+        const code = document.getElementById('tr-input').value;
+        const amount = document.getElementById('am-input').value;
+        if (code.length === 10 && amount > 0) {
+            database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: amount, status: "pending", time: new Date().toLocaleString() })
+            .then(() => { showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); document.getElementById('tr-input').value=""; document.getElementById('am-input').value=""; });
+        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ":"INCORRECT INFO", "red"); }
+    }
+
+    function handleWithdraw() {
+        const amount = document.getElementById('am-input').value;
+        const numAmount = parseFloat(amount);
+        if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 50) {
+            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
+            .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
+        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ":"INCORRECT INFO", "red"); }
+    }
 
     function setLang(l) {
         currentLang = l;
         const labels = {
-            'am': { 't': 'ማስገቢያ እና ማውጫ', 'b': 'ቀሪ ሂሳብ', 'th': 'የቴሌ ብር አድራሻ', 'tr': 'የትራንዛክሽን ቁጥር', 'am1': 'የብር መጠን (ቢበዛ 5)', 'db': 'አስገባ', 'wb': 'አውጣ', 'ib': 'መመሪያ እና ህጎች', 'bk': 'ተመለስ', 'lt': 'ቋንቋ', 'ins': 'የትራንዛክሽን ኮድ እና የብር መጠን ያስገቡ።' },
-            'en': { 't': 'DEPOSIT AND WITHDRAW', 'b': 'BALANCE', 'th': 'TELE BIRR ADDRESS', 'tr': 'TRANSACTION NUMBER', 'am1': 'AMOUNT OF BIRR (MAX 5)', 'db': 'DEPOSIT', 'wb': 'WITHDRAW', 'ib': 'INFORMATION AND RULE', 'bk': 'BACK', 'lt': 'LANGUAGE', 'ins': 'Enter transaction code and amount.' }
+            'am': { 't': 'ማስገቢያ / ማውጫ', 'tmsg': 'በዚህ ቁጥር ያስገቡ፦', 'tr': 'የግብይት መለያ (ለማስገቢያ)', 'am': 'የገንዘብ መጠን', 'dp': 'ገንዘብ አስገባ', 'wt': 'ገንዘብ አውጣ', 'if': 'መመሪያ', 'bk': 'ተመለስ' },
+            'en': { 't': 'DEPOSIT / WITHDRAW', 'tmsg': 'SEND DEPOSIT TO:', 'tr': 'TRANSACTION CODE (DEPOSIT ONLY)', 'am': 'AMOUNT (MAX 5 DIGITS)', 'dp': 'DEPOSIT', 'wt': 'WITHDRAW', 'if': 'INFO', 'bk': 'BACK TO HOME' }
         };
         const s = labels[l];
         document.getElementById('top-title').innerText = s.t;
-        document.getElementById('bal-text').innerText = s.b;
-        document.getElementById('tele-head').innerText = s.th;
-        document.getElementById('trans-label').innerText = s.tr;
-        document.getElementById('amt-label-1').innerText = s.am1;
-        document.getElementById('amt-label-2').innerText = s.am1;
-        document.getElementById('dep-btn').innerText = s.db;
-        document.getElementById('with-btn').innerText = s.wb;
-        document.getElementById('info-btn').innerText = s.ib;
+        document.getElementById('tele-msg').innerText = s.tmsg;
+        document.getElementById('tr-label').innerText = s.tr;
+        document.getElementById('am-label').innerText = s.am;
+        document.getElementById('dep-btn').innerText = s.dp;
+        document.getElementById('with-btn').innerText = s.wt;
+        document.getElementById('info-btn').innerText = s.if;
         document.getElementById('back-btn').innerText = s.bk;
-        document.getElementById('l-text').innerText = s.lt;
-        document.getElementById('instr').innerText = s.ins;
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
-        updateClock();
-    }
-
-    function handleDeposit() {
-        const trans = document.getElementById('trans-input').value;
-        const amt = document.getElementById('dep-amt').value;
-        const err = document.getElementById('error-msg');
-        
-        // Validation: Must be exactly 10 characters long
-        if (trans.trim().length !== 10 || amt === "") {
-            err.style.color = "red";
-            err.innerText = currentLang === 'am' ? "የተሳሳተ መረጃ" : "INCORRECT INFORMATION";
-            setTimeout(() => err.innerText = "", 3000);
-        } else {
-            err.style.color = "#002d4b";
-            err.innerText = currentLang === 'am' ? "በሂደት ላይ ነው..." : "PROCESSING...";
-        }
-    }
-
-    function handleWithdraw() {
-        const amt = document.getElementById('with-amt').value;
-        const err = document.getElementById('error-msg');
-        if (amt === "" || parseFloat(amt) > balance) {
-            err.style.color = "red";
-            err.innerText = currentLang === 'am' ? "ያሎት ቀሪ ሂሳብ አይበቃም" : "INSUFFICIENT BALANCE";
-            setTimeout(() => err.innerText = "", 3000);
-        }
     }
 </script>
 </body>
