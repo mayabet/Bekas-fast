@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BEKAS FAST - Register</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
     <style>
         body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
         .card { width: 90%; max-width: 330px; background: white; border-radius: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.2); overflow: hidden; border: 2.5px solid #000; }
@@ -11,66 +14,50 @@
         .content { padding: 12px 18px; }
         .dt-section { border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 12px; }
         .dt-row { font-weight: 900; font-size: 16px; color: #001f3f; margin-bottom: 2px; text-transform: uppercase; }
-        .branding h1 { color: #00b050; text-align: center; margin: 8px 0 2px 0; font-size: 38px; font-weight: 900; letter-spacing: -1px; }
-        .motto-plain { text-align: center; color: #000; font-size: 15px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
-        .input-row { margin-bottom: 12px; }
-        .input-box { border: 3.5px solid #00b050; border-radius: 0; padding: 12px 10px; display: flex; align-items: center; background: #fff; height: 25px; }
-        input { border: none; outline: none; width: 100%; font-size: 19px; font-weight: 900; color: #000; }
-        #error-msg { color: red; font-size: 13px; font-weight: 900; text-align: center; min-height: 18px; margin-bottom: 8px; text-transform: uppercase; }
-        .btn { width: 100%; padding: 12px; border-radius: 0; border: 2.5px solid #000; font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 16px; text-transform: uppercase; }
+        .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 36px; font-weight: 900; }
+        .motto { text-align: center; color: #002d4b; font-size: 13px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
+        .input-box { border: 2px solid #00b050; border-radius: 5px; padding: 8px 10px; margin-bottom: 10px; display: flex; align-items: center; background: #fff; }
+        input { border: none; outline: none; width: 100%; font-size: 18px; font-weight: 900; color: #333; }
+        #error-msg { color: red; font-size: 13px; font-weight: 900; text-align: center; margin-bottom: 8px; min-height: 16px; text-transform: uppercase; }
+        .btn { width: 100%; padding: 12px; border: none; font-weight: 900; cursor: pointer; margin-bottom: 8px; font-size: 18px; text-transform: uppercase; }
         .register-btn { background: #00b050; color: white; }
-        .back-btn { background: #001f3f; color: white; }
-        .footer { border-top: 3px solid #000; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; }
-        .lang-text { font-size: 16px; font-weight: 900; color: #000; }
-        .lang-options { font-size: 16px; font-weight: 900; color: #001f3f; }
-        .lang-btn { cursor: pointer; text-decoration: none; padding: 2px 4px; color: #001f3f; }
-        .lang-btn.active { color: #00b050 !important; font-weight: 900; }
+        .login-link { background: #001f3f; color: white; }
+        .footer { border-top: 1.5px solid #000; padding: 10px 15px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 900; background: #fff; }
+        .lang-btn { cursor: pointer; color: #002d4b; }
+        .lang-btn.active { color: #00b050; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="yellow-bar"><span id="new-tag">NEW</span><span style="color:red; font-size:26px">+18</span></div>
+    <div class="yellow-bar"><span>NEW</span><span style="color:red; font-size:24px">+18</span></div>
     <div class="content">
         <div class="dt-section">
-            <div id="date-label" class="dt-row">DATE: JAN 9, 2026</div>
-            <div id="time-label" class="dt-row">TIME: 02:22:00 AM</div>
+            <div class="dt-row" id="date-label">DATE: ...</div>
+            <div class="dt-row" id="time-label">TIME: 00:00:00</div>
         </div>
-        <div class="branding"><h1 id="b-name">BEKAS FAST</h1></div>
-        <div id="play-resp" class="motto-plain">PLAY RESPONSIBLY!</div>
-        
+        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
+        <div class="motto" id="motto">CREATE YOUR ACCOUNT NOW!</div>
         <div id="error-msg"></div>
-
-        <div class="input-row">
-            <div class="input-box">
-                <input type="text" id="name-input" placeholder="NAME" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
-            </div>
+        <div class="input-box">
+            <input type="text" id="name-input" placeholder="FULL NAME (MAX 10)" maxlength="10">
         </div>
-        <div class="input-row">
-            <div class="input-box">
-                <b style="font-size: 18px; margin-right: 5px;">+251</b>
-                <input type="number" id="p-input" placeholder="9..." oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
-            </div>
+        <div class="input-box">
+            <img src="https://flagcdn.com/w40/et.png" width="22" style="margin-right:8px;">
+            <b style="font-size: 18px; margin-right: 5px;">+251</b>
+            <input type="number" id="p-input" placeholder="09..." oninput="if(this.value.length>10)this.value=this.value.slice(0,10)">
         </div>
-        <div class="input-row">
-            <div class="input-box">
-                <input type="number" id="pass-input" placeholder="PASSWORD" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
-            </div>
+        <div class="input-box">
+            <input type="password" id="pass-input" placeholder="PASSWORD (5 DIGITS)" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)">
         </div>
-        <button class="btn register-btn" id="r-btn" onclick="handleRegister()">REGISTER</button>
-        <button class="btn back-btn" id="back-link" onclick="location.href='login.html'">BACK</button>
+        <button class="btn register-btn" id="reg-btn" onclick="handleRegister()">REGISTER</button>
+        <button class="btn login-link" id="back-btn" onclick="location.href='index.html'">BACK TO LOGIN</button>
     </div>
     <div class="footer">
-        <div id="l-text" class="lang-text">LANGUAGE</div>
-        <div class="lang-options">
-            <span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
-            <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span>
-        </div>
+        <div id="l-text">LANGUAGE</div>
+        <div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div>
     </div>
 </div>
-
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -83,55 +70,26 @@
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
     let currentLang = 'en';
 
-    function updateClock() { 
-        const n = new Date(); 
-        const mEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        let h = n.getHours(); const ampm = h >= 12 ? ' PM' : ' AM'; h = h % 12 || 12;
-        const tStr = h + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
-        if(currentLang === 'am') { document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear(); }
-        else { document.getElementById('date-label').innerText = "DATE: " + mEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear(); }
-        document.getElementById('time-label').innerText = "TIME: " + tStr;
-    }
-    setInterval(updateClock, 1000); updateClock();
-
-    function setLang(l) {
-        currentLang = l;
-        document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
-        document.getElementById('b-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
-        document.getElementById('play-resp').innerText = (l === 'am') ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
-        document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
-        document.getElementById('r-btn').innerText = (l === 'am') ? "ተመዝገብ" : "REGISTER";
-        document.getElementById('back-link').innerText = (l === 'am') ? "ተመለስ" : "BACK";
-        document.getElementById('lang-am').classList.toggle('active', l === 'am');
-        document.getElementById('lang-en').classList.toggle('active', l === 'en');
-        updateClock(); 
-    }
-
     function handleRegister() {
-        const name = document.getElementById('name-input').value;
-        const phone = document.getElementById('p-input').value;
-        const pass = document.getElementById('pass-input').value;
+        const name = document.getElementById('name-input').value.trim();
+        const phone = document.getElementById('p-input').value.trim();
+        const pass = document.getElementById('pass-input').value.trim();
         const errorDiv = document.getElementById('error-msg');
-        
-        const errorTxt = (currentLang === 'am') ? "የተሳሳተ መረጃ" : "INCORRECT INFORMATION";
-        const successTxt = (currentLang === 'am') ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "REGISTERED SUCCESSFULLY!";
 
-        const showError = () => {
-            errorDiv.innerText = errorTxt;
-            setTimeout(() => { errorDiv.innerText = ""; }, 3000);
-        };
+        if (!name || name.length > 10 || phone.length < 9 || pass.length !== 5) {
+            errorDiv.innerText = (currentLang === 'am') ? "መረጃው አልተሟላም" : "INCOMPLETE DATA";
+            return;
+        }
 
-        if (name.trim() === "" || name.length > 10) { showError(); return; }
-        const isValidPhone = (phone.startsWith('09') && phone.length === 10) || (phone.startsWith('9') && phone.length === 9);
-        if (!isValidPhone) { showError(); return; }
-        if (pass.length !== 5) { showError(); return; }
+        errorDiv.style.color = "blue";
+        errorDiv.innerText = (currentLang === 'am') ? "በመመዝገብ ላይ..." : "REGISTERING...";
 
+        // ተጠቃሚውን መመዝገብ
         database.ref('users/' + phone).set({
             username: name,
             password: pass,
@@ -139,11 +97,29 @@
             status: "active",
             joinedDate: new Date().toISOString()
         }).then(() => {
-            alert(successTxt);
-            window.location.href = "login.html";
-        }).catch((error) => {
-            errorDiv.innerText = error.message;
+            alert(currentLang === 'am' ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "SUCCESSFULLY REGISTERED!");
+            window.location.href = "index.html"; 
+        }).catch((err) => {
+            errorDiv.style.color = "red";
+            errorDiv.innerText = "Error: " + err.message;
         });
+    }
+
+    function updateClock() {
+        const n = new Date();
+        const mEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const timeStr = n.getHours().toString().padStart(2,'0') + ":" + n.getMinutes().toString().padStart(2,'0') + ":" + n.getSeconds().toString().padStart(2,'0');
+        document.getElementById('date-label').innerText = (currentLang==='am'?"ቀን: ":"DATE: ") + mEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
+        document.getElementById('time-label').innerText = (currentLang==='am'?"ሰዓት: ":"TIME: ") + timeStr;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    function setLang(l) {
+        currentLang = l;
+        document.getElementById('brand-name').innerText = l==='am'?"ቤካስ ፈጣን":"BEKAS FAST";
+        document.getElementById('reg-btn').innerText = l==='am'?"ተመዝገብ":"REGISTER";
+        document.getElementById('lang-am').className = l==='am'?'lang-btn active':'lang-btn';
+        document.getElementById('lang-en').className = l==='en'?'lang-btn active':'lang-btn';
     }
 </script>
 </body>
