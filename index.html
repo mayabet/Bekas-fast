@@ -82,7 +82,7 @@
 </div>
 
 <script>
-    // 1. Firebase መረጃ (አንድ ጊዜ ብቻ)
+    // 1. Firebase መረጃ
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -122,7 +122,6 @@
 
     function setLang(l) {
         currentLang = l;
-        // ስሙን እዚህ ጋር ይቀይረዋል
         document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
         document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
         document.getElementById('motto').innerText = (l === 'am') ? "ሁልጊዜም የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!" : "WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!";
@@ -132,14 +131,13 @@
         document.getElementById('pass-input').placeholder = (l === 'am') ? "የይለፍ ቃል" : "PASSWORD";
         document.getElementById('lost-btn').innerText = (l === 'am') ? "ጠፋ" : "LOST";
         
-        updateOnlineDisplay(); // ቆጣሪውን በቋንቋው መሰረት ያድሳል
+        updateOnlineDisplay();
 
         document.getElementById('lang-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
         updateClock();
     }
 
-    // 3. ቆጣሪውን የሚያሳይ ፈንክሽን
     function updateOnlineDisplay() {
         const onlineArea = document.getElementById('online-area');
         if (onlineArea) {
@@ -149,7 +147,6 @@
         }
     }
 
-    // Firebase ቆጠራ ትእዛዝ
     database.ref('.info/connected').on('value', (snap) => {
         if (snap.val() === true) {
             onlineRef.transaction(c => (c || 0) + 1);
@@ -163,13 +160,38 @@
         updateOnlineDisplay();
     });
 
+    // --- የlogin ሂደቱን ያስተካከልኩት እዚህ ጋ ነው ---
     function handleLogin() {
         const phone = document.getElementById('p-input').value;
         const pass = document.getElementById('pass-input').value;
+        const errorMsg = document.getElementById('error-msg');
+
         if (phone.length < 9 || pass.length !== 5) {
-            document.getElementById('error-msg').innerText = currentLang === 'am' ? "የተሳሳተ መረጃ" : "INCORRECT INFORMATION";
-            setTimeout(() => { document.getElementById('error-msg').innerText = ""; }, 3000);
-        } else { window.location.href = "index.html"; }
+            errorMsg.innerText = currentLang === 'am' ? "የተሳሳተ መረጃ" : "INCORRECT INFORMATION";
+            setTimeout(() => { errorMsg.innerText = ""; }, 3000);
+            return;
+        }
+
+        // ዳታቤዝ ውስጥ ተጠቃሚውን መፈለግ
+        database.ref('users/' + phone).once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.password === pass) {
+                    // መረጃው ልክ ከሆነ ወደ index.html ይሄዳል
+                    // ለወደፊቱ አጠቃቀም ስልኩን በlocalStorage ማስቀመጥ ይቻላል
+                    localStorage.setItem('loggedInUser', phone);
+                    window.location.href = "index.html";
+                } else {
+                    errorMsg.innerText = currentLang === 'am' ? "የይለፍ ቃል ተሳስቷል" : "WRONG PASSWORD";
+                    setTimeout(() => { errorMsg.innerText = ""; }, 3000);
+                }
+            } else {
+                errorMsg.innerText = currentLang === 'am' ? "ተጠቃሚው አልተገኘም" : "USER NOT FOUND";
+                setTimeout(() => { errorMsg.innerText = ""; }, 3000);
+            }
+        }).catch((error) => {
+            errorMsg.innerText = "Error: " + error.message;
+        });
     }
 </script>
 </body>
