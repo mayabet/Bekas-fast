@@ -29,9 +29,9 @@
         .play-now { background: #00b050; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 13px; display: block; }
         .coming-soon { background: #fffbe6; border-left: 5px solid #ffcc00; padding: 10px; color: #c00000; font-weight: bold; font-size: 13px; margin-bottom: 15px; }
         .footer-nav { margin-top: auto; display: grid; gap: 8px; }
-        .f-link { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; border-radius: 4px; cursor: pointer; border: none; display: block; width: 100%; box-sizing: border-box; }
+        .f-link { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; border-radius: 4px; cursor: pointer; border: none; font-size: 16px; display: block; }
         .l-info { background: #00b050; }
-        .l-out { background: #ff0000; }
+        .l-out { background: #ff0000; width: 100%; }
         .lang-bar { background: #f9f9f9; padding: 15px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; margin-top: 10px; border-top: 2px solid #000; }
         .lang-btn { cursor: pointer; color: #002d4b; font-weight: 900; padding: 0 5px; }
         .lang-btn.active { color: #00b050 !important; text-decoration: underline; }
@@ -59,7 +59,7 @@
                 <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">50</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">900</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play4.html" class="play-now p-btn">PLAY</a></td></tr>
             </tbody>
         </table>
-        <div class="coming-soon" id="extra-msg">“EXTRA PLAY OPTION ARE COMING SOON.”</div>
+        <div class="coming-soon" id="extra-msg">“EXTRA PLAY OPTION ARE COMING SOON, REACHING UP TO 20,000 BIRR.”</div>
         <div class="footer-nav">
             <a href="info.html" class="f-link l-info" id="info-btn">INFORMATION AND RULE</a>
             <button onclick="handleLogout()" class="f-link l-out" id="out-btn">SIGN OUT</button>
@@ -94,13 +94,10 @@
         });
     }
 
-    // መውጫ ተግባር (Logout Function)
+    // SIGN OUT ተግባር (ያስተካክላል)
     function handleLogout() {
-        // መረጃውን ያጠፋል
-        localStorage.removeItem('userPhone');
-        localStorage.clear();
-        // በቀጥታ ወደ Index.html ይወስደዋል
-        window.location.replace("Index.html");
+        localStorage.removeItem('userPhone'); // የተቀመጠውን ዳታ ያጠፋል
+        window.location.replace("Index.html"); // በቀጥታ ወደ Index ይመልሳል
     }
 
     let currentLang = 'en';
@@ -111,15 +108,15 @@
         const month = currentLang === 'am' ? monthsAM[now.getMonth()] : monthsEN[now.getMonth()];
         let hours = now.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
         const timeStr = hours.toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0') + ampm;
-        document.getElementById('date-label').innerText = (currentLang === 'am' ? "ቀን: " : "") + month + ", " + now.getDate() + ", " + now.getFullYear();
-        document.getElementById('time-label').innerText = (currentLang === 'am' ? "ሰዓት: " : "") + timeStr;
+        document.getElementById('date-label').innerText = month + ", " + now.getDate() + ", " + now.getFullYear();
+        document.getElementById('time-label').innerText = timeStr;
     }
 
     function setLang(l) {
         currentLang = l;
         const s = {
-            'am': { 'title': 'ቤካስ ፈጣን', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'extra': '“ተጨማሪ አማራጮች በቅርቡ ይመጣሉ።”', 'info': 'መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'title': 'BEKAS FAST', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'extra': '“EXTRA OPTIONS COMING SOON.”', 'info': 'RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'PEOPLE', 'birr': 'BIRR' }
+            'am': { 'title': 'ቤካስ ፈጣን', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'extra': '“ተጨማሪ የጨዋታ አማራጮች በቅርቡ ይጠብቁ።”', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'en': { 'title': 'BEKAS FAST', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'extra': '“EXTRA PLAY OPTION ARE COMING SOON.”', 'info': 'INFORMATION AND RULE', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'PEOPLE', 'birr': 'BIRR' }
         }[l];
         document.getElementById('title-text').innerText = s.title; document.getElementById('hello-text').innerText = s.hello;
         document.getElementById('dep-btn').innerText = s.dep; document.getElementById('with-btn').innerText = s.with;
