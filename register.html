@@ -48,13 +48,12 @@
                 <input type="text" id="name-input" placeholder="NAME (3-10)" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
             </div>
         </div>
-
         <div class="input-row">
             <div class="input-box">
-                <input type="number" id="p-input" placeholder="09XXXXXXXX" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+                <b style="margin-right:5px">+251</b>
+                <input type="number" id="p-input" placeholder="9..." oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);">
             </div>
         </div>
-
         <div class="input-row">
             <div class="input-box">
                 <input type="number" id="pass-input" placeholder="PIN (5 DIGITS)" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
@@ -89,7 +88,9 @@
 
     let currentLang = 'en';
 
-    function goBack() { window.location.replace("Index.html"); }
+    function goBack() {
+        window.location.replace("Index.html");
+    }
 
     function handleRegister() {
         const name = document.getElementById('name-input').value.trim();
@@ -97,13 +98,12 @@
         const pass = document.getElementById('pass-input').value;
         const errorDiv = document.getElementById('error-msg');
         
-        // Validation
         if (name.length < 3 || name.length > 10) { 
             errorDiv.innerText = (currentLang === 'am') ? "ስም ከ3-10 ፊደል መሆን አለበት" : "NAME MUST BE 3-10 CHARS"; 
             return; 
         }
-        if (!phone.startsWith("09") || phone.length !== 10) { 
-            errorDiv.innerText = (currentLang === 'am') ? "ስልክ በ09 መጀመር አለበት (10 ዲጂት)" : "PHONE MUST START WITH 09 (10 DIGITS)"; 
+        if (phone.length < 9) { 
+            errorDiv.innerText = (currentLang === 'am') ? "ትክክለኛ ስልክ ያስገቡ" : "INVALID PHONE"; 
             return; 
         }
         if (pass.length !== 5) { 
@@ -121,8 +121,12 @@
                     balance: 0,
                     status: "active"
                 }).then(() => {
+                    // ስሙንና ስልኩን ለ Home Page እናስቀምጣለን
+                    localStorage.setItem('userPhone', phone);
+                    localStorage.setItem('userName', name);
+                    
                     alert((currentLang === 'am') ? "በስኬት ተመዝግበዋል!" : "Registered Successfully!");
-                    window.location.replace("Index.html");
+                    window.location.replace("home.html");
                 });
             }
         });
@@ -141,7 +145,7 @@
         document.getElementById('pass-input').placeholder = isAm ? "ፒን (5 ዲጂት)" : "PIN (5 DIGITS)";
         document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
-        errorDiv.innerText = "";
+        document.getElementById('error-msg').innerText = "";
     }
 </script>
 </body>
