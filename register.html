@@ -10,21 +10,20 @@
         .yellow-bar { background: #ffcc00; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; border-bottom: 2.5px solid #000; }
         .content { padding: 12px 18px; }
         .dt-section { border-bottom: 1px solid #000; padding-bottom: 5px; margin-bottom: 12px; }
-        .dt-row { font-weight: 900; font-size: 16px; color: #001f3f; margin-bottom: 2px; text-transform: uppercase; }
+        .dt-row { font-weight: 900; font-size: 14px; color: #001f3f; margin-bottom: 2px; text-transform: uppercase; }
         .branding h1 { color: #00b050; text-align: center; margin: 8px 0 2px 0; font-size: 38px; font-weight: 900; letter-spacing: -1px; }
         .motto-plain { text-align: center; color: #000; font-size: 15px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
         .input-row { margin-bottom: 12px; }
         .input-box { border: 3.5px solid #00b050; border-radius: 0; padding: 12px 10px; display: flex; align-items: center; background: #fff; height: 25px; }
-        input { border: none; outline: none; width: 100%; font-size: 19px; font-weight: 900; color: #000; }
+        input { border: none; outline: none; width: 100%; font-size: 17px; font-weight: 900; color: #000; }
         #error-msg { color: red; font-size: 13px; font-weight: 900; text-align: center; min-height: 18px; margin-bottom: 8px; text-transform: uppercase; }
         .btn { width: 100%; padding: 12px; border-radius: 0; border: 2.5px solid #000; font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 16px; text-transform: uppercase; }
         .register-btn { background: #00b050; color: white; }
         .back-btn { background: #001f3f; color: white; }
         .footer { border-top: 3px solid #000; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; }
         .lang-text { font-size: 16px; font-weight: 900; color: #000; }
-        .lang-options { font-size: 16px; font-weight: 900; color: #001f3f; }
-        .lang-btn { cursor: pointer; text-decoration: none; padding: 2px 4px; color: #001f3f; }
-        .lang-btn.active { color: #00b050 !important; font-weight: 900; }
+        .lang-btn { cursor: pointer; text-decoration: none; padding: 2px 4px; color: #001f3f; font-weight: 900; }
+        .lang-btn.active { color: #00b050 !important; }
     </style>
 </head>
 <body>
@@ -36,7 +35,7 @@
             <div id="date-label" class="dt-row">DATE: ...</div>
             <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
-        <div class="branding"><h1 id="b-name">BEKAS FAST</h1></div>
+        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
         <div id="play-resp" class="motto-plain">PLAY RESPONSIBLY!</div>
         
         <div id="error-msg"></div>
@@ -94,21 +93,36 @@
         const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
         let h = n.getHours(); const ampm = h >= 12 ? ' PM' : ' AM'; h = h % 12 || 12;
         const tStr = h + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
-        if(currentLang === 'am') { document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear(); }
-        else { document.getElementById('date-label').innerText = "DATE: " + mEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear(); }
-        document.getElementById('time-label').innerText = "TIME: " + tStr;
+        
+        const datePref = (currentLang === 'am') ? "ቀን: " : "DATE: ";
+        const timePref = (currentLang === 'am') ? "ሰዓት: " : "TIME: ";
+        const month = (currentLang === 'am') ? mAM[n.getMonth()] : mEN[n.getMonth()];
+        
+        document.getElementById('date-label').innerText = datePref + month + " " + n.getDate() + ", " + n.getFullYear();
+        document.getElementById('time-label').innerText = timePref + tStr;
     }
     setInterval(updateClock, 1000); updateClock();
 
     function setLang(l) {
         currentLang = l;
-        document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
-        document.getElementById('play-resp').innerText = (l === 'am') ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
-        document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
-        document.getElementById('r-btn').innerText = (l === 'am') ? "ተመዝገብ" : "REGISTER";
-        document.getElementById('back-link').innerText = (l === 'am') ? "ተመለስ" : "BACK";
-        document.getElementById('lang-am').classList.toggle('active', l === 'am');
-        document.getElementById('lang-en').classList.toggle('active', l === 'en');
+        const isAm = (l === 'am');
+        
+        // UI Texts
+        document.getElementById('new-tag').innerText = isAm ? "አዲስ" : "NEW";
+        document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፈጣን" : "BEKAS FAST"; // ስሙ አሁን አብሮ ይቀየራል
+        document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
+        document.getElementById('l-text').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
+        document.getElementById('r-btn').innerText = isAm ? "ተመዝገብ" : "REGISTER";
+        document.getElementById('back-link').innerText = isAm ? "ተመለስ" : "BACK";
+        
+        // Placeholders
+        document.getElementById('name-input').placeholder = isAm ? "ስም (ከ3-10 ፊደል)" : "NAME (3-10)";
+        document.getElementById('pass-input').placeholder = isAm ? "ሚስጥር ቁጥር (5 ድጅት)" : "PIN (5 DIGITS)";
+        
+        // Active Class
+        document.getElementById('lang-am').classList.toggle('active', isAm);
+        document.getElementById('lang-en').classList.toggle('active', !isAm);
+        
         updateClock(); 
     }
 
@@ -124,7 +138,7 @@
         };
 
         if (nameInput.length < 3) { 
-            showError(currentLang === 'am' ? "ስም ከ 3 ፊደላት ማነስ የለበትም" : "NAME TOO SHORT (MIN 3)"); return; 
+            showError(currentLang === 'am' ? "ስም በጣም አጭር ነው" : "NAME TOO SHORT"); return; 
         }
 
         const isValidPhone = (phone.startsWith('09') && phone.length === 10) || (phone.startsWith('9') && phone.length === 9);
@@ -132,7 +146,7 @@
             showError(currentLang === 'am' ? "የተሳሳተ ስልክ ቁጥር" : "INVALID PHONE NUMBER"); return; 
         }
         if (pass.length !== 5) { 
-            showError(currentLang === 'am' ? "ሚስጥር ቁጥር 5 ድጅት" : "PIN MUST BE 5 DIGITS"); return; 
+            showError(currentLang === 'am' ? "ሚስጥር ቁጥር 5 ድጅት መሆን አለበት" : "PIN MUST BE 5 DIGITS"); return; 
         }
 
         database.ref('users/' + phone).once('value').then((snapshot) => {
@@ -142,7 +156,7 @@
                 database.ref('users/' + phone).set({
                     username: nameInput,
                     password: pass,
-                    balance: 0, // ቦነሱ ወደ 0 ብር ተቀይሯል
+                    balance: 0, 
                     status: "active",
                     joinedDate: new Date().toISOString()
                 }).then(() => {
