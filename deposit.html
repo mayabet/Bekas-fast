@@ -3,69 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Home</title>
+    <title>Bekas Fast - Deposit & Withdraw</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #1a1a1a; font-family: sans-serif; display: flex; justify-content: center; margin: 0; }
-        .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; }
-        .top-banner { background: #ffcc00; padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #000; }
-        .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
-        .title { font-weight: 900; font-size: 20px; color: #000; }
-        .content { padding: 12px; flex-grow: 1; }
-        .live-info { background: #002d4b; color: #fff; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; display: flex; justify-content: space-between; font-weight: bold; }
-        .user-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; border: 2px solid #000; border-radius: 8px; }
-        .greet { color: #00b050; font-weight: 900; font-size: 16px; text-transform: uppercase; }
-        .bal { font-weight: 900; font-size: 18px; color: #002d4b; }
-        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .q-btn { padding: 10px; border: none; color: white; font-weight: bold; border-radius: 4px; text-align: center; text-decoration: none; cursor: pointer; }
-        .q-dep { background: #c00000; }
-        .q-with { background: #00b050; }
-        .sport-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        .sport-table th { background: #f0f0f0; color: #333; font-size: 14px; padding: 8px; border: 1px solid #ddd; font-weight: 900; }
-        .sport-table td { border: 1px solid #ddd; padding: 10px 5px; text-align: center; }
-        .amt-v { font-size: 18px; font-weight: 900; color: #002d4b; display: block; }
-        .sub-v { font-size: 13px; color: #000; font-weight: 900; }
-        .play-now { background: #00b050; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 13px; display: block; }
-        .coming-soon { background: #fffbe6; border-left: 5px solid #ffcc00; padding: 10px; color: #c00000; font-weight: bold; font-size: 13px; margin-bottom: 15px; }
-        .footer-nav { margin-top: auto; display: grid; gap: 8px; }
-        .f-link { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; border-radius: 4px; cursor: pointer; border: none; font-size: 16px; display: block; }
-        .l-info { background: #00b050; }
-        .l-out { background: #ff0000; width: 100%; }
-        .lang-bar { background: #f9f9f9; padding: 15px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; margin-top: 10px; border-top: 2px solid #000; }
-        .lang-btn { cursor: pointer; color: #002d4b; font-weight: 900; padding: 0 5px; }
-        .lang-btn.active { color: #00b050 !important; text-decoration: underline; }
+        body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
+        .card { width: 95%; max-width: 360px; height: 96vh; background: white; border: 3px solid #000; display: flex; flex-direction: column; box-sizing: border-box; }
+        .yellow-bar { background: #ffcc00; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; border-bottom: 3px solid #000; flex-shrink: 0; }
+        .plus18 { color: red; font-size: 24px; font-weight: 900; }
+        .content { padding: 10px 15px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .dt-section { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; flex-shrink: 0; }
+        .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
+        .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
+        .tele-box { background: #f9f9f9; border: 2.5px dashed #00b050; padding: 6px; text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+        .tele-num { font-size: 24px; color: #c00000; font-weight: 900; display: block; }
+        .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
+        #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
+        .input-group { margin-bottom: 10px; flex-shrink: 0; }
+        .label-text { color: #000; font-weight: 900; font-size: 13px; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 42px; box-sizing: border-box; }
+        input { border: none; outline: none; width: 100%; font-size: 18px; font-weight: 900; background: transparent; color: #002d4b; }
+        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
+        .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .dep-btn { background: #ffcc00; color: #000; }
+        .with-btn { background: #c00000; }
+        .info-btn { background: #00b050; }
+        .back-btn { background: #002d4b; }
+        .footer { border-top: 3px solid #000; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
+        .lang-btn { cursor: pointer; font-size: 15px; font-weight: 900; color: #002d4b; }
+        .active { color: #00b050 !important; }
     </style>
 </head>
 <body>
-<div class="app-card">
-    <div class="top-banner"><span class="title" id="title-text">BEKAS FAST</span><span class="plus18">+18</span></div>
+<div class="card">
+    <div class="yellow-bar"><span id="top-title">DEPOSIT / WITHDRAW</span><span class="plus18">+18</span></div>
     <div class="content">
-        <div class="live-info"><span id="date-label"></span><span id="time-label"></span></div>
-        <div class="user-section">
-            <div class="greet"><span id="hello-text">HELLO</span>, <span id="user-nick">...</span></div>
-            <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency">ETB</small></div>
+        <div class="dt-section">
+            <div id="date-label" class="dt-row">DATE: ...</div>
+            <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
-        <div class="quick-actions">
-            <a href="deposit.html" class="q-btn q-dep" id="dep-btn">DEPOSIT</a>
-            <a href="deposit.html" class="q-btn q-with" id="with-btn">WITHDRAW</a>
+        <div class="branding"><h1>BEKAS FAST</h1></div>
+        <div class="tele-box">
+            <span style="font-size: 12px; font-weight: 900; color: #000;" id="tele-msg">SEND DEPOSIT TO:</span>
+            <span class="tele-num">+2510978272061</span>
         </div>
-        <table class="sport-table">
-            <thead><tr><th id="th-class">CLASS</th><th id="th-qty">QTY</th><th id="th-reach">REACH</th><th id="th-play-head">PLAY</th></tr></thead>
-            <tbody>
-                <tr><td><span class="amt-v">10</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">10</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">80</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play1.html" class="play-now p-btn">PLAY</a></td></tr>
-                <tr><td><span class="amt-v">10</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">20</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">160</span><span class="sub-v birr-text">BIRR</span></td><td><a href="Play2.html" class="play-now p-btn">PLAY</a></td></tr>
-                <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">20</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">350</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play3.html" class="play-now p-btn">PLAY</a></td></tr>
-                <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">50</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">900</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play4.html" class="play-now p-btn">PLAY</a></td></tr>
-            </tbody>
-        </table>
-        <div class="coming-soon" id="extra-msg">“EXTRA PLAY OPTION ARE COMING SOON, REACHING UP TO 20,000 BIRR.”</div>
-        <div class="footer-nav">
-            <a href="info.html" class="f-link l-info" id="info-btn">INFORMATION AND RULE</a>
-            <button onclick="handleLogout()" class="f-link l-out" id="out-btn">SIGN OUT</button>
+        <div id="bal-display" class="balance-box">BALANCE: 0.00 ETB</div>
+        <div id="msg-display"></div>
+
+        <div class="input-group">
+            <span class="label-text" id="tr-label">TRANSACTION CODE (DEPOSIT ONLY)</span>
+            <div class="input-box"><input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10"></div>
+        </div>
+        <div class="input-group">
+            <span class="label-text" id="am-label">AMOUNT (MAX 5 DIGITS)</span>
+            <div class="input-box"><input type="number" id="am-input" placeholder="00000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)"></div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn dep-btn" id="dep-btn" onclick="handleDeposit()">DEPOSIT</button>
+            <button class="btn with-btn" id="with-btn" onclick="handleWithdraw()">WITHDRAW</button>
+            <a href="info.html" class="btn info-btn" id="info-btn">INFO</a>
+            <a href="home.html" class="btn back-btn" id="back-btn">BACK TO HOME</a>
         </div>
     </div>
-    <div class="lang-bar"><span id="lang-label">LANGUAGE</span><div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div></div>
+    <div class="footer">
+        <span id="l-text" style="font-weight: 900; font-size: 14px;">LANG:</span>
+        <div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div>
+    </div>
 </div>
 
 <script>
@@ -78,60 +82,81 @@
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    const userPhone = localStorage.getItem('userPhone');
-    if (!userPhone) {
-        window.location.replace("Index.html");
-    } else {
-        database.ref('users/' + userPhone).on('value', (snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-                document.getElementById('user-nick').innerText = userData.username;
-                document.getElementById('user-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
-            }
-        });
-    }
-
-    function handleLogout() {
-        localStorage.removeItem('userPhone');
-        window.location.replace("Index.html");
-    }
-
     let currentLang = 'en';
+    // እዚህ ጋር ነው ተጠቃሚውን ለይቶ የሚያውቀው
+    let userPhone = localStorage.getItem('userPhone'); 
+    let currentBalance = 0;
+
+    if (!userPhone) {
+        window.location.replace("Index.html"); // ስልክ ቁጥር ከሌለ ይመልሰዋል
+    }
+
     function updateClock() {
-        const now = new Date();
-        const monthsEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-        const monthsAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        const month = currentLang === 'am' ? monthsAM[now.getMonth()] : monthsEN[now.getMonth()];
-        let hours = now.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
-        const timeStr = hours.toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0') + ampm;
-        document.getElementById('date-label').innerText = month + ", " + now.getDate() + ", " + now.getFullYear();
-        document.getElementById('time-label').innerText = timeStr;
+        const n = new Date();
+        const monthsEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const day = n.getDate();
+        const month = monthsEN[n.getMonth()];
+        const year = n.getFullYear();
+        document.getElementById('date-label').innerText = "DATE: " + month + " " + day + ", " + year;
+        document.getElementById('time-label').innerText = "TIME: " + n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    // የተጠቃሚውን Balance ከዳታቤዝ ያመጣል
+    database.ref('users/' + userPhone).on('value', (snap) => {
+        const userData = snap.val();
+        if (userData) {
+            currentBalance = parseFloat(userData.balance || 0);
+            document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+        }
+    });
+
+    function showMsg(txt, color) {
+        const d = document.getElementById('msg-display');
+        d.innerText = txt; d.style.color = color;
+        setTimeout(() => d.innerText = "", 3000);
+    }
+
+    function handleDeposit() {
+        const code = document.getElementById('tr-input').value;
+        const amount = document.getElementById('am-input').value;
+        if (code.length === 10 && amount > 0) {
+            database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: amount, status: "pending", time: new Date().toLocaleString() })
+            .then(() => { showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); document.getElementById('tr-input').value=""; document.getElementById('am-input').value=""; });
+        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ":"INCORRECT INFO", "red"); }
+    }
+
+    function handleWithdraw() {
+        const amount = document.getElementById('am-input').value;
+        const numAmount = parseFloat(amount);
+        if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 50) {
+            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
+            .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
+        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ ወይም በቂ ሂሳብ የለም":"INCORRECT INFO OR LOW BALANCE", "red"); }
     }
 
     function setLang(l) {
         currentLang = l;
-        const s = {
-            'am': { 'title': 'ቤካስ ፈጣን', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'extra': '“ተጨማሪ የጨዋታ አማራጮች በቅርቡ ይጠብቁ።”', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'title': 'BEKAS FAST', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'extra': '“EXTRA PLAY OPTION ARE COMING SOON.”', 'info': 'INFORMATION AND RULE', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'PEOPLE', 'birr': 'BIRR' }
-        }[l];
-        document.getElementById('title-text').innerText = s.title; document.getElementById('hello-text').innerText = s.hello;
-        document.getElementById('dep-btn').innerText = s.dep; document.getElementById('with-btn').innerText = s.with;
-        document.getElementById('th-class').innerText = s.class; document.getElementById('th-qty').innerText = s.qty;
-        document.getElementById('th-reach').innerText = s.reach; document.getElementById('th-play-head').innerText = s.playhead;
-        document.getElementById('extra-msg').innerText = s.extra; document.getElementById('info-btn').innerText = s.info;
-        document.getElementById('out-btn').innerText = s.out; document.getElementById('lang-label').innerText = s.lang;
-        document.getElementById('bal-currency').innerText = s.birr;
-        document.querySelectorAll('.p-btn').forEach(b => b.innerText = s.play);
-        document.querySelectorAll('.p-text').forEach(t => t.innerText = s.people);
-        document.querySelectorAll('.birr-text').forEach(t => t.innerText = s.birr);
+        const labels = {
+            'am': { 't': 'ማስገቢያ / ማውጫ', 'tmsg': 'በዚህ ቁጥር ያስገቡ፦', 'tr': 'የግብይት መለያ (ለማስገቢያ)', 'am': 'የገንዘብ መጠን', 'dp': 'ገንዘብ አስገባ', 'wt': 'ገንዘብ አውጣ', 'if': 'መመሪያ', 'bk': 'ተመለስ' },
+            'en': { 't': 'DEPOSIT / WITHDRAW', 'tmsg': 'SEND DEPOSIT TO:', 'tr': 'TRANSACTION CODE (DEPOSIT ONLY)', 'am': 'AMOUNT (MAX 5 DIGITS)', 'dp': 'DEPOSIT', 'wt': 'WITHDRAW', 'if': 'INFO', 'bk': 'BACK TO HOME' }
+        };
+        const s = labels[l];
+        document.getElementById('top-title').innerText = s.t;
+        document.getElementById('tele-msg').innerText = s.tmsg;
+        document.getElementById('tr-label').innerText = s.tr;
+        document.getElementById('am-label').innerText = s.am;
+        document.getElementById('dep-btn').innerText = s.dp;
+        document.getElementById('with-btn').innerText = s.wt;
+        document.getElementById('info-btn').innerText = s.if;
+        document.getElementById('back-btn').innerText = s.bk;
+        document.getElementById('bal-display').innerText = (l==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
-        updateClock();
     }
-    setInterval(updateClock, 1000); updateClock();
 </script>
 </body>
 </html>
