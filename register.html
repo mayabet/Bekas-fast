@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BEKAS FAST - Register</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
         .card { width: 90%; max-width: 330px; background: white; border-radius: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.2); overflow: hidden; border: 2.5px solid #000; }
@@ -56,11 +58,13 @@
                 <input type="number" id="pass-input" placeholder="PIN (5 DIGITS)" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
             </div>
         </div>
-        <button class="btn register-btn" id="r-btn" onclick="handleRegister()">REGISTER</button>
-        <button class="btn back-btn" id="back-link" onclick="window.location.href='index.html'">BACK</button>
+
+        <button class="btn register-btn" id="reg-btn-text" onclick="handleRegister()">CREATE ACCOUNT</button>
+        <button class="btn back-btn" id="back-btn-text" onclick="window.location.href='Index.html'">BACK TO LOGIN</button>
     </div>
+
     <div class="footer">
-        <div id="l-text" class="lang-text">LANGUAGE</div>
+        <div class="lang-text" id="lang-label">LANGUAGE</div>
         <div class="lang-options">
             <span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
             <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span>
@@ -68,10 +72,8 @@
     </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
 <script>
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -82,51 +84,41 @@
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
 
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
     let currentLang = 'en';
 
-    function updateClock() { 
-        const n = new Date(); 
+    function updateClock() {
+        const n = new Date();
         const mEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        let h = n.getHours(); const ampm = h >= 12 ? ' PM' : ' AM'; h = h % 12 || 12;
-        const tStr = h + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
+        let hours = n.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
+        const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
         
-        const datePref = (currentLang === 'am') ? "ቀን: " : "DATE: ";
-        const timePref = (currentLang === 'am') ? "ሰዓት: " : "TIME: ";
-        const month = (currentLang === 'am') ? mAM[n.getMonth()] : mEN[n.getMonth()];
-        
-        document.getElementById('date-label').innerText = datePref + month + " " + n.getDate() + ", " + n.getFullYear();
-        document.getElementById('time-label').innerText = timePref + tStr;
+        document.getElementById('date-label').innerText = (currentLang === 'am' ? "ቀን: " : "DATE: ") + (currentLang === 'am' ? mAM[n.getMonth()] : mEN[n.getMonth()]) + " " + n.getDate() + ", " + n.getFullYear();
+        document.getElementById('time-label').innerText = (currentLang === 'am' ? "ሰዓት: " : "TIME: ") + timeStr;
     }
     setInterval(updateClock, 1000); updateClock();
 
     function setLang(l) {
         currentLang = l;
-        const isAm = (l === 'am');
+        document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
+        document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
+        document.getElementById('play-resp').innerText = (l === 'am') ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
+        document.getElementById('name-input').placeholder = (l === 'am') ? "ስም (3-10)" : "NAME (3-10)";
+        document.getElementById('pass-input').placeholder = (l === 'am') ? "ሚስጥር ቁጥር (5 ድጅት)" : "PIN (5 DIGITS)";
+        document.getElementById('reg-btn-text').innerText = (l === 'am') ? "አካውንት ክፈት" : "CREATE ACCOUNT";
+        document.getElementById('back-btn-text').innerText = (l === 'am') ? "ወደ መግቢያ ተመለስ" : "BACK TO LOGIN";
+        document.getElementById('lang-label').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
         
-        document.getElementById('new-tag').innerText = isAm ? "አዲስ" : "NEW";
-        document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፈጣን" : "BEKAS FAST";
-        document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
-        document.getElementById('l-text').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
-        document.getElementById('r-btn').innerText = isAm ? "ተመዝገብ" : "REGISTER";
-        document.getElementById('back-link').innerText = isAm ? "ተመለስ" : "BACK";
-        
-        // Input Placeholders change with language
-        document.getElementById('name-input').placeholder = isAm ? "ስም (ከ3-10 ፊደል)" : "NAME (3-10)";
-        document.getElementById('pass-input').placeholder = isAm ? "ሚስጥር ቁጥር (5 ድጅት)" : "PIN (5 DIGITS)";
-        
-        document.getElementById('lang-am').classList.toggle('active', isAm);
-        document.getElementById('lang-en').classList.toggle('active', !isAm);
-        
-        updateClock(); 
+        document.getElementById('lang-am').classList.toggle('active', l === 'am');
+        document.getElementById('lang-en').classList.toggle('active', l === 'en');
     }
 
     function handleRegister() {
-        const nameInput = document.getElementById('name-input').value.trim();
-        const phone = document.getElementById('p-input').value;
+        const name = document.getElementById('name-input').value;
+        let phone = document.getElementById('p-input').value;
         const pass = document.getElementById('pass-input').value;
         const errorDiv = document.getElementById('error-msg');
         
@@ -135,32 +127,28 @@
             setTimeout(() => { errorDiv.innerText = ""; }, 3000);
         };
 
-        if (nameInput.length < 3) { 
-            showError(currentLang === 'am' ? "ስም በጣም አጭር ነው" : "NAME TOO SHORT"); return; 
-        }
-
-        const isValidPhone = (phone.startsWith('09') && phone.length === 10) || (phone.startsWith('9') && phone.length === 9);
-        if (!isValidPhone) { 
-            showError(currentLang === 'am' ? "የተሳሳተ ስልክ ቁጥር" : "INVALID PHONE NUMBER"); return; 
-        }
-        if (pass.length !== 5) { 
-            showError(currentLang === 'am' ? "ሚስጥር ቁጥር 5 ድጅት መሆን አለበት" : "PIN MUST BE 5 DIGITS"); return; 
-        }
+        if (name.length < 3) { showError(currentLang === 'am' ? "ስም በጣም አጭር ነው" : "NAME TOO SHORT"); return; }
+        
+        // ስልክ ቁጥር ማስተካከያ (0912... ከሆነ 912... ያደርገዋል)
+        if (phone.startsWith('0')) phone = phone.substring(1);
+        
+        const isValidPhone = (phone.startsWith('9') && phone.length === 9);
+        if (!isValidPhone) { showError(currentLang === 'am' ? "የተሳሳተ ስልክ ቁጥር" : "INVALID PHONE NUMBER"); return; }
+        if (pass.length !== 5) { showError(currentLang === 'am' ? "ሚስጥር ቁጥር 5 ድጅት" : "PIN MUST BE 5 DIGITS"); return; }
 
         database.ref('users/' + phone).once('value').then((snapshot) => {
             if (snapshot.exists()) {
                 showError(currentLang === 'am' ? "ይህ ስልክ ቀድሞ ተመዝግቧል" : "ALREADY REGISTERED");
             } else {
-                // አዲሱ ተጠቃሚ 0 ብር እንዲኖረው ተስተካክሏል
                 database.ref('users/' + phone).set({
-                    username: nameInput,
+                    username: name,
                     password: pass,
-                    balance: 0, 
+                    balance: 0,
                     status: "active",
                     joinedDate: new Date().toISOString()
                 }).then(() => {
-                    localStorage.setItem('userPhone', phone);
-                    window.location.replace("home.html");
+                    alert(currentLang === 'am' ? "ምዝገባው ተሳክቷል!" : "SUCCESSFULLY REGISTERED!");
+                    window.location.href = "Index.html";
                 });
             }
         });
