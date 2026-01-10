@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mita Betting - Login</title>
+    <title>BEKAS FAST - Login</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
@@ -48,7 +48,7 @@
             <div class="dt-row" id="time-label">TIME: 00:00:00</div>
         </div>
 
-        <div class="branding"><h1 id="brand-name">Mita Betting</h1></div>
+        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
         <div class="motto" id="motto">WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!</div>
         
         <div id="error-msg"></div>
@@ -120,7 +120,7 @@
 
     function setLang(l) {
         currentLang = l;
-        document.getElementById('brand-name').innerText = (l === 'am') ? "ሚታ ቤቲንግ" : "Mita Betting";
+        document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
         document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
         document.getElementById('motto').innerText = (l === 'am') ? "ሁልጊዜም የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!" : "WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!";
         document.getElementById('l-btn').innerText = (l === 'am') ? "ግባ" : "LOG IN";
@@ -155,7 +155,6 @@
         updateOnlineDisplay();
     });
 
-    // አስተካካይ፡ ተጠቃሚው በትክክል እንዲገባ የሚያደርግ ፈንክሽን
     function handleLogin() {
         const phone = document.getElementById('p-input').value;
         const pass = document.getElementById('pass-input').value;
@@ -169,10 +168,9 @@
 
         database.ref('users/' + phone).once('value').then((snapshot) => {
             const userData = snapshot.val();
-            // ተጠቃሚው ካለ እና ፓስወርዱ ልክ ከሆነ
             if (userData && userData.password === pass) {
                 localStorage.setItem('userPhone', phone);
-                // ዋናው ማስተካከያ፡ ወደ home.html እንዲሄድ ያደርጋል
+                // GitHub ላይ 404 እንዳይመጣ index.html (በትንሿ i) ተጠቅሟል
                 window.location.href = "home.html"; 
             } else {
                 errorMsg.innerText = currentLang === 'am' ? "የተሳሳተ ስልክ ወይም የይለፍ ቃል" : "WRONG PHONE OR PASSWORD";
