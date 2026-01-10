@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ቤካስ ፈጣን - Sporty Grid</title>
+    <title>BEKAS FAST - Home</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -43,7 +43,7 @@
     <div class="content">
         <div class="live-info"><span id="date-label"></span><span id="time-label"></span></div>
         <div class="user-section">
-            <div class="greet"><span id="hello-text">HELLO</span>, <span id="user-nick">USER</span></div>
+            <div class="greet"><span id="hello-text">HELLO</span>, <span id="user-nick">...</span></div>
             <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency">ETB</small></div>
         </div>
         <div class="quick-actions">
@@ -62,11 +62,12 @@
         <div class="coming-soon" id="extra-msg">“EXTRA PLAY OPTION ARE COMING SOON, REACHING UP TO 20,000 BIRR.”</div>
         <div class="footer-nav">
             <a href="info.html" class="f-link l-info" id="info-btn">INFORMATION AND RULE</a>
-            <div onclick="handleSignOut()" class="f-link l-out" id="out-btn">SIGN OUT</div>
+            <div onclick="handleLogout()" class="f-link l-out" id="out-btn">SIGN OUT</div>
         </div>
     </div>
     <div class="lang-bar"><span id="lang-label">LANGUAGE</span><div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
+
 <script>
     // 1. Firebase Config
     const firebaseConfig = {
@@ -78,35 +79,31 @@
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
-
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // 2. ተጠቃሚውን ከዳታቤዝ ማምጣት
-    const loggedInPhone = localStorage.getItem('loggedInUser');
-
-    // ተጠቃሚው ካልገባ ወደ index.html (Login) ይመልሰዋል
-    if (!loggedInPhone) {
-        window.location.href = "index.html";
+    // 2. Auth Check & User Data
+    const userPhone = localStorage.getItem('userPhone');
+    if (!userPhone) {
+        window.location.replace("Index.html");
+    } else {
+        // የዳታቤዝ ግንኙነት - የተጠቃሚውን መረጃ ለመቀበል
+        database.ref('users/' + userPhone).on('value', (snapshot) => {
+            const userData = snapshot.val();
+            if (userData) {
+                document.getElementById('user-nick').innerText = userData.username;
+                document.getElementById('user-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
+            }
+        });
     }
 
-    // መረጃውን ከFirebase ማምጣት
-    database.ref('users/' + loggedInPhone).on('value', (snapshot) => {
-        const userData = snapshot.val();
-        if (userData) {
-            document.getElementById('user-nick').innerText = userData.username;
-            document.getElementById('user-balance').innerText = parseFloat(userData.balance).toFixed(2);
-        }
-    });
-
-    // Sign Out ፈንክሽን
-    function handleSignOut() {
-        localStorage.removeItem('loggedInUser');
-        window.location.href = "index.html";
+    function handleLogout() {
+        localStorage.removeItem('userPhone');
+        window.location.replace("Index.html");
     }
 
+    // 3. Clock & Language Logic
     let currentLang = 'en';
-
     function updateClock() {
         const now = new Date();
         const monthsEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
