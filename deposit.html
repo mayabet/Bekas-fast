@@ -86,12 +86,11 @@
     const database = firebase.database();
 
     let currentLang = 'en';
-    // እዚህ ጋር ነው ተጠቃሚውን ለይቶ የሚያውቀው
     let userPhone = localStorage.getItem('userPhone'); 
     let currentBalance = 0;
 
     if (!userPhone) {
-        window.location.replace("Index.html"); // ስልክ ቁጥር ከሌለ ይመልሰዋል
+        window.location.replace("index.html");
     }
 
     function updateClock() {
@@ -105,7 +104,6 @@
     }
     setInterval(updateClock, 1000); updateClock();
 
-    // የተጠቃሚውን Balance ከዳታቤዝ ያመጣል
     database.ref('users/' + userPhone).on('value', (snap) => {
         const userData = snap.val();
         if (userData) {
@@ -132,7 +130,8 @@
     function handleWithdraw() {
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
-        if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 50) {
+        // እዚህ ጋር >= 10 እንዲሆን ተስተካክሏል
+        if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 10) {
             database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
         } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ ወይም በቂ ሂሳብ የለም":"INCORRECT INFO OR LOW BALANCE", "red"); }
