@@ -83,7 +83,7 @@
 
     const userPhone = localStorage.getItem('userPhone');
     
-    // አስፈላጊ ማስተካከያ፡ ተጠቃሚው ካልገባ ወይም ሲወጣ ወደ "Index.html" እንዲመለስ ተደርጓል
+    // አስፈላጊ ማስተካከያ፡ ፋይሉ GitHub ላይ Index.html ስለሆነ እሱን እንዲፈልግ ተደርጓል
     if (!userPhone) {
         window.location.replace("Index.html"); 
     } else {
@@ -96,10 +96,11 @@
         });
     }
 
-    // SIGN OUT ተግባር
+    // SIGN OUT ተግባር ማስተካከያ
     function handleLogout() {
         localStorage.removeItem('userPhone'); 
-        window.location.replace("Index.html"); 
+        // Index.html በትልቁ 'I' መሆኑን እርግጠኛ ሁን
+        window.location.href = "Index.html"; 
     }
 
     let currentLang = 'en';
