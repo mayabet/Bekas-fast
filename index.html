@@ -3,71 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Home</title>
+    <title>Mita Betting - Login</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        body { background: #1a1a1a; font-family: sans-serif; display: flex; justify-content: center; margin: 0; }
-        .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; }
-        .top-banner { background: #ffcc00; padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #000; }
-        .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
-        .title { font-weight: 900; font-size: 20px; color: #000; }
-        .content { padding: 12px; flex-grow: 1; }
-        .live-info { background: #002d4b; color: #fff; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; display: flex; justify-content: space-between; font-weight: bold; }
-        .user-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; border: 2px solid #000; border-radius: 8px; }
-        .greet { color: #00b050; font-weight: 900; font-size: 16px; text-transform: uppercase; }
-        .bal { font-weight: 900; font-size: 18px; color: #002d4b; }
-        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .q-btn { padding: 10px; border: none; color: white; font-weight: bold; border-radius: 4px; text-align: center; text-decoration: none; cursor: pointer; }
-        .q-dep { background: #c00000; }
-        .q-with { background: #00b050; }
-        .sport-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        .sport-table th { background: #f0f0f0; color: #333; font-size: 14px; padding: 8px; border: 1px solid #ddd; font-weight: 900; }
-        .sport-table td { border: 1px solid #ddd; padding: 10px 5px; text-align: center; }
-        .amt-v { font-size: 18px; font-weight: 900; color: #002d4b; display: block; }
-        .sub-v { font-size: 13px; color: #000; font-weight: 900; }
-        .play-now { background: #00b050; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 13px; display: block; }
-        .coming-soon { background: #fffbe6; border-left: 5px solid #ffcc00; padding: 10px; color: #c00000; font-weight: bold; font-size: 13px; margin-bottom: 15px; }
-        .footer-nav { margin-top: auto; display: grid; gap: 8px; }
-        .f-link { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; border-radius: 4px; cursor: pointer; border: none; font-size: 16px; display: block; }
-        .l-info { background: #00b050; }
-        .l-out { background: #ff0000; width: 100%; }
-        .lang-bar { background: #f9f9f9; padding: 15px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; margin-top: 10px; border-top: 2px solid #000; }
-        .lang-btn { cursor: pointer; color: #002d4b; font-weight: 900; padding: 0 5px; }
-        .lang-btn.active { color: #00b050 !important; text-decoration: underline; }
+        body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .card { width: 92%; max-width: 360px; background: white; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; display: flex; flex-direction: column; }
+        .yellow-bar { background: #ffcc00; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 20px; }
+        .header-line { height: 2px; background: #000; width: 100%; }
+        .content { padding: 15px 20px; flex-grow: 1; }
+        .dt-section { border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px; }
+        .dt-row { font-weight: 900; font-size: 17px; color: #001f3f; margin-bottom: 2px; text-transform: uppercase; }
+        .branding h1 { color: #00b050; text-align: center; margin: 10px 0; font-size: 42px; font-weight: 900; }
+        .motto { text-align: center; color: #002d4b; font-size: 16px; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; line-height: 1.2; }
+        .input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .input-box { border: 2.5px solid #00b050; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; flex-grow: 1; background: #fff; height: 32px; }
+        input { border: none; outline: none; width: 100%; font-size: 22px; font-weight: 900; color: #333; }
+        #error-msg { color: red; font-size: 14px; font-weight: 900; text-align: center; margin-bottom: 10px; min-height: 18px; text-transform: uppercase; }
+        .lost-link { color: #d00000; font-size: 13px; font-weight: 900; text-decoration: none; border: 1px solid #ccc; padding: 6px 8px; border-radius: 4px; background-color: #fdfdfd; white-space: nowrap; }
+        .btn { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 20px; text-transform: uppercase; }
+        .login-btn { background: #001f3f; color: white; }
+        .register-btn { background: #00b050; color: white; }
+        .footer { border-top: 2px solid #000; padding: 12px 15px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; background: #fff; }
+        .lang-btn { cursor: pointer; color: #002d4b; }
+        .lang-btn.active { color: #00b050; }
+        .online-now { font-size: 13px; font-weight: 900; color: #27ae60; margin-bottom: 5px; }
+        .live-dot { height: 8px; width: 8px; background-color: #27ae60; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
-<div class="app-card">
-    <div class="top-banner"><span class="title" id="title-text">BEKAS FAST</span><span class="plus18">+18</span></div>
+<div class="card">
+    <div class="yellow-bar"><span id="new-tag">NEW</span><span style="color:red; font-size:26px">+18</span></div>
+    <div class="header-line"></div>
     <div class="content">
-        <div class="live-info"><span id="date-label"></span><span id="time-label"></span></div>
-        <div class="user-section">
-            <div class="greet"><span id="hello-text">HELLO</span>, <span id="user-nick">...</span></div>
-            <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency">ETB</small></div>
+        <div class="online-now" id="online-area"><span class="live-dot"></span> <span id="online-count">0</span> PEOPLE ARE PLAYING NOW</div>
+        <div class="dt-section">
+            <div class="dt-row" id="date-label">DATE: LOADING...</div>
+            <div class="dt-row" id="time-label">TIME: 00:00:00</div>
         </div>
-        <div class="quick-actions">
-            <a href="diposit.html" class="q-btn q-dep" id="dep-btn">DEPOSIT</a>
-            <a href="diposit.html" class="q-btn q-with" id="with-btn">WITHDRAW</a>
+        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
+        <div class="motto" id="motto">WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!</div>
+        <div id="error-msg"></div>
+        <div class="input-row">
+            <div class="input-box">
+                <img src="https://flagcdn.com/w40/et.png" width="25">
+                <b style="font-size: 20px; margin-left: 8px; margin-right: 8px;">+251</b>
+                <input type="number" id="p-input" placeholder="09..." oninput="if(this.value.length>10)this.value=this.value.slice(0,10)">
+            </div>
         </div>
-        <table class="sport-table">
-            <thead><tr><th id="th-class">CLASS</th><th id="th-qty">QTY</th><th id="th-reach">REACH</th><th id="th-play-head">PLAY</th></tr></thead>
-            <tbody>
-                <tr><td><span class="amt-v">10</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">10</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">80</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play1.html" class="play-now p-btn">PLAY</a></td></tr>
-                <tr><td><span class="amt-v">10</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">20</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">160</span><span class="sub-v birr-text">BIRR</span></td><td><a href="Play2.html" class="play-now p-btn">PLAY</a></td></tr>
-                <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">20</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">350</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play3.html" class="play-now p-btn">PLAY</a></td></tr>
-                <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">BIRR</span></td><td><span class="amt-v">50</span><span class="sub-v p-text">PEOPLE</span></td><td><span class="amt-v">900</span><span class="sub-v birr-text">BIRR</span></td><td><a href="play4.html" class="play-now p-btn">PLAY</a></td></tr>
-            </tbody>
-        </table>
-        <div class="coming-soon" id="extra-msg">“EXTRA PLAY OPTION ARE COMING SOON, REACHING UP TO 20,000 BIRR.”</div>
-        <div class="footer-nav">
-            <a href="info.html" class="f-link l-info" id="info-btn">INFORMATION AND RULE</a>
-            <button onclick="handleLogout()" class="f-link l-out" id="out-btn">SIGN OUT</button>
+        <div class="input-row">
+            <div class="input-box">
+                <input type="password" id="pass-input" placeholder="PASSWORD" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)">
+            </div>
+            <a href="lost_password.html" class="lost-link" id="lost-btn">LOST</a>
+        </div>
+        <button class="btn login-btn" id="l-btn" onclick="handleLogin()">LOG IN</button>
+        <button class="btn register-btn" id="r-btn" onclick="location.href='register.html'">REGISTER</button>
+    </div>
+    <div class="footer">
+        <div id="l-text">LANGUAGE</div>
+        <div class="lang-options">
+            <span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span>
         </div>
     </div>
-    <div class="lang-bar"><span id="lang-label">LANGUAGE</span><div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
-
 <script>
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
@@ -78,63 +79,65 @@
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const database = firebase.database();
-
-    const userPhone = localStorage.getItem('userPhone');
-    
-    // ማስተካከያ፡ ወደ "Index.html" እንዲመለስ ተደርጓል (I በትልቅ ሆሄ)
-    if (!userPhone) {
-        window.location.replace("Index.html"); 
-    } else {
-        database.ref('users/' + userPhone).on('value', (snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-                document.getElementById('user-nick').innerText = userData.username;
-                document.getElementById('user-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
-            }
-        });
-    }
-
-    // SIGN OUT ተግባር (I በትልቅ ሆሄ)
-    function handleLogout() {
-        localStorage.removeItem('userPhone'); 
-        window.location.replace("Index.html"); 
-    }
-
+    const onlineRef = database.ref('online_users_count');
     let currentLang = 'en';
+    let globalOnlineCount = 0;
+
     function updateClock() {
-        const now = new Date();
-        const monthsEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-        const monthsAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        const month = currentLang === 'am' ? monthsAM[now.getMonth()] : monthsEN[now.getMonth()];
-        let hours = now.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
-        const timeStr = hours.toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0') + ampm;
-        document.getElementById('date-label').innerText = month + ", " + now.getDate() + ", " + now.getFullYear();
-        document.getElementById('time-label').innerText = timeStr;
+        const n = new Date();
+        const mEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+        const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
+        let hours = n.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
+        const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
+        if(currentLang === 'am') {
+            document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + ", " + n.getDate() + ", " + n.getFullYear();
+            document.getElementById('time-label').innerText = "ሰዓት: " + timeStr;
+        } else {
+            document.getElementById('date-label').innerText = "DATE: " + mEN[n.getMonth()] + ", " + n.getDate() + ", " + n.getFullYear();
+            document.getElementById('time-label').innerText = "TIME: " + timeStr;
+        }
     }
+    setInterval(updateClock, 1000); updateClock();
 
     function setLang(l) {
         currentLang = l;
-        const s = {
-            'am': { 'title': 'ቤካስ ፈጣን', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'extra': '“ተጨማሪ የጨዋታ አማራጮች በቅርቡ ይጠብቁ።”', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'title': 'BEKAS FAST', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'extra': '“EXTRA PLAY OPTION ARE COMING SOON.”', 'info': 'INFORMATION AND RULE', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'PEOPLE', 'birr': 'BIRR' }
-        }[l];
-        document.getElementById('title-text').innerText = s.title; document.getElementById('hello-text').innerText = s.hello;
-        document.getElementById('dep-btn').innerText = s.dep; document.getElementById('with-btn').innerText = s.with;
-        document.getElementById('th-class').innerText = s.class; document.getElementById('th-qty').innerText = s.qty;
-        document.getElementById('th-reach').innerText = s.reach; document.getElementById('th-play-head').innerText = s.playhead;
-        document.getElementById('extra-msg').innerText = s.extra; document.getElementById('info-btn').innerText = s.info;
-        document.getElementById('out-btn').innerText = s.out; document.getElementById('lang-label').innerText = s.lang;
-        document.getElementById('bal-currency').innerText = s.birr;
-        document.querySelectorAll('.p-btn').forEach(b => b.innerText = s.play);
-        document.querySelectorAll('.p-text').forEach(t => t.innerText = s.people);
-        document.querySelectorAll('.birr-text').forEach(t => t.innerText = s.birr);
-        document.getElementById('lang-am').classList.toggle('active', l === 'am');
-        document.getElementById('lang-en').classList.toggle('active', l === 'en');
-        updateClock();
+        document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
+        document.getElementById('l-btn').innerText = (l === 'am') ? "ግባ" : "LOG IN";
+        document.getElementById('r-btn').innerText = (l === 'am') ? "ተመዝገብ" : "REGISTER";
+        document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
+        document.getElementById('pass-input').placeholder = (l === 'am') ? "የይለፍ ቃል" : "PASSWORD";
+        document.getElementById('lost-btn').innerText = (l === 'am') ? "ጠፋ" : "LOST";
+        updateOnlineDisplay();
+        document.getElementById('lang-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
+        document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
     }
-    setInterval(updateClock, 1000); updateClock();
+
+    function updateOnlineDisplay() {
+        const onlineArea = document.getElementById('online-area');
+        if (onlineArea) {
+            onlineArea.innerHTML = currentLang === 'am' ? 
+                `<span class="live-dot"></span> <span id="online-count">${globalOnlineCount}</span> ሰዎች አሁን በመጫወት ላይ ናቸው` : 
+                `<span class="live-dot"></span> <span id="online-count">${globalOnlineCount}</span> PEOPLE ARE PLAYING NOW`;
+        }
+    }
+
+    onlineRef.on('value', (snap) => {
+        globalOnlineCount = snap.val() || 0;
+        updateOnlineDisplay();
+    });
+
+    function handleLogin() {
+        const phone = document.getElementById('p-input').value;
+        const pass = document.getElementById('pass-input').value;
+        if (phone.length < 9 || pass.length !== 5) {
+            document.getElementById('error-msg').innerText = currentLang === 'am' ? "የተሳሳተ መረጃ" : "INCORRECT INFORMATION";
+        } else {
+            localStorage.setItem('userPhone', phone);
+            window.location.href = "home.html"; // ወደ ዋናው ገጽ ይወስዳል
+        }
+    }
 </script>
 </body>
 </html>
