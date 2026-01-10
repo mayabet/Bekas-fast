@@ -19,13 +19,10 @@
         .tele-num { font-size: 24px; color: #c00000; font-weight: 900; display: block; }
         .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
         #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
-        
-        /* እዚህ ጋር ነው ጽሁፎቹን ጎልተው እንዲታዩ ያደረግኳቸው */
         .input-group { margin-bottom: 10px; flex-shrink: 0; }
         .label-text { color: #000; font-weight: 900; font-size: 13px; text-transform: uppercase; margin-bottom: 4px; display: block; }
         .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 42px; box-sizing: border-box; }
         input { border: none; outline: none; width: 100%; font-size: 18px; font-weight: 900; background: transparent; color: #002d4b; }
-        
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
         .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .dep-btn { background: #ffcc00; color: #000; }
@@ -42,8 +39,8 @@
     <div class="yellow-bar"><span id="top-title">DEPOSIT / WITHDRAW</span><span class="plus18">+18</span></div>
     <div class="content">
         <div class="dt-section">
-            <div id="date-label" class="dt-row">DATE: JAN 9, 2026</div>
-            <div id="time-label" class="dt-row">TIME: 00:00:00</div>
+            <div id="date-label" class="dt-row">DATE: ...</div>
+            <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
         <div class="branding"><h1>BEKAS FAST</h1></div>
         <div class="tele-box">
@@ -89,14 +86,17 @@
     const database = firebase.database();
 
     let currentLang = 'en';
-    let userPhone = localStorage.getItem('userPhone') || "0900000000";
+    let userPhone = localStorage.getItem('userPhone') || "";
     let currentBalance = 0;
+
+    if (!userPhone) window.location.replace("login.html");
 
     function updateClock() {
         const n = new Date();
-        document.getElementById('time-label').innerText = "TIME: " + n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
+        document.getElementById('date-label').innerText = "DATE: " + n.toDateString().toUpperCase();
+        document.getElementById('time-label').innerText = "TIME: " + n.toLocaleTimeString();
     }
-    setInterval(updateClock, 1000);
+    setInterval(updateClock, 1000); updateClock();
 
     database.ref('users/' + userPhone + '/balance').on('value', (snap) => {
         currentBalance = snap.val() || 0;
@@ -113,8 +113,19 @@
         const code = document.getElementById('tr-input').value;
         const amount = document.getElementById('am-input').value;
         if (code.length === 10 && amount > 0) {
-            database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: amount, status: "pending", time: new Date().toLocaleString() })
-            .then(() => { showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); document.getElementById('tr-input').value=""; document.getElementById('am-input').value=""; });
+            database.ref('requests').push({ 
+                phone: userPhone, 
+                code: code, 
+                amount: parseFloat(amount), 
+                type: "deposit", 
+                status: "pending", 
+                time: new Date().toLocaleString() 
+            })
+            .then(() => { 
+                showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); 
+                document.getElementById('tr-input').value=""; 
+                document.getElementById('am-input').value=""; 
+            });
         } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ":"INCORRECT INFO", "red"); }
     }
 
@@ -122,15 +133,27 @@
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 50) {
-            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
-            .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
-        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ":"INCORRECT INFO", "red"); }
+            // ጥያቄውን ለብቻው 'requests' በሚባል ቦታ ለ Admin ይልካል
+            database.ref('requests').push({ 
+                phone: userPhone, 
+                amount: numAmount, 
+                type: "withdraw", 
+                status: "pending", 
+                time: new Date().toLocaleString() 
+            })
+            .then(() => { 
+                showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); 
+                document.getElementById('am-input').value=""; 
+            });
+        } else { 
+            showMsg(currentLang==='am'?"ሂሳብዎ በቂ አይደለም ወይም የተሳሳተ መጠን":"INSUFFICIENT BALANCE OR INVALID AMOUNT", "red"); 
+        }
     }
 
     function setLang(l) {
         currentLang = l;
         const labels = {
-            'am': { 't': 'ማስገቢያ / ማውጫ', 'tmsg': 'በዚህ ቁጥር ያስገቡ፦', 'tr': 'የግብይት መለያ (ለማስገቢያ)', 'am': 'የገንዘብ መጠን', 'dp': 'ገንዘብ አስገባ', 'wt': 'ገንዘብ አውጣ', 'if': 'መመሪያ', 'bk': 'ተመለስ' },
+            'am': { 't': 'ማስገቢያ / ማውጫ', 'tmsg': 'በዚህ ቁጥር ያስገቡ፦', 'tr': 'የግብይት መለያ (ለማስገቢያ)', 'am': 'የገንዘብ መጠን (ቢበዛ 5 ዲጂት)', 'dp': 'ገንዘብ አስገባ', 'wt': 'ገንዘብ አውጣ', 'if': 'መመሪያ', 'bk': 'ተመለስ' },
             'en': { 't': 'DEPOSIT / WITHDRAW', 'tmsg': 'SEND DEPOSIT TO:', 'tr': 'TRANSACTION CODE (DEPOSIT ONLY)', 'am': 'AMOUNT (MAX 5 DIGITS)', 'dp': 'DEPOSIT', 'wt': 'WITHDRAW', 'if': 'INFO', 'bk': 'BACK TO HOME' }
         };
         const s = labels[l];
