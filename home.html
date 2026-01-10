@@ -81,10 +81,11 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // የተጠቃሚ መረጃ መኖሩን ማረጋገጫ (Login Check)
     const userPhone = localStorage.getItem('userPhone');
+    
+    // አስፈላጊ ማስተካከያ፡ የፋይል ስሙን ከ GitHub ጋር ለማስማማት ወደ "index.html" (በትንሿ 'i') ተቀይሯል
     if (!userPhone) {
-        window.location.href = "Index.html"; 
+        window.location.href = "index.html"; 
     } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const userData = snapshot.val();
@@ -95,10 +96,11 @@
         });
     }
 
-    // SIGN OUT ተግባር (አስተማማኝ ማስተካከያ)
+    // SIGN OUT ተግባር ማስተካከያ
     function handleLogout() {
-        localStorage.removeItem('userPhone'); // መረጃውን ያጠፋል
-        window.location.href = "Index.html"; // ወደ Index.html ይመልሳል
+        localStorage.removeItem('userPhone'); 
+        // GitHub ላይ 404 እንዳይመጣ "index.html" መጠቀም ይመረጣል
+        window.location.href = "index.html"; 
     }
 
     let currentLang = 'en';
