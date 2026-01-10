@@ -121,20 +121,24 @@
     function handleDeposit() {
         const code = document.getElementById('tr-input').value;
         const amount = document.getElementById('am-input').value;
+        // በትክክል 10 ዲጂት መሆኑን እዚህም እናረጋግጣለን
         if (code.length === 10 && amount > 0) {
             database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: amount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); document.getElementById('tr-input').value=""; document.getElementById('am-input').value=""; });
-        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ":"INCORRECT INFO", "red"); }
+        } else { 
+            showMsg(currentLang==='am'?"ኮዱ 10 ዲጂት መሆን አለበት":"CODE MUST BE 10 DIGITS", "red"); 
+        }
     }
 
     function handleWithdraw() {
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
-        // እዚህ ጋር ከ 10 ብር በላይ እንዲያወጣ ተደርጓል
         if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 10) {
             database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
-        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ ወይም በቂ ሂሳብ የለም":"INCORRECT INFO OR LOW BALANCE", "red"); }
+        } else { 
+            showMsg(currentLang==='am'?"የተሳሳተ መረጃ ወይም በቂ ሂሳብ የለም":"INCORRECT INFO OR LOW BALANCE", "red"); 
+        }
     }
 
     function setLang(l) {
