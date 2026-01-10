@@ -47,8 +47,8 @@
             <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency">ETB</small></div>
         </div>
         <div class="quick-actions">
-            <a href="diposit.html" class="q-btn q-dep" id="dep-btn">DEPOSIT</a>
-            <a href="diposit.html" class="q-btn q-with" id="with-btn">WITHDRAW</a>
+            <a href="deposit.html" class="q-btn q-dep" id="dep-btn">DEPOSIT</a>
+            <a href="deposit.html" class="q-btn q-with" id="with-btn">WITHDRAW</a>
         </div>
         <table class="sport-table">
             <thead><tr><th id="th-class">CLASS</th><th id="th-qty">QTY</th><th id="th-reach">REACH</th><th id="th-play-head">PLAY</th></tr></thead>
@@ -78,13 +78,12 @@
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
     const userPhone = localStorage.getItem('userPhone');
-    // ማስተካከያ፡ ወደ index.html (በትንሿ i) እንዲመለስ ተደርጓል
     if (!userPhone) {
-        window.location.replace("index.html"); 
+        window.location.replace("Index.html");
     } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const userData = snapshot.val();
@@ -95,10 +94,9 @@
         });
     }
 
-    // SIGN OUT ማስተካከያ
     function handleLogout() {
-        localStorage.removeItem('userPhone'); 
-        window.location.replace("index.html"); 
+        localStorage.removeItem('userPhone');
+        window.location.replace("Index.html");
     }
 
     let currentLang = 'en';
