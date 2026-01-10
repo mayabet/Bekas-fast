@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mita Betting - Home</title>
+    <title>BEKAS FAST - Home</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -39,7 +39,7 @@
 </head>
 <body>
 <div class="app-card">
-    <div class="top-banner"><span class="title" id="title-text">Mita Betting</span><span class="plus18">+18</span></div>
+    <div class="top-banner"><span class="title" id="title-text">BEKAS FAST</span><span class="plus18">+18</span></div>
     <div class="content">
         <div class="live-info"><span id="date-label"></span><span id="time-label"></span></div>
         <div class="user-section">
@@ -83,9 +83,9 @@
 
     const userPhone = localStorage.getItem('userPhone');
     
-    // አስፈላጊ ማስተካከያ፡ የፋይል ስሙን ከ GitHub ጋር ለማስማማት ወደ "index.html" (በትንሿ 'i') ተቀይሯል
+    // አስፈላጊ ማስተካከያ፡ ተጠቃሚው ካልገባ ወይም ሲወጣ ወደ "Index.html" እንዲመለስ ተደርጓል
     if (!userPhone) {
-        window.location.href = "index.html"; 
+        window.location.replace("Index.html"); 
     } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const userData = snapshot.val();
@@ -96,11 +96,10 @@
         });
     }
 
-    // SIGN OUT ተግባር ማስተካከያ
+    // SIGN OUT ተግባር
     function handleLogout() {
         localStorage.removeItem('userPhone'); 
-        // GitHub ላይ 404 እንዳይመጣ "index.html" መጠቀም ይመረጣል
-        window.location.href = "index.html"; 
+        window.location.replace("Index.html"); 
     }
 
     let currentLang = 'en';
@@ -118,8 +117,8 @@
     function setLang(l) {
         currentLang = l;
         const s = {
-            'am': { 'title': 'ሚታ ቤቲንግ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'extra': '“ተጨማሪ የጨዋታ አማራጮች በቅርቡ ይጠብቁ።”', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'title': 'Mita Betting', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'extra': '“EXTRA PLAY OPTION ARE COMING SOON.”', 'info': 'INFORMATION AND RULE', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'PEOPLE', 'birr': 'BIRR' }
+            'am': { 'title': 'ቤካስ ፈጣን', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'extra': '“ተጨማሪ የጨዋታ አማራጮች በቅርቡ ይጠብቁ።”', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'en': { 'title': 'BEKAS FAST', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'extra': '“EXTRA PLAY OPTION ARE COMING SOON.”', 'info': 'INFORMATION AND RULE', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'PEOPLE', 'birr': 'BIRR' }
         }[l];
         document.getElementById('title-text').innerText = s.title; document.getElementById('hello-text').innerText = s.hello;
         document.getElementById('dep-btn').innerText = s.dep; document.getElementById('with-btn').innerText = s.with;
