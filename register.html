@@ -107,19 +107,17 @@
         currentLang = l;
         const isAm = (l === 'am');
         
-        // UI Texts
         document.getElementById('new-tag').innerText = isAm ? "አዲስ" : "NEW";
-        document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፈጣን" : "BEKAS FAST"; // ስሙ አሁን አብሮ ይቀየራል
+        document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፈጣን" : "BEKAS FAST";
         document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
         document.getElementById('l-text').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
         document.getElementById('r-btn').innerText = isAm ? "ተመዝገብ" : "REGISTER";
         document.getElementById('back-link').innerText = isAm ? "ተመለስ" : "BACK";
         
-        // Placeholders
+        // Input Placeholders change with language
         document.getElementById('name-input').placeholder = isAm ? "ስም (ከ3-10 ፊደል)" : "NAME (3-10)";
         document.getElementById('pass-input').placeholder = isAm ? "ሚስጥር ቁጥር (5 ድጅት)" : "PIN (5 DIGITS)";
         
-        // Active Class
         document.getElementById('lang-am').classList.toggle('active', isAm);
         document.getElementById('lang-en').classList.toggle('active', !isAm);
         
@@ -153,6 +151,7 @@
             if (snapshot.exists()) {
                 showError(currentLang === 'am' ? "ይህ ስልክ ቀድሞ ተመዝግቧል" : "ALREADY REGISTERED");
             } else {
+                // አዲሱ ተጠቃሚ 0 ብር እንዲኖረው ተስተካክሏል
                 database.ref('users/' + phone).set({
                     username: nameInput,
                     password: pass,
