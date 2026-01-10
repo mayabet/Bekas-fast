@@ -37,20 +37,20 @@
             <div id="date-label" class="dt-row">DATE: ...</div>
             <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
-        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
+        <div class="branding"><h1>BEKAS FAST</h1></div>
         <div id="play-resp" class="motto-plain">PLAY RESPONSIBLY!</div>
         
         <div id="error-msg"></div>
 
         <div class="input-row">
             <div class="input-box">
-                <input type="text" id="name-input" placeholder="NAME (3-10)" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+                <input type="text" id="name-input" placeholder="NAME (3-10)" maxlength="10">
             </div>
         </div>
         <div class="input-row">
             <div class="input-box">
                 <b style="font-size: 18px; margin-right: 5px;">+251</b>
-                <input type="number" id="p-input" placeholder="9..." oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+                <input type="number" id="p-input" placeholder="9..." oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);">
             </div>
         </div>
         <div class="input-row">
@@ -94,7 +94,7 @@
         const mEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
         let hours = n.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
-        const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
+        const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ampm;
         
         document.getElementById('date-label').innerText = (currentLang === 'am' ? "ቀን: " : "DATE: ") + (currentLang === 'am' ? mAM[n.getMonth()] : mEN[n.getMonth()]) + " " + n.getDate() + ", " + n.getFullYear();
         document.getElementById('time-label').innerText = (currentLang === 'am' ? "ሰዓት: " : "TIME: ") + timeStr;
@@ -103,7 +103,6 @@
 
     function setLang(l) {
         currentLang = l;
-        document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
         document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
         document.getElementById('play-resp').innerText = (l === 'am') ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
         document.getElementById('name-input').placeholder = (l === 'am') ? "ስም (3-10)" : "NAME (3-10)";
@@ -122,35 +121,18 @@
         const pass = document.getElementById('pass-input').value;
         const errorDiv = document.getElementById('error-msg');
         
-        const showError = (msg) => {
-            errorDiv.innerText = msg;
-            setTimeout(() => { errorDiv.innerText = ""; }, 3000);
-        };
+        if (name.length < 3) { errorDiv.innerText = "NAME TOO SHORT"; return; }
+        if (phone.length < 9) { errorDiv.innerText = "INVALID PHONE"; return; }
+        if (pass.length !== 5) { errorDiv.innerText = "PIN MUST BE 5 DIGITS"; return; }
 
-        if (name.length < 3) { showError(currentLang === 'am' ? "ስም በጣም አጭር ነው" : "NAME TOO SHORT"); return; }
-        
-        // ስልክ ቁጥር ማስተካከያ (0912... ከሆነ 912... ያደርገዋል)
-        if (phone.startsWith('0')) phone = phone.substring(1);
-        
-        const isValidPhone = (phone.startsWith('9') && phone.length === 9);
-        if (!isValidPhone) { showError(currentLang === 'am' ? "የተሳሳተ ስልክ ቁጥር" : "INVALID PHONE NUMBER"); return; }
-        if (pass.length !== 5) { showError(currentLang === 'am' ? "ሚስጥር ቁጥር 5 ድጅት" : "PIN MUST BE 5 DIGITS"); return; }
-
-        database.ref('users/' + phone).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                showError(currentLang === 'am' ? "ይህ ስልክ ቀድሞ ተመዝግቧል" : "ALREADY REGISTERED");
-            } else {
-                database.ref('users/' + phone).set({
-                    username: name,
-                    password: pass,
-                    balance: 0,
-                    status: "active",
-                    joinedDate: new Date().toISOString()
-                }).then(() => {
-                    alert(currentLang === 'am' ? "ምዝገባው ተሳክቷል!" : "SUCCESSFULLY REGISTERED!");
-                    window.location.href = "Index.html";
-                });
-            }
+        database.ref('users/' + phone).set({
+            username: name,
+            password: pass,
+            balance: 0,
+            status: "active"
+        }).then(() => {
+            alert("Registered Successfully!");
+            window.location.href = "Index.html";
         });
     }
 </script>
