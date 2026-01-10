@@ -83,7 +83,7 @@
 
     const userPhone = localStorage.getItem('userPhone');
     if (!userPhone) {
-        window.location.replace("Index.html");
+        window.location.href = "Index.html"; // ተጠቃሚ ካልገባ ወደ Index ይመልሳል
     } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const userData = snapshot.val();
@@ -94,10 +94,10 @@
         });
     }
 
-    // SIGN OUT ተግባር (ያስተካክላል)
+    // SIGN OUT ተግባር - የተስተካከለ
     function handleLogout() {
         localStorage.removeItem('userPhone'); // የተቀመጠውን ዳታ ያጠፋል
-        window.location.replace("Index.html"); // በቀጥታ ወደ Index ይመልሳል
+        window.location.href = "Index.html"; // በቀጥታ ወደ Index.html ይመልሳል
     }
 
     let currentLang = 'en';
