@@ -130,7 +130,7 @@
     function handleWithdraw() {
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
-        // እዚህ ጋር >= 10 እንዲሆን ተስተካክሏል
+        // እዚህ ጋር ከ 10 ብር በላይ እንዲያወጣ ተደርጓል
         if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 10) {
             database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
