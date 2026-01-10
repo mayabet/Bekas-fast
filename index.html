@@ -48,7 +48,7 @@
             <div class="dt-row" id="time-label">TIME: 00:00:00</div>
         </div>
 
-        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
+        <div class="branding"><h1 id="brand-name">Mita Betting</h1></div>
         <div class="motto" id="motto">WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!</div>
         
         <div id="error-msg"></div>
@@ -92,7 +92,9 @@
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
     const database = firebase.database();
     const onlineRef = database.ref('online_users_count');
 
@@ -118,7 +120,7 @@
 
     function setLang(l) {
         currentLang = l;
-        document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
+        document.getElementById('brand-name').innerText = (l === 'am') ? "ሚታ ቤቲንግ" : "Mita Betting";
         document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
         document.getElementById('motto').innerText = (l === 'am') ? "ሁልጊዜም የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!" : "WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!";
         document.getElementById('l-btn').innerText = (l === 'am') ? "ግባ" : "LOG IN";
@@ -153,6 +155,7 @@
         updateOnlineDisplay();
     });
 
+    // አስተካካይ፡ ተጠቃሚው በትክክል እንዲገባ የሚያደርግ ፈንክሽን
     function handleLogin() {
         const phone = document.getElementById('p-input').value;
         const pass = document.getElementById('pass-input').value;
@@ -165,17 +168,14 @@
         }
 
         database.ref('users/' + phone).once('value').then((snapshot) => {
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
-                if (userData.password === pass) {
-                    localStorage.setItem('loggedInUser', phone);
-                    window.location.href = "home.html"; // ወደ አዲሱ home.html እንዲሄድ
-                } else {
-                    errorMsg.innerText = currentLang === 'am' ? "የይለፍ ቃል ተሳስቷል" : "WRONG PASSWORD";
-                    setTimeout(() => { errorMsg.innerText = ""; }, 3000);
-                }
+            const userData = snapshot.val();
+            // ተጠቃሚው ካለ እና ፓስወርዱ ልክ ከሆነ
+            if (userData && userData.password === pass) {
+                localStorage.setItem('userPhone', phone);
+                // ዋናው ማስተካከያ፡ ወደ home.html እንዲሄድ ያደርጋል
+                window.location.href = "home.html"; 
             } else {
-                errorMsg.innerText = currentLang === 'am' ? "ተጠቃሚው አልተገኘም" : "USER NOT FOUND";
+                errorMsg.innerText = currentLang === 'am' ? "የተሳሳተ ስልክ ወይም የይለፍ ቃል" : "WRONG PHONE OR PASSWORD";
                 setTimeout(() => { errorMsg.innerText = ""; }, 3000);
             }
         });
