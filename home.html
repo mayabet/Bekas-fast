@@ -83,7 +83,7 @@
 
     const userPhone = localStorage.getItem('userPhone');
     if (!userPhone) {
-        window.location.replace("Index.html");
+        window.location.replace("index.html");
     } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const userData = snapshot.val();
@@ -94,9 +94,10 @@
         });
     }
 
+    // የተስተካከለው የሎግ አውት ፈንክሽን
     function handleLogout() {
         localStorage.removeItem('userPhone');
-        window.location.replace("Index.html");
+        window.location.replace("index.html"); // በትንሽ ፊደል ተስተካክሏል
     }
 
     let currentLang = 'en';
