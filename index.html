@@ -82,6 +82,7 @@
 </div>
 
 <script>
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -107,10 +108,10 @@
         const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
         
         if(currentLang === 'am') {
-            document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + ", " + n.getDate() + ", " + n.getFullYear();
+            document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
             document.getElementById('time-label').innerText = "ሰዓት: " + timeStr;
         } else {
-            document.getElementById('date-label').innerText = "DATE: " + mEN[n.getMonth()] + ", " + n.getDate() + ", " + n.getFullYear();
+            document.getElementById('date-label').innerText = "DATE: " + mEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
             document.getElementById('time-label').innerText = "TIME: " + timeStr;
         }
     }
@@ -126,6 +127,7 @@
         document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
         document.getElementById('pass-input').placeholder = (l === 'am') ? "የይለፍ ቃል" : "PASSWORD";
         document.getElementById('lost-btn').innerText = (l === 'am') ? "ጠፋ" : "LOST";
+        
         updateOnlineDisplay();
         document.getElementById('lang-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
@@ -153,34 +155,37 @@
         updateOnlineDisplay();
     });
 
-    // የተስተካከለው የ Login ፈንክሽን - ዳታቤዝ ውስጥ ገብቶ ያረጋግጣል
+    // Login Logic ከዳታቤዝ ጋር የተገናኘ
     function handleLogin() {
-        const phone = document.getElementById('p-input').value;
+        let phone = document.getElementById('p-input').value;
         const pass = document.getElementById('pass-input').value;
 
+        if (phone.startsWith('0')) phone = phone.substring(1); // 09... ከሆነ 9... ያደርገዋል
+
         if (phone.length < 9 || pass.length !== 5) {
-            document.getElementById('error-msg').innerText = currentLang === 'am' ? "የተሳሳተ መረጃ" : "INCORRECT INFORMATION";
-            setTimeout(() => { document.getElementById('error-msg').innerText = ""; }, 3000);
+            showError(currentLang === 'am' ? "የተሳሳተ መረጃ" : "INCORRECT INFO");
             return;
         }
 
-        // 1. መጀመሪያ ተጠቃሚው ዳታቤዝ ውስጥ መኖሩን ያረጋግጣል
         database.ref('users/' + phone).once('value').then((snapshot) => {
             if (snapshot.exists()) {
                 const userData = snapshot.val();
-                // 2. የተቀየረውን አዲስ ፓስወርድ እዚህ ጋር ያረጋግጣል
                 if (userData.password === pass) {
-                    // ስኬታማ ከሆነ ወደ ዋናው ገጽ (ለምሳሌ home.html) ይወስደዋል
-                    window.location.href = "home.html"; 
+                    // መረጃው ልክ ከሆነ ወደ ዋናው ገጽ ይገባል
+                    localStorage.setItem('userPhone', phone); // ስልኩን ለሌላ ገጽ ያስቀምጠዋል
+                    window.location.href = "game.html"; // ጨዋታው ገጽ ላይ እንዲሄድ (game.html ካለህ)
                 } else {
-                    document.getElementById('error-msg').innerText = currentLang === 'am' ? "የይለፍ ቃል ተሳስቷል" : "WRONG PASSWORD";
+                    showError(currentLang === 'am' ? "የይለፍ ቃል ተሳስቷል" : "WRONG PASSWORD");
                 }
             } else {
-                document.getElementById('error-msg').innerText = currentLang === 'am' ? "አካውንቱ አልተገኘም" : "ACCOUNT NOT FOUND";
+                showError(currentLang === 'am' ? "አካውንቱ አልተገኘም" : "ACCOUNT NOT FOUND");
             }
-        }).catch((error) => {
-            document.getElementById('error-msg').innerText = "CONNECTION ERROR";
         });
+    }
+
+    function showError(msg) {
+        document.getElementById('error-msg').innerText = msg;
+        setTimeout(() => { document.getElementById('error-msg').innerText = ""; }, 3000);
     }
 </script>
 </body>
