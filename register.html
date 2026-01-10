@@ -8,7 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .card { width: 90%; max-width: 330px; background: white; border-radius: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.2); overflow: hidden; border: 2.5px solid #000; position: relative; }
+        .card { width: 90%; max-width: 330px; background: white; border-radius: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.2); overflow: hidden; border: 2.5px solid #000; position: relative; z-index: 1; }
         .yellow-bar { background: #ffcc00; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; border-bottom: 2.5px solid #000; }
         .content { padding: 12px 18px; }
         .branding h1 { color: #00b050; text-align: center; margin: 8px 0 2px 0; font-size: 38px; font-weight: 900; }
@@ -21,11 +21,11 @@
         .btn { 
             width: 100%; padding: 14px; border-radius: 0; border: 2.5px solid #000; 
             font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 16px; 
-            text-transform: uppercase; display: block; position: relative; z-index: 999;
+            text-transform: uppercase; display: block; position: relative; z-index: 10;
         }
         .register-btn { background: #00b050; color: white; }
         .back-btn { background: #001f3f; color: white; }
-        .btn:active { transform: scale(0.95); }
+        .btn:active { transform: scale(0.98); }
 
         .footer { border-top: 3px solid #000; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; }
         .lang-text { font-size: 16px; font-weight: 900; color: #000; }
@@ -36,25 +36,32 @@
 <body>
 
 <div class="card">
-    <div class="yellow-bar"><span>NEW</span><span style="color:red; font-size:26px">+18</span></div>
+    <div class="yellow-bar"><span id="new-label">NEW</span><span style="color:red; font-size:26px">+18</span></div>
     <div class="content">
-        <div class="branding"><h1>BEKAS FAST</h1></div>
+        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
         <div id="play-resp" class="motto-plain">PLAY RESPONSIBLY!</div>
         
         <div id="error-msg"></div>
 
         <div class="input-row">
-            <div class="input-box"><input type="text" id="name-input" placeholder="NAME (3-10)" maxlength="10"></div>
+            <div class="input-box">
+                <input type="text" id="name-input" placeholder="NAME (3-10)" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+            </div>
         </div>
+
         <div class="input-row">
-            <div class="input-box"><b style="margin-right:5px">+251</b><input type="number" id="p-input" placeholder="9..." oninput="if(this.value.length > 9) this.value = this.value.slice(0, 9);"></div>
+            <div class="input-box">
+                <input type="number" id="p-input" placeholder="09XXXXXXXX" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+            </div>
         </div>
+
         <div class="input-row">
-            <div class="input-box"><input type="number" id="pass-input" placeholder="PIN (5 DIGITS)" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);"></div>
+            <div class="input-box">
+                <input type="number" id="pass-input" placeholder="PIN (5 DIGITS)" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
+            </div>
         </div>
 
         <button class="btn register-btn" id="reg-btn-text" onclick="handleRegister()">CREATE ACCOUNT</button>
-        
         <button class="btn back-btn" id="back-btn-text" onclick="goBack()">BACK TO LOGIN</button>
     </div>
 
@@ -80,41 +87,61 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // ይህ ፈንክሽን ወደ Index.html በግድ እንዲመለስ ያደርጋል
-    function goBack() {
-        window.location.replace("Index.html");
-        // ፋይሉ በትንሽ i ከሆነ ደግሞ ይህ ይሞክራል
-        setTimeout(() => { window.location.href = "index.html"; }, 100);
-    }
+    let currentLang = 'en';
+
+    function goBack() { window.location.replace("Index.html"); }
 
     function handleRegister() {
-        const name = document.getElementById('name-input').value;
+        const name = document.getElementById('name-input').value.trim();
         const phone = document.getElementById('p-input').value;
         const pass = document.getElementById('pass-input').value;
         const errorDiv = document.getElementById('error-msg');
         
-        if (name.length < 3) { errorDiv.innerText = "NAME TOO SHORT"; return; }
-        if (phone.length < 9) { errorDiv.innerText = "INVALID PHONE"; return; }
-        if (pass.length !== 5) { errorDiv.innerText = "PIN MUST BE 5 DIGITS"; return; }
+        // Validation
+        if (name.length < 3 || name.length > 10) { 
+            errorDiv.innerText = (currentLang === 'am') ? "ስም ከ3-10 ፊደል መሆን አለበት" : "NAME MUST BE 3-10 CHARS"; 
+            return; 
+        }
+        if (!phone.startsWith("09") || phone.length !== 10) { 
+            errorDiv.innerText = (currentLang === 'am') ? "ስልክ በ09 መጀመር አለበት (10 ዲጂት)" : "PHONE MUST START WITH 09 (10 DIGITS)"; 
+            return; 
+        }
+        if (pass.length !== 5) { 
+            errorDiv.innerText = (currentLang === 'am') ? "ፒን 5 ዲጂት መሆን አለበት" : "PIN MUST BE 5 DIGITS"; 
+            return; 
+        }
 
-        database.ref('users/' + phone).set({
-            username: name,
-            password: pass,
-            balance: 0,
-            status: "active"
-        }).then(() => {
-            alert("Registered Successfully!");
-            goBack();
+        database.ref('users/' + phone).get().then((snapshot) => {
+            if (snapshot.exists()) {
+                errorDiv.innerText = (currentLang === 'am') ? "ይህ ስልክ ቀድሞ ተመዝግቧል" : "PHONE ALREADY REGISTERED";
+            } else {
+                database.ref('users/' + phone).set({
+                    username: name,
+                    password: pass,
+                    balance: 0,
+                    status: "active"
+                }).then(() => {
+                    alert((currentLang === 'am') ? "በስኬት ተመዝግበዋል!" : "Registered Successfully!");
+                    window.location.replace("Index.html");
+                });
+            }
         });
     }
 
     function setLang(l) {
-        document.getElementById('play-resp').innerText = (l === 'am') ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
-        document.getElementById('reg-btn-text').innerText = (l === 'am') ? "አካውንት ክፈት" : "CREATE ACCOUNT";
-        document.getElementById('back-btn-text').innerText = (l === 'am') ? "ወደ መግቢያ ተመለስ" : "BACK TO LOGIN";
-        document.getElementById('lang-label').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
-        document.getElementById('lang-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
+        currentLang = l;
+        const isAm = (l === 'am');
+        document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፋስት" : "BEKAS FAST";
+        document.getElementById('new-label').innerText = isAm ? "አዲስ" : "NEW";
+        document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
+        document.getElementById('reg-btn-text').innerText = isAm ? "አካውንት ክፈት" : "CREATE ACCOUNT";
+        document.getElementById('back-btn-text').innerText = isAm ? "ወደ መግቢያ ተመለስ" : "BACK TO LOGIN";
+        document.getElementById('lang-label').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
+        document.getElementById('name-input').placeholder = isAm ? "ስም (3-10)" : "NAME (3-10)";
+        document.getElementById('pass-input').placeholder = isAm ? "ፒን (5 ዲጂት)" : "PIN (5 DIGITS)";
+        document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
+        errorDiv.innerText = "";
     }
 </script>
 </body>
