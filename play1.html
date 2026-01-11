@@ -51,111 +51,49 @@
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 <script>
-    // ማስተካከያ 1: Balance ከ 0.00 እንዲነሳ
-    let balance = parseFloat(localStorage.getItem('userBalance')) || 0.00;
-    // ማስተካከያ 2: የተጠቃሚውን ስም ከ localStorage መሳብ
-    let accountName = localStorage.getItem('userName') || "YOU";
-
-    function syncBalance() { 
-        document.getElementById('cash').innerText = balance.toFixed(2); 
-        localStorage.setItem('userBalance', balance.toFixed(2)); 
-    }
+    let balance = 0.00; // ተጠቃሚው ያለውን ባላንስ እዚህ ጋር ብቻ ይጻፍ
+    function syncBalance() { document.getElementById('cash').innerText = balance.toFixed(2); localStorage.setItem('userBalance', balance.toFixed(2)); }
     
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
-
     const trans = {
         'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 90 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
         'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 90 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
-
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=10; i++) {
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
-
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        
-        // በ accountName ተተክቷል
-        if (selections[n] === accountName) { 
-            delete selections[n]; 
-            balance += 10; 
-            syncBalance(); 
-            msg.innerText = ""; 
-            updateUI(); 
-            return; 
-        }
-
+        if (selections[n] === "YOU") { delete selections[n]; balance += 10; syncBalance(); msg.innerText = ""; updateUI(); return; }
         if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
-        
-        selections[n] = accountName; 
-        balance -= 10; 
-        syncBalance(); 
-        msg.innerText = trans[currentLang].pick.replace('{n}', n); 
-        msg.style.color = "#002d4b"; 
-        updateUI(); 
-
-        if (Object.keys(selections).length === 10) {
-            runGame();
-        }
+        selections[n] = "YOU"; balance -= 10; syncBalance(); 
+        msg.innerText = trans[currentLang].pick.replace('{n}', n); msg.style.color = "#002d4b"; updateUI(); 
+        if (Object.keys(selections).length === 10) { runGame(); }
     }
-
     function runGame() {
         isPlaying = true;
         let win = Math.floor(Math.random() * 10) + 1;
         document.getElementById('last-val').innerText = win;
         const msg = document.getElementById('msg-box');
-        
-        if(selections[win] === accountName) { 
-            balance += 90; 
-            syncBalance(); 
-            msg.innerText = trans[currentLang].win; 
-            msg.style.color = "green"; 
-        } else { 
-            msg.innerText = trans[currentLang].lost.replace('{n}', win); 
-            msg.style.color = "red"; 
-        }
+        if(selections[win] === "YOU") { balance += 90; syncBalance(); msg.innerText = trans[currentLang].win; msg.style.color = "green"; }
+        else { msg.innerText = trans[currentLang].lost.replace('{n}', win); msg.style.color = "red"; }
         setTimeout(resetGame, 4000);
     }
-
-    function resetGame() { 
-        round++; 
-        document.getElementById('round-val').innerText = round; 
-        selections = {}; 
-        isPlaying = false; 
-        document.getElementById('msg-box').innerText = ""; 
-        updateUI(); 
-    }
-
+    function resetGame() { round++; document.getElementById('round-val').innerText = round; selections = {}; isPlaying = false; document.getElementById('msg-box').innerText = ""; updateUI(); }
     function updateUI() {
-        const table = document.getElementById('sel-table'); 
-        table.innerHTML = "";
+        const table = document.getElementById('sel-table'); table.innerHTML = "";
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            cell.className = "num-cell" + (occupant === accountName ? " user-selected" : "");
+            cell.className = "num-cell" + (occupant === "YOU" ? " user-selected" : "");
             table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
-
-    function setLang(l) { 
-        currentLang = l; 
-        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } 
-        document.getElementById('l-am').classList.toggle('active', l==='am'); 
-        document.getElementById('l-en').classList.toggle('active', l==='en'); 
-    }
-
-    function updateClock() { 
-        const now = new Date(); 
-        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
-        document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
-    }
-
-    setInterval(updateClock, 1000); 
-    updateClock(); 
-    updateUI(); 
-    syncBalance();
+    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
+    function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
+    setInterval(updateClock, 1000); updateClock(); updateUI(); syncBalance();
 </script>
 </body>
 </html>
