@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mita Betting - Deposit & Withdraw</title>
+    <title>Bekas Fast - Deposit & Withdraw</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -42,7 +42,7 @@
             <div id="date-label" class="dt-row">DATE: ...</div>
             <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
-        <div class="branding"><h1>MITA BETTING</h1></div>
+        <div class="branding"><h1>BEKAS FAST</h1></div>
         <div class="tele-box">
             <span style="font-size: 12px; font-weight: 900; color: #000;" id="tele-msg">SEND DEPOSIT TO:</span>
             <span class="tele-num">+2510978272061</span>
@@ -122,7 +122,6 @@
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
-        // Multiple of 10 limit
         if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
             database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { 
@@ -140,7 +139,6 @@
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
-        // Multiple of 10 and balance limit
         if (numAmount > 0 && numAmount <= currentBalance && numAmount % 10 === 0) {
             database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { 
