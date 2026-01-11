@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mita Betting - Play 3</title>
     <style>
-        /* CSS stays the same as original play3.html */
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #ffffff; font-family: sans-serif; }
         .app-container { width: 100%; max-width: 400px; height: 100%; border: 3px solid #002d4b; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
         .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
@@ -35,9 +34,18 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">20 BIRR IN TO 350 BIRR</span><span class="plus18">+18</span></div>
-    <div class="info-section"><div>DATE: <span id="date-label"></span></div><div>TIME: <span id="time-label"></span></div></div>
-    <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
+    <div class="yellow-banner">
+        <span class="game-title" id="gt">20 BIRR IN TO 350 BIRR</span>
+        <span class="plus18">+18</span>
+    </div>
+    <div class="info-section">
+        <div>DATE: <span id="date-label"></span></div>
+        <div>TIME: <span id="time-label"></span></div>
+    </div>
+    <div class="balance-bar">
+        <span id="bl">BALANCE</span>
+        <span><span id="cash">0.00</span> <small>ETB</small></span>
+    </div>
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 20</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
@@ -48,54 +56,91 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
-    <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
+    <div class="footer-nav">
+        <a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
+    </div>
+    <div class="lang-bar">
+        <span id="ll">LANGUAGE</span>
+        <div>
+            <span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | 
+            <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span>
+        </div>
+    </div>
 </div>
 <script>
-    let balance = parseFloat(localStorage.getItem('userBalance')) || 0.00;
-    let accountName = localStorage.getItem('userName') || "YOU";
-    function syncBalance() { document.getElementById('cash').innerText = balance.toFixed(2); localStorage.setItem('userBalance', balance.toFixed(2)); }
-    
+    // ተጠቃሚው ያለውን ባላንስ እዚህ ጋር ብቻ ይጻፍ
+    let balance = 0.00; 
+
+    function syncBalance() {
+        document.getElementById('cash').innerText = balance.toFixed(2);
+        localStorage.setItem('userBalance', balance.toFixed(2));
+    }
+
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', win:'አሸንፈዋል! 350 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
-        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', win:'YOU WON! 350 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 350 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 350 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=20; i++) {
-        let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
+        let cell = document.createElement('div');
+        cell.className = 'num-cell';
+        cell.id = `c-${i}`;
+        cell.innerText = i;
+        cell.onclick = () => pick(i);
+        grid.appendChild(cell);
     }
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        if (selections[n] === accountName) { delete selections[n]; balance += 20; syncBalance(); msg.innerText = ""; updateUI(); return; }
-        if (balance < 20) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
-        selections[n] = accountName; balance -= 20; syncBalance();
+        if (selections[n] === "YOU") {
+            delete selections[n]; balance += 20; syncBalance();
+            msg.innerText = ""; updateUI(); return;
+        }
+        if (balance < 20) {
+            msg.innerText = trans[currentLang].low; msg.style.color = "red"; return;
+        }
+        selections[n] = "YOU"; balance -= 20; syncBalance();
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b"; updateUI();
-        if(Object.keys(selections).length === 20) { runGame(); }
+        if(Object.keys(selections).length === 20) runGame();
     }
     function runGame() {
         isPlaying = true;
         let win = Math.floor(Math.random() * 20) + 1;
         document.getElementById('last-val').innerText = win;
         const msg = document.getElementById('msg-box');
-        if(selections[win] === accountName) { balance += 350; syncBalance(); msg.innerText = trans[currentLang].win; msg.style.color = "green"; }
-        else { msg.innerText = trans[currentLang].lost.replace('{n}', win); msg.style.color = "red"; }
+        if(selections[win] === "YOU") {
+            balance += 350; syncBalance();
+            msg.innerText = trans[currentLang].win; msg.style.color = "green";
+        }
         setTimeout(resetGame, 4000);
     }
-    function resetGame() { round++; document.getElementById('round-val').innerText = round; selections = {}; isPlaying = false; document.getElementById('msg-box').innerText = ""; updateUI(); }
+    function resetGame() {
+        round++; document.getElementById('round-val').innerText = round;
+        selections = {}; isPlaying = false;
+        document.getElementById('msg-box').innerText = ""; updateUI();
+    }
     function updateUI() {
         const table = document.getElementById('sel-table'); table.innerHTML = "";
         for(let i=1; i<=20; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            cell.className = "num-cell" + (occupant === accountName ? " user-selected" : "");
+            cell.className = "num-cell" + (occupant === "YOU" ? " user-selected" : "");
             table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
-    function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
+    function setLang(l) {
+        currentLang = l;
+        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; }
+        document.getElementById('l-am').classList.toggle('active', l==='am');
+        document.getElementById('l-en').classList.toggle('active', l==='en');
+    }
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('time-label').innerText = now.toLocaleTimeString();
+        document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
+    }
     setInterval(updateClock, 1000); updateClock(); updateUI(); syncBalance();
 </script>
 </body>
