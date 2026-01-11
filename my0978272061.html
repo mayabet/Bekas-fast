@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - ADMIN PANEL</title>
+    <title>MITA BETTING - ADMIN PANEL</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -13,7 +13,7 @@
         .section-title { background: #002d4b; color: white; padding: 10px; font-size: 13px; font-weight: bold; text-transform: uppercase; }
         .card { padding: 10px; border-bottom: 1px solid #ddd; }
         .phone-num { font-weight: 900; color: #002d4b; font-size: 14px; }
-        .req-info { font-size: 13px; margin: 5px 0; color: #c00000; font-weight: 900; background: #fffde7; padding: 4px; border: 1px solid #ffcc00; }
+        .req-info { font-size: 12px; margin: 3px 0; color: #333; }
         .row { display: flex; gap: 4px; margin-top: 5px; align-items: center; }
         .amt-box { width: 65px; padding: 8px; border: 2px solid #000; font-size: 14px; font-weight: bold; text-align: center; }
         .btn { border: 2px solid #000; font-weight: bold; cursor: pointer; padding: 8px 5px; color: white; text-transform: uppercase; font-size: 11px; display: flex; align-items: center; justify-content: center; min-width: 50px; }
@@ -29,25 +29,25 @@
 </head>
 <body>
 
-    <div class="header">BEKAS FAST - ADMIN PANEL</div>
+    <div class="header">MITA BETTING - ADMIN PANEL</div>
 
     <div class="section">
-        <div class="section-title">🔑 Password Requests (የይለፍ ቃል ጥያቄዎች)</div>
+        <div class="section-title">🔑 Password Requests</div>
         <div id="password-list"><table><tbody id="p-body"></tbody></table></div>
     </div>
 
     <div class="section">
-        <div class="section-title">💰 Deposit Requests (የገንዘብ ማስገቢያ ጥያቄዎች)</div>
+        <div class="section-title">💰 Deposit Requests</div>
         <div id="deposit-list"></div>
     </div>
 
     <div class="section">
-        <div class="section-title">📤 Withdraw Requests (የገንዘብ ማውጫ ጥያቄዎች)</div>
+        <div class="section-title">📤 Withdraw Requests</div>
         <div id="withdraw-list"></div>
     </div>
 
     <div class="section">
-        <div class="section-title">👥 User Management (ተጠቃሚዎች)</div>
+        <div class="section-title">👥 User Management</div>
         <div id="users-list"></div>
     </div>
 
@@ -72,14 +72,19 @@
             });
         });
 
-        // 2. Deposit Requests - አሁን ኮዱን (Transaction Code) ያሳያል
+        // 2. Deposit Requests (የላክኸው አዲሱ ዲዛይን ገብቷል)
         database.ref('deposit_requests').on('value', (snap) => {
             const list = document.getElementById('deposit-list'); list.innerHTML = "";
             snap.forEach((child) => {
                 const d = child.val();
                 list.innerHTML += `<div class="card">
-                    <div class="phone-num">📱 ${d.phone} | 💵 ${d.amount} ETB</div>
-                    <div class="req-info">T-CODE: ${d.code || 'No Code'}</div>
+                    <div class="phone-num">📲 ስልክ፦ ${d.phone}</div>
+                    <div style="font-weight:bold; font-size:18px; color:#28a745;">💵 መጠን፦ ${d.amount} ETB</div>
+                    <div style="font-size:12px; margin-top:5px; font-weight:bold;">የማስተላለፊያ ቁጥር (TRANS NO):</div>
+                    <div style="background: #dc3545; color: white; padding: 12px; margin: 10px 0; font-size: 22px; font-weight: 900; text-align: center; border: 3px solid #000; border-radius: 5px;">
+                        ${d.trCode || d.code || 'ኮድ የለም'}
+                    </div>
+                    <div style="font-size:11px; color:#666;">🕒 ${d.time || ''} | 📅 ${d.date || ''}</div>
                     <div class="row">
                         <button class="btn btn-green" onclick="approveDep('${child.key}','${d.phone}',${d.amount})">APPROVE</button>
                         <button class="btn btn-red" onclick="removeData('deposit_requests/${child.key}')">REJECT</button>
@@ -94,7 +99,8 @@
             snap.forEach((child) => {
                 const d = child.val();
                 list.innerHTML += `<div class="card">
-                    <div class="phone-num">📤 ${d.phone} | 💵 ${d.amount} ETB</div>
+                    <div class="phone-num">📤 ${d.phone} | ${d.amount} ETB</div>
+                    <div class="req-info" style="color: blue;">🕒 ሰዓት፦ ${d.time || ''}</div>
                     <div class="row">
                         <button class="btn btn-red" style="background:#444" onclick="removeData('withdraw_requests/${child.key}')">PAID (DELETE)</button>
                     </div>
@@ -102,20 +108,20 @@
             });
         });
 
-        // 4. User Management
+        // 4. User Management (ስማቸውን ጨምሮ ያሳያል)
         database.ref('users').on('value', (snap) => {
             const list = document.getElementById('users-list'); list.innerHTML = "";
             snap.forEach((child) => {
                 const id = child.key; const d = child.val();
                 list.innerHTML += `<div class="card">
-                    <div class="phone-num">👤 ${id} <span class="pass-tag">PIN: ${d.password}</span></div>
+                    <div class="phone-num">👤 ${d.name || 'ስም የለም'} | ${id} <span class="pass-tag">PIN: ${d.password}</span></div>
                     <div style="font-weight:bold; color:green; font-size:13px;">Bal: ${d.balance || 0} ETB</div>
                     <div class="row">
                         <input type="number" id="amt-${id}" class="amt-box" placeholder="000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)">
                         <button class="btn btn-blue" onclick="adjustBal('${id}','add')">ADD</button>
                         <button class="btn btn-orange" onclick="adjustBal('${id}','sub')">MINUS</button>
                     </div>
-                    <button class="btn btn-black" onclick="deleteUser('${id}')">DELETE ACCOUNT (አካውንት አጥፋ)</button>
+                    <button class="btn btn-black" onclick="deleteUser('${id}')">DELETE ACCOUNT</button>
                 </div>`;
             });
         });
