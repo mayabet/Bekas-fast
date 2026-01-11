@@ -51,8 +51,15 @@
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 <script>
-    let balance = parseFloat(localStorage.getItem('userBalance')) || 100.00;
-    function syncBalance() { document.getElementById('cash').innerText = balance.toFixed(2); localStorage.setItem('userBalance', balance.toFixed(2)); }
+    // ማስተካከያ 1: Balance ከ 0.00 እንዲነሳ
+    let balance = parseFloat(localStorage.getItem('userBalance')) || 0.00;
+    // ማስተካከያ 2: የተጠቃሚውን ስም ከ localStorage መሳብ
+    let accountName = localStorage.getItem('userName') || "YOU";
+
+    function syncBalance() { 
+        document.getElementById('cash').innerText = balance.toFixed(2); 
+        localStorage.setItem('userBalance', balance.toFixed(2)); 
+    }
     
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
 
@@ -70,7 +77,8 @@
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
         
-        if (selections[n] === "YOU") { 
+        // በ accountName ተተክቷል
+        if (selections[n] === accountName) { 
             delete selections[n]; 
             balance += 10; 
             syncBalance(); 
@@ -81,7 +89,7 @@
 
         if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
         
-        selections[n] = "YOU"; 
+        selections[n] = accountName; 
         balance -= 10; 
         syncBalance(); 
         msg.innerText = trans[currentLang].pick.replace('{n}', n); 
@@ -99,7 +107,7 @@
         document.getElementById('last-val').innerText = win;
         const msg = document.getElementById('msg-box');
         
-        if(selections[win] === "YOU") { 
+        if(selections[win] === accountName) { 
             balance += 90; 
             syncBalance(); 
             msg.innerText = trans[currentLang].win; 
@@ -126,7 +134,7 @@
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            cell.className = "num-cell" + (occupant === "YOU" ? " user-selected" : "");
+            cell.className = "num-cell" + (occupant === accountName ? " user-selected" : "");
             table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
