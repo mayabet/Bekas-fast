@@ -70,13 +70,18 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // 1. Password Requests - ስም እንዲያሳይ እና እንዲጠፋ ተደርጓል
+        // 1. Password Requests - ስልክ ቁጥሩ በትልቁና ጎልቶ እንዲታይ ተደርጓል
         database.ref('password_requests').on('value', (snap) => {
             const body = document.getElementById('p-body'); body.innerHTML = "";
             snap.forEach((child) => {
                 const d = child.val();
                 body.innerHTML += `<tr>
-                    <td><b>${d.name || 'ስም የለም'}</b><br><small>${d.phone}</small></td>
+                    <td>
+                        <b style="font-size: 14px; color: #002d4b;">${d.name || 'ስም የለም'}</b><br>
+                        <div style="font-size: 20px; font-weight: 900; color: #c00000; margin-top: 5px;">
+                            📲 ${d.phone}
+                        </div>
+                    </td>
                     <td><button class="btn btn-red" onclick="removeData('password_requests/${child.key}')">DONE</button></td>
                 </tr>`;
             });
@@ -101,7 +106,7 @@
             });
         });
 
-        // 3. Withdraw Requests - መጠንና ሰዓት በትልቁ
+        // 3. Withdraw Requests
         database.ref('withdraw_requests').on('value', (snap) => {
             const list = document.getElementById('withdraw-list'); list.innerHTML = "";
             snap.forEach((child) => {
