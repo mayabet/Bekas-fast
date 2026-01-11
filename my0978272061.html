@@ -9,169 +9,172 @@
     <style>
         html, body { max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; background: #f4f4f4; font-family: 'Segoe UI', sans-serif; }
         .header { background: #ffcc00; padding: 15px; text-align: center; font-weight: 900; font-size: 18px; border-bottom: 3px solid #000; position: sticky; top: 0; z-index: 1000; }
-        .section { background: white; margin: 10px; border: 2px solid #000; }
-        .section-title { background: #002d4b; color: white; padding: 10px; font-size: 13px; font-weight: bold; text-transform: uppercase; }
-        .card { padding: 12px; border-bottom: 1px solid #ddd; }
-        .phone-num { font-weight: 900; color: #002d4b; font-size: 15px; }
-        .withdraw-amt { font-size: 24px; font-weight: 900; color: #c00000; margin: 5px 0; }
-        .time-tag { background: #eefbff; border: 2px solid #007bff; color: #007bff; padding: 8px; font-weight: 900; font-size: 16px; display: block; margin-top: 5px; text-align: center; }
-        .row { display: flex; gap: 4px; margin-top: 8px; align-items: center; }
-        .btn { border: 2px solid #000; font-weight: bold; cursor: pointer; padding: 10px 5px; color: white; text-transform: uppercase; font-size: 11px; display: flex; align-items: center; justify-content: center; min-width: 50px; }
-        .btn-green { background: #28a745; flex: 1; }
-        .btn-red { background: #dc3545; flex: 1; }
-        .btn-blue { background: #007bff; }
-        .btn-orange { background: #ff8c00; }
-        .btn-black { background: #000; width: 100%; margin-top: 10px; font-size: 12px; }
-        .amt-box { width: 65px; padding: 8px; border: 2px solid #000; font-size: 14px; font-weight: bold; text-align: center; }
-        .pass-tag { background: #fff0f0; border: 1px solid red; color: red; font-size: 12px; padding: 2px 6px; margin-left: 5px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+        .section { background: white; margin: 10px; border: 2px solid #002d4b; border-radius: 8px; overflow: hidden; }
+        .section-title { background: #002d4b; color: white; padding: 10px; font-size: 14px; font-weight: bold; text-transform: uppercase; }
+        .card { padding: 12px; border-bottom: 1px solid #ddd; display: flex; flex-direction: column; gap: 5px; }
+        .card:last-child { border-bottom: none; }
+        .row { display: flex; justify-content: space-between; align-items: center; }
+        .phone-text { font-weight: 900; font-size: 17px; color: #002d4b; }
+        .pass-text { font-weight: 900; font-size: 16px; color: #d9534f; background: #ffeeee; padding: 2px 8px; border-radius: 4px; border: 1px solid #d9534f; }
+        .user-name { color: #555; font-size: 14px; font-weight: bold; }
+        .trans-no { background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; color: #333; font-size: 15px; margin: 5px 0; border: 1px solid #ccc; display: inline-block; }
+        .btn-group { display: flex; gap: 5px; margin-top: 5px; }
+        button { border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-green { background: #28a745; }
+        .btn-red { background: #dc3545; }
+        input[type="number"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 80px; }
+        .history-item { font-size: 12px; border-bottom: 1px dashed #ccc; padding: 8px 0; }
+        .type-dep { color: green; font-weight: bold; }
+        .type-with { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="header">MITA BETTING - ADMIN PANEL</div>
+<div class="header">MITA BETTING - ADMIN PANEL</div>
 
-    <div class="section">
-        <div class="section-title">🔑 Password Requests</div>
-        <div id="password-list">
-            <table>
-                <thead><tr style="background:#eee;"><th>User Info</th><th>Action</th></tr></thead>
-                <tbody id="p-body"></tbody>
-            </table>
-        </div>
-    </div>
+<div class="section">
+    <div class="section-title">የገንዘብ ማስገቢያ ጥያቄዎች (Deposits)</div>
+    <div id="dep-list"></div>
+</div>
 
-    <div class="section">
-        <div class="section-title">💰 Deposit Requests</div>
-        <div id="deposit-list"></div>
-    </div>
+<div class="section">
+    <div class="section-title">የገንዘብ ማውጫ ጥያቄዎች (Withdrawals)</div>
+    <div id="with-list"></div>
+</div>
 
-    <div class="section">
-        <div class="section-title">📤 Withdraw Requests</div>
-        <div id="withdraw-list"></div>
-    </div>
+<div class="section">
+    <div class="section-title">ተጠቃሚዎች (User Management)</div>
+    <div id="user-list"></div>
+</div>
 
-    <div class="section">
-        <div class="section-title">👥 User Management</div>
-        <div id="users-list"></div>
-    </div>
+<div class="section">
+    <div class="section-title">የሂሳብ ዝውውር ታሪክ (Transaction History)</div>
+    <div id="history-list" style="padding: 10px; max-height: 400px; overflow-y: auto; background: #fff;"></div>
+</div>
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
-            authDomain: "bekas-fast-d2a3b.firebaseapp.com",
-            databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
-            projectId: "bekas-fast-d2a3b",
-            storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
-            messagingSenderId: "130702344830",
-            appId: "1:130702344830:web:58577289ec2f3208a64e2f"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
+        authDomain: "bekas-fast-d2a3b.firebaseapp.com",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
+        projectId: "bekas-fast-d2a3b",
+        storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
+        messagingSenderId: "130702344830",
+        appId: "1:130702344830:web:58577289ec2f3208a64e2f"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-        // 1. Password Requests
-        database.ref('password_requests').on('value', (snap) => {
-            const body = document.getElementById('p-body'); body.innerHTML = "";
-            snap.forEach((child) => {
-                const d = child.val();
-                body.innerHTML += `<tr>
-                    <td><b>${d.name || 'ስም የለም'}</b><br><small>${d.phone}</small></td>
-                    <td><button class="btn btn-red" onclick="removeData('password_requests/${child.key}')">DONE</button></td>
-                </tr>`;
-            });
+    // 1. Load Deposits - የተስተካከለው የትራንዛክሽን ኮድ ክፍል
+    database.ref('deposit_requests').on('value', snap => {
+        const cont = document.getElementById('dep-list'); cont.innerHTML = "";
+        snap.forEach(child => {
+            const r = child.val();
+            // r.transNo የነበረው ወደ r.code ተቀይሯል ምክንያቱም deposit.html የሚልከው code በሚል ነው
+            cont.innerHTML += `<div class="card">
+                <div class="row"><span class="phone-text">${r.phone}</span> <strong>${r.amount} ETB</strong></div>
+                <div>Trans No: <span class="trans-no">${r.code || 'CODE NOT FOUND'}</span></div>
+                <button class="btn-green" onclick="approveDep('${child.key}', '${r.phone}', ${r.amount})">APPROVE & ADD BALANCE</button>
+            </div>`;
         });
+    });
 
-        // 2. Deposit Requests (5 Digit limit set in display)
-        database.ref('deposit_requests').on('value', (snap) => {
-            const list = document.getElementById('deposit-list'); list.innerHTML = "";
-            snap.forEach((child) => {
-                const d = child.val();
-                let shortCode = (d.trCode || d.code || 'ኮድ የለም').toString().substring(0, 5);
-                list.innerHTML += `<div class="card">
-                    <div class="phone-num">📲 ስልክ፦ ${d.phone}</div>
-                    <div style="font-weight:bold; font-size:18px; color:#28a745;">💵 መጠን፦ ${d.amount} ETB</div>
-                    <div style="background: #dc3545; color: white; padding: 12px; margin: 10px 0; font-size: 22px; font-weight: 900; text-align: center; border: 3px solid #000;">
-                        ${shortCode}
-                    </div>
-                    <div class="row">
-                        <button class="btn btn-green" onclick="approveDep('${child.key}','${d.phone}',${d.amount})">APPROVE</button>
-                        <button class="btn btn-red" onclick="removeData('deposit_requests/${child.key}')">REJECT</button>
-                    </div>
-                </div>`;
-            });
+    // 2. Load Withdrawals
+    database.ref('withdraw_requests').on('value', snap => {
+        const cont = document.getElementById('with-list'); cont.innerHTML = "";
+        snap.forEach(child => {
+            const r = child.val();
+            cont.innerHTML += `<div class="card">
+                <div class="row"><span class="phone-text">${r.phone}</span> <strong>${r.amount} ETB</strong></div>
+                <button class="btn-red" onclick="approveWithdraw('${child.key}', '${r.phone}', ${r.amount})">PAID & DEDUCT</button>
+            </div>`;
         });
+    });
 
-        // 3. Withdraw Requests
-        database.ref('withdraw_requests').on('value', (snap) => {
-            const list = document.getElementById('withdraw-list'); list.innerHTML = "";
-            snap.forEach((child) => {
-                const d = child.val();
-                list.innerHTML += `<div class="card">
-                    <div class="phone-num">👤 ስም፦ ${d.name || 'ስም የለም'} | 📲 ${d.phone}</div>
-                    <div class="withdraw-amt">💵 መጠን፦ ${d.amount} ETB</div>
-                    <div class="time-tag">🕒 ${d.time || 'ሰዓት የለም'}</div>
-                    <div class="row">
-                        <button class="btn btn-red" style="background:#444; flex:2;" onclick="approveWithdraw('${child.key}','${d.phone}',${d.amount})">PAID (REDUCE BAL)</button>
-                        <button class="btn btn-red" style="flex:1;" onclick="removeData('withdraw_requests/${child.key}')">CANCEL</button>
+    // 3. User Management
+    database.ref('users').on('value', snap => {
+        const cont = document.getElementById('user-list'); cont.innerHTML = "";
+        snap.forEach(child => {
+            const u = child.val();
+            const phone = child.key;
+            cont.innerHTML += `<div class="card">
+                <div class="row">
+                    <div>
+                        <span class="phone-text">${phone}</span> <br>
+                        <span class="user-name">User: ${u.username || 'No Name'}</span>
                     </div>
-                </div>`;
-            });
-        });
-
-        // 4. User Management - Added 5-digit limit (maxlength)
-        database.ref('users').on('value', (snap) => {
-            const list = document.getElementById('users-list'); list.innerHTML = "";
-            snap.forEach((child) => {
-                const id = child.key; const d = child.val();
-                list.innerHTML += `<div class="card">
-                    <div class="phone-num">👤 ${d.name || 'ስም የለም'} | 📲 ${id}</div>
-                    <div style="font-weight:900; color:green; font-size:14px;">Balance: ${d.balance || 0} ETB | <span class="pass-tag">PIN: ${d.password}</span></div>
-                    <div class="row">
-                        <input type="number" id="amt-${id}" class="amt-box" placeholder="000" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
-                        <button class="btn btn-blue" onclick="adjustBal('${id}','add')">ADD</button>
-                        <button class="btn btn-orange" onclick="adjustBal('${id}','sub')">MINUS</button>
+                    <span class="pass-text">PW: ${u.password}</span>
+                </div>
+                <div class="row">
+                    <span>Bal: <b>${(u.balance || 0).toFixed(2)}</b></span>
+                    <div class="btn-group">
+                        <input type="number" id="amt-${phone}" placeholder="Amt">
+                        <button class="btn-green" onclick="adjustBal('${phone}', 'add')">+</button>
+                        <button class="btn-red" onclick="adjustBal('${phone}', 'sub')">-</button>
                     </div>
-                    <button class="btn btn-black" onclick="deleteUser('${id}')">DELETE ACCOUNT</button>
-                </div>`;
-            });
+                </div>
+            </div>`;
         });
+    });
 
-        function approveWithdraw(reqId, phone, amt) {
-            if(confirm(amt + " ETB ከሂሳቡ ቀንሼ ልክፍል?")) {
-                database.ref('users/' + phone + '/balance').transaction(c => {
-                    if (c >= amt) return c - amt;
-                    alert("በቂ ሂሳብ የለውም!");
-                    return c;
-                }).then(() => database.ref('withdraw_requests/' + reqId).remove());
-            }
-        }
+    // 4. Load History
+    database.ref('transaction_history').limitToLast(20).on('value', snap => {
+        const cont = document.getElementById('history-list'); cont.innerHTML = "";
+        let items = [];
+        snap.forEach(child => {
+            const h = child.val();
+            const typeClass = (h.type === 'Deposit' || h.type === 'Admin Add') ? 'type-dep' : 'type-with';
+            items.unshift(`<div class="history-item">
+                <small>${h.time}</small> | <span class="phone-text" style="font-size:13px">${h.phone}</span> <br>
+                <span class="${typeClass}">${h.type}</span>: <b>${h.amount} ETB</b>
+            </div>`);
+        });
+        cont.innerHTML = items.join("");
+    });
 
-        // 5. Adjust Balance - Added 10 multiple check
-        function adjustBal(id, type) {
-            const el = document.getElementById('amt-' + id);
-            const v = parseFloat(el.value);
-            
-            if(!v) return;
+    // Actions
+    function logTransaction(phone, type, amount) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString() + " " + now.toLocaleDateString();
+        database.ref('transaction_history').push({
+            phone: phone, type: type, amount: amount, time: timeStr
+        });
+    }
 
-            // የ 10 ብዜት መሆኑን ማረጋገጫ
-            if(v % 10 !== 0) {
-                alert("እባክዎ የ 10 ብዜት የሆነ ቁጥር ብቻ ያስገቡ! (ምሳሌ፡ 10, 50, 100...)");
-                return;
-            }
-
-            const change = (type === 'add') ? v : -v;
-            database.ref('users/' + id + '/balance').transaction(c => (c || 0) + change);
-            el.value = "";
-        }
-
-        function approveDep(reqId, phone, amt) {
-            database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt);
+    function approveDep(reqId, phone, amt) {
+        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt)
+        .then(() => {
+            logTransaction(phone, 'Deposit', amt);
             database.ref('deposit_requests/' + reqId).remove();
-        }
+        });
+    }
 
-        function removeData(path) { if(confirm("እርግጠኛ ነዎት?")) database.ref(path).remove(); }
-        function deleteUser(id) { if(confirm("አካውንቱ ይጥፋ?")) database.ref('users/' + id).remove(); }
-    </script>
+    function approveWithdraw(reqId, phone, amt) {
+        if(confirm(amt + " ETB ከሂሳቡ ቀንሼ ልክፍል?")) {
+            database.ref('users/' + phone + '/balance').transaction(c => {
+                if (c >= amt) return c - amt;
+                alert("በቂ ሂሳብ የለውም!");
+                return c;
+            }).then(() => {
+                logTransaction(phone, 'Withdraw', amt);
+                database.ref('withdraw_requests/' + reqId).remove();
+            });
+        }
+    }
+
+    function adjustBal(phone, type) {
+        const el = document.getElementById('amt-' + phone);
+        const v = parseFloat(el.value);
+        if(!v) return;
+        if(v % 10 !== 0) { alert("የ 10 ብዜት ይጠቀሙ!"); return; }
+
+        const change = (type === 'add') ? v : -v;
+        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + change)
+        .then(() => {
+            logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v);
+            el.value = "";
+        });
+    }
+</script>
 </body>
 </html>
