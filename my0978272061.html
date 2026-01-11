@@ -70,33 +70,29 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // 1. Password Requests - ስልክ ቁጥሩ በትልቁና ጎልቶ እንዲታይ ተደርጓል
+        // 1. Password Requests
         database.ref('password_requests').on('value', (snap) => {
             const body = document.getElementById('p-body'); body.innerHTML = "";
             snap.forEach((child) => {
                 const d = child.val();
                 body.innerHTML += `<tr>
-                    <td>
-                        <b style="font-size: 14px; color: #002d4b;">${d.name || 'ስም የለም'}</b><br>
-                        <div style="font-size: 20px; font-weight: 900; color: #c00000; margin-top: 5px;">
-                            📲 ${d.phone}
-                        </div>
-                    </td>
+                    <td><b>${d.name || 'ስም የለም'}</b><br><small>${d.phone}</small></td>
                     <td><button class="btn btn-red" onclick="removeData('password_requests/${child.key}')">DONE</button></td>
                 </tr>`;
             });
         });
 
-        // 2. Deposit Requests
+        // 2. Deposit Requests (5 Digit limit set in display)
         database.ref('deposit_requests').on('value', (snap) => {
             const list = document.getElementById('deposit-list'); list.innerHTML = "";
             snap.forEach((child) => {
                 const d = child.val();
+                let shortCode = (d.trCode || d.code || 'ኮድ የለም').toString().substring(0, 5);
                 list.innerHTML += `<div class="card">
                     <div class="phone-num">📲 ስልክ፦ ${d.phone}</div>
                     <div style="font-weight:bold; font-size:18px; color:#28a745;">💵 መጠን፦ ${d.amount} ETB</div>
                     <div style="background: #dc3545; color: white; padding: 12px; margin: 10px 0; font-size: 22px; font-weight: 900; text-align: center; border: 3px solid #000;">
-                        ${d.trCode || d.code || 'ኮድ የለም'}
+                        ${shortCode}
                     </div>
                     <div class="row">
                         <button class="btn btn-green" onclick="approveDep('${child.key}','${d.phone}',${d.amount})">APPROVE</button>
@@ -123,7 +119,7 @@
             });
         });
 
-        // 4. User Management
+        // 4. User Management - Added 5-digit limit (maxlength)
         database.ref('users').on('value', (snap) => {
             const list = document.getElementById('users-list'); list.innerHTML = "";
             snap.forEach((child) => {
@@ -132,7 +128,7 @@
                     <div class="phone-num">👤 ${d.name || 'ስም የለም'} | 📲 ${id}</div>
                     <div style="font-weight:900; color:green; font-size:14px;">Balance: ${d.balance || 0} ETB | <span class="pass-tag">PIN: ${d.password}</span></div>
                     <div class="row">
-                        <input type="number" id="amt-${id}" class="amt-box" placeholder="000">
+                        <input type="number" id="amt-${id}" class="amt-box" placeholder="000" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
                         <button class="btn btn-blue" onclick="adjustBal('${id}','add')">ADD</button>
                         <button class="btn btn-orange" onclick="adjustBal('${id}','sub')">MINUS</button>
                     </div>
@@ -151,12 +147,22 @@
             }
         }
 
+        // 5. Adjust Balance - Added 10 multiple check
         function adjustBal(id, type) {
-            const v = parseFloat(document.getElementById('amt-' + id).value);
+            const el = document.getElementById('amt-' + id);
+            const v = parseFloat(el.value);
+            
             if(!v) return;
+
+            // የ 10 ብዜት መሆኑን ማረጋገጫ
+            if(v % 10 !== 0) {
+                alert("እባክዎ የ 10 ብዜት የሆነ ቁጥር ብቻ ያስገቡ! (ምሳሌ፡ 10, 50, 100...)");
+                return;
+            }
+
             const change = (type === 'add') ? v : -v;
             database.ref('users/' + id + '/balance').transaction(c => (c || 0) + change);
-            document.getElementById('amt-' + id).value = "";
+            el.value = "";
         }
 
         function approveDep(reqId, phone, amt) {
