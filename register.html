@@ -54,7 +54,7 @@
         </div>
 
         <button class="btn register-btn" id="reg-btn-text" onclick="handleRegister()">CREATE ACCOUNT</button>
-        <button class="btn back-btn" id="back-btn-text" onclick="goBack()">BACK TO LOGIN</button>
+        <button class="btn back-btn" id="back-btn-text" onclick="goBack()">BACK TO HOME</button>
     </div>
 
     <div class="footer">
@@ -79,9 +79,8 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // BACK TO LOGIN FUNCTION
+    // በትክክል ወደ መጀመሪያው ገጽ የሚመልስ ፈንክሽን
     function goBack() { 
-        // Index.html ተብሎ ከተሰየመው ገጽ ጋር እንዲመሳሰል ተደርጓል
         window.location.replace("index.html"); 
     }
 
@@ -91,16 +90,12 @@
         const pass = document.getElementById('pass-input').value.trim();
         const errorDiv = document.getElementById('error-msg');
         
-        if (name.length < 3) { 
-            errorDiv.innerText = (currentLang === 'am') ? "ስም በጣም አጭር ነው" : "NAME TOO SHORT"; 
-            return; 
-        }
-        if (name.length > 10) { 
-            errorDiv.innerText = (currentLang === 'am') ? "ስም ከ10 ፊደል መብለጥ የለበትም" : "NAME MAX 10 CHARS"; 
+        if (name.length < 3 || name.length > 10) { 
+            errorDiv.innerText = (currentLang === 'am') ? "ስም ከ3-10 ፊደል መሆን አለበት" : "NAME MUST BE 3-10 CHARS"; 
             return; 
         }
         if (!/^09\d{8}$/.test(phone)) { 
-            errorDiv.innerText = (currentLang === 'am') ? "ትክክለኛ ስልክ ቁጥር ያስገቡ (09...)" : "ENTER VALID PHONE (09...)"; 
+            errorDiv.innerText = (currentLang === 'am') ? "በ09 ይጀምሩ (10 ቁጥር)" : "START WITH 09 (10 DIGITS)"; 
             return; 
         }
         if (pass.length !== 5) { 
@@ -120,8 +115,6 @@
             localStorage.setItem('userPhone', phone);
             alert((currentLang === 'am') ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "Registered Successfully!");
             window.location.replace("home.html");
-        }).catch(err => {
-            errorDiv.innerText = "Error: " + err.message;
         });
     }
 
@@ -129,10 +122,10 @@
     function setLang(l) {
         currentLang = l;
         const isAm = (l === 'am');
-        document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፋስት" : "BEKAS FAST";
+        document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፈጣን" : "BEKAS FAST";
         document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
         document.getElementById('reg-btn-text').innerText = isAm ? "አካውንት ክፈት" : "CREATE ACCOUNT";
-        document.getElementById('back-btn-text').innerText = isAm ? "ወደ ኋላ ተመለስ" : "BACK TO LOGIN";
+        document.getElementById('back-btn-text').innerText = isAm ? "ወደ ኋላ ተመለስ" : "BACK TO HOME";
         document.getElementById('lang-label').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
         
         document.getElementById('name-input').placeholder = isAm ? "ስም (3-10 ፊደል)" : "NAME (3-10 CHARS)";
