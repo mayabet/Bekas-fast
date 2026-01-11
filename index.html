@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Login</title>
+    <title>ቤካስ ፈጣን - መግቢያ</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -35,18 +35,18 @@
 <body>
 
 <div class="card">
-    <div class="yellow-bar"><span id="new-tag">NEW</span><span style="color:red; font-size:26px">+18</span></div>
+    <div class="yellow-bar"><span id="new-tag">አዲስ</span><span style="color:red; font-size:26px">+18</span></div>
     <div class="header-line"></div>
     <div class="content">
         <div class="online-now" id="online-area">
-            <span class="live-dot"></span> <span id="online-count">0</span> PEOPLE ARE PLAYING NOW
+            <span class="live-dot"></span> <span id="online-count">0</span> ሰዎች አሁን እየተጫወቱ ነው
         </div>
         <div class="dt-section">
-            <div class="dt-row" id="date-label">DATE: LOADING...</div>
-            <div class="dt-row" id="time-label">TIME: 00:00:00</div>
+            <div class="dt-row" id="date-label">ቀን: በመጫን ላይ...</div>
+            <div class="dt-row" id="time-label">ሰዓት: 00:00:00</div>
         </div>
-        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
-        <div class="motto" id="motto">WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!</div>
+        <div class="branding"><h1 id="brand-name">ቤካስ ፈጣን</h1></div>
+        <div class="motto" id="motto">ሁልጊዜ የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!</div>
         <div id="error-msg"></div>
         <div class="input-row">
             <div class="input-box">
@@ -57,18 +57,18 @@
         </div>
         <div class="input-row">
             <div class="input-box">
-                <input type="password" id="pass-input" placeholder="PIN" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
+                <input type="password" id="pass-input" placeholder="ፒን (PIN)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
-            <a href="lost_password.html" class="lost-link" id="lost-btn">LOST</a>
+            <a href="lost_password.html" class="lost-link" id="lost-btn">ረስተዋል?</a>
         </div>
-        <button class="btn login-btn" id="l-btn" onclick="handleLogin()">LOG IN</button>
-        <button class="btn register-btn" id="r-btn" onclick="window.location.href='register.html'">REGISTER</button>
+        <button class="btn login-btn" id="l-btn" onclick="handleLogin()">ግባ</button>
+        <button class="btn register-btn" id="r-btn" onclick="window.location.href='register.html'">ተመዝገብ</button>
     </div>
     <div class="footer">
-        <div id="l-text">LANGUAGE</div>
+        <div id="l-text">ቋንቋ</div>
         <div class="lang-options">
-            <span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
-            <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span>
+            <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
         </div>
     </div>
 </div>
@@ -88,58 +88,65 @@
     const database = firebase.database();
     const onlineRef = database.ref('online_users_count');
 
-    let currentLang = 'en';
+    let currentLang = 'am'; // በነባሪ ወደ አማርኛ ተቀይሯል
 
-    // ሰዓት
     function updateClock() {
         const n = new Date();
         const mEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
         const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        let hours = n.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
+        let hours = n.getHours(); const ampm = hours >= 12 ? ' ከሰዓት' : ' ጠዋት'; hours = hours % 12 || 12;
         const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
+        
         if(currentLang === 'am') {
-            document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + ", " + n.getDate() + ", " + n.getFullYear();
+            document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
             document.getElementById('time-label').innerText = "ሰዓት: " + timeStr;
         } else {
-            document.getElementById('date-label').innerText = "DATE: " + mEN[n.getMonth()] + ", " + n.getDate() + ", " + n.getFullYear();
-            document.getElementById('time-label').innerText = "TIME: " + timeStr;
+            const timeStrEN = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + (n.getHours() >= 12 ? ' PM' : ' AM');
+            document.getElementById('date-label').innerText = "DATE: " + mEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
+            document.getElementById('time-label').innerText = "TIME: " + timeStrEN;
         }
     }
     setInterval(updateClock, 1000);
 
-    // ቋንቋ መቀየሪያ
     function setLang(l) {
         currentLang = l;
         document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
         document.getElementById('l-btn').innerText = (l === 'am') ? "ግባ" : "LOG IN";
         document.getElementById('r-btn').innerText = (l === 'am') ? "ተመዝገብ" : "REGISTER";
         document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
-        document.getElementById('pass-input').placeholder = (l === 'am') ? "ፒን" : "PIN";
+        document.getElementById('pass-input').placeholder = (l === 'am') ? "ፒን (PIN)" : "PIN";
+        document.getElementById('lost-btn').innerText = (l === 'am') ? "ረስተዋል?" : "LOST";
+        document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
+        document.getElementById('motto').innerText = (l === 'am') ? "ሁልጊዜ የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!" : "WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!";
+        
+        const onlineCount = document.getElementById('online-count').innerText;
+        document.getElementById('online-area').innerHTML = `<span class="live-dot"></span> <span id="online-count">${onlineCount}</span> ${l === 'am' ? 'ሰዎች አሁን እየተጫወቱ ነው' : 'PEOPLE ARE PLAYING NOW'}`;
+        
         document.getElementById('lang-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
+        updateClock();
     }
 
-    // መግቢያ (Login) ሎጂክ - ሙሉ ለሙሉ ተስተካክሏል
     function handleLogin() {
         const phone = document.getElementById('p-input').value.trim();
         const pass = document.getElementById('pass-input').value.trim();
         const errorDiv = document.getElementById('error-msg');
 
         if (phone === "" || pass === "") {
-            errorDiv.innerText = currentLang === 'am' ? "መረጃውን ያስገቡ" : "ENTER INFORMATION";
+            errorDiv.innerText = currentLang === 'am' ? "እባክዎ መረጃውን በትክክል ያስገቡ" : "PLEASE ENTER INFORMATION";
             return;
         }
 
-        errorDiv.innerText = currentLang === 'am' ? "በመፈለግ ላይ..." : "LOGGING IN...";
+        errorDiv.innerText = currentLang === 'am' ? "በመግባት ላይ..." : "LOGGING IN...";
 
         database.ref('users/' + phone).once('value').then((snapshot) => {
             const userData = snapshot.val();
             
             if (userData && userData.password === pass) {
                 localStorage.setItem('userPhone', phone);
-                window.location.replace("home.html"); // ወደ home.html ይወስዳል
+                window.location.replace("home.html");
             } else {
-                errorDiv.innerText = currentLang === 'am' ? "ስልክ ወይም ፒን ተሳስቷል" : "WRONG PHONE OR PIN";
+                errorDiv.innerText = currentLang === 'am' ? "የስልክ ቁጥር ወይም ፒን ተሳስቷል" : "WRONG PHONE OR PIN";
                 setTimeout(() => { errorDiv.innerText = ""; }, 3000);
             }
         }).catch((err) => {
@@ -147,7 +154,6 @@
         });
     }
 
-    // Online ተጠቃሚዎች ቆጣሪ
     database.ref('.info/connected').on('value', (snap) => {
         if (snap.val() === true) {
             onlineRef.transaction(c => (c || 0) + 1);
