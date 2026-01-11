@@ -107,8 +107,8 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        msg.innerHTML = ""; 
 
+        // አዲስ ቁጥር ሲመረጥ (Next Selection) የቀድሞውን ውጤት ያጠፋል
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
             gameRef.child(n).remove();
@@ -125,28 +125,30 @@
             return; 
         }
 
-        database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        gameRef.child(n).set(userName);
+        // ልክ ምርጫ ሲካሄድ አሮጌው የአሸናፊ መልዕክት ይጠፋል
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
+
+        database.ref('users/' + userPhone).update({ balance: balance - 10 });
+        gameRef.child(n).set(userName);
     }
 
     function runGame() {
         isPlaying = true;
         let win = Math.floor(Math.random() * 10) + 1;
         const msg = document.getElementById('msg-box');
-
         document.getElementById('last-val').innerText = win;
 
-        // የወጣው ቁጥር በ Message Box ላይ Bold ሆኖ እንዲወጣ ተደርጓል
-        let winText = `<strong>${win}</strong>`;
+        // አሸናፊው ቁጥር በአረንጓዴ እና በደማቁ እንዲወጣ
+        let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
+
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 90 });
-            msg.innerHTML = trans[currentLang].win.replace('{n}', winText);
-            msg.style.color = "green";
+            msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
+            msg.style.color = "#00b050"; 
         } else {
-            msg.innerHTML = trans[currentLang].lost.replace('{n}', winText);
-            msg.style.color = "red";
+            msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
+            msg.style.color = "red"; 
         }
 
         setTimeout(() => {
@@ -154,7 +156,7 @@
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
-            // እዚህ ጋር msg.innerHTML = ""; የሚለው ስለሌለ መልዕክቱ ቀጣዩ ሰው እስኪመርጥ ይቆያል
+            // እዚህ ጋር መልዕክቱን የሚያጠፋ ኮድ የለም - ቀጣይ ቁጥር እስኪመረጥ ይቆያል
         }, 5000);
     }
 
