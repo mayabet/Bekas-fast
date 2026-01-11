@@ -12,25 +12,25 @@
         .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
         .game-title { font-weight: 900; font-size: 18px; color: #000; }
         .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
-        .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
-        .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
-        .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 4px 0; font-size: 15px; text-transform: uppercase; flex-shrink: 0; }
-        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; overflow-y: auto; max-height: 200px; }
-        .num-cell { border: 1px solid #002d4b; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #002d4b; cursor: pointer; }
+        .info-section { padding: 4px 12px; color: #002d4b; font-weight: 900; font-size: 13px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
+        .balance-bar { background: #002d4b; color: #fff; padding: 6px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px; flex-shrink: 0; }
+        .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 4px 0; font-size: 14px; text-transform: uppercase; flex-shrink: 0; }
+        .number-grid { display: grid; grid-template-columns: repeat(10, 1fr); border: 1px solid #002d4b; margin: 0 5px; flex-shrink: 0; background: #eee; }
+        .num-cell { border: 1px solid #002d4b; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; color: #002d4b; cursor: pointer; background: #fff; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
-        .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
-        .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
-        .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
+        .taken-cell { background: #ccc !important; color: #777 !important; cursor: not-allowed; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 2px; flex-shrink: 0; }
+        .stats-table td { border: 2px solid #002d4b; padding: 4px; font-weight: 900; text-align: center; font-size: 13px; }
         .bg-green { background: #00b050; color: white; }
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
+        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 4px; border-bottom: 2px solid #002d4b; font-size: 13px; flex-shrink: 0; }
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
-        .selected-list td { border-bottom: 1px solid #002d4b; height: 30px; padding: 0 10px; font-weight: 900; font-size: 12px; }
-        .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
+        .selected-list td { border-bottom: 1px solid #002d4b; height: 28px; padding: 0 8px; font-weight: 900; font-size: 12px; }
+        .id-col { width: 35px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
-        .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
+        .lang-bar { background: #fff; padding: 6px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 13px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
     </style>
@@ -87,8 +87,8 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
-        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
+        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -105,10 +105,20 @@
     });
 
     function pick(n) {
-        if(isPlaying || selections[n]) return;
+        if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        
-        // በቂ ሂሳብ (20 ብር) መኖሩን ማረጋገጥ
+        msg.innerText = ""; 
+
+        if (selections[n] === userName) {
+            database.ref('users/' + userPhone).update({ balance: balance + 20 });
+            gameRef.child(n).remove();
+            msg.innerText = trans[currentLang].removed.replace('{n}', n);
+            msg.style.color = "orange";
+            return;
+        }
+
+        if (selections[n]) return;
+
         if (balance < 20) { 
             msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
@@ -117,7 +127,6 @@
 
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
-        
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
@@ -125,8 +134,8 @@
     function runGame() {
         isPlaying = true;
         let win = Math.floor(Math.random() * 50) + 1;
-        document.getElementById('last-val').innerText = win;
         const msg = document.getElementById('msg-box');
+        document.getElementById('last-val').innerText = win;
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 900 });
@@ -142,7 +151,6 @@
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
-            msg.innerText = "";
         }, 5000);
     }
 
@@ -152,29 +160,17 @@
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
             if (occupant === userName) cell.className = "num-cell user-selected";
-            else if (occupant !== "") cell.className = "num-cell taken-cell";
-            else cell.className = "num-cell";
-            
-            if (occupant !== "") {
+            else if (occupant !== "") {
+                cell.className = "num-cell taken-cell";
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
+            else cell.className = "num-cell";
         }
     }
 
-    function setLang(l) { 
-        currentLang = l; 
-        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } 
-        document.getElementById('l-am').classList.toggle('active', l==='am'); 
-        document.getElementById('l-en').classList.toggle('active', l==='en'); 
-    }
-    
-    function updateClock() { 
-        const now = new Date(); 
-        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
-        document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
-    }
-    setInterval(updateClock, 1000); 
-    updateClock();
+    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
+    function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
+    setInterval(updateClock, 1000); updateClock();
 </script>
 </body>
 </html>
