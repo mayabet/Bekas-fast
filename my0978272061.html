@@ -11,17 +11,21 @@
         .header { background: #ffcc00; padding: 15px; text-align: center; font-weight: 900; font-size: 18px; border-bottom: 3px solid #000; position: sticky; top: 0; z-index: 1000; }
         .section { background: white; margin: 10px; border: 2px solid #000; }
         .section-title { background: #002d4b; color: white; padding: 10px; font-size: 13px; font-weight: bold; text-transform: uppercase; }
-        .card { padding: 10px; border-bottom: 1px solid #ddd; }
-        .phone-num { font-weight: 900; color: #002d4b; font-size: 14px; }
-        .req-info { font-size: 12px; margin: 3px 0; color: #333; }
-        .row { display: flex; gap: 4px; margin-top: 5px; align-items: center; }
-        .amt-box { width: 65px; padding: 8px; border: 2px solid #000; font-size: 14px; font-weight: bold; text-align: center; }
-        .btn { border: 2px solid #000; font-weight: bold; cursor: pointer; padding: 8px 5px; color: white; text-transform: uppercase; font-size: 11px; display: flex; align-items: center; justify-content: center; min-width: 50px; }
+        .card { padding: 12px; border-bottom: 1px solid #ddd; }
+        .phone-num { font-weight: 900; color: #002d4b; font-size: 15px; }
+        
+        /* ዊዝድሮው ላይ መጠኑን እና ጊዜውን ጎላ የሚያደርግ ስታይል */
+        .withdraw-amt { font-size: 22px; font-weight: 900; color: #c00000; margin: 5px 0; }
+        .time-tag { background: #eefbff; border: 1px solid #007bff; color: #007bff; padding: 5px; font-weight: 900; font-size: 14px; display: inline-block; margin-top: 5px; width: 100%; text-align: center; }
+        
+        .row { display: flex; gap: 4px; margin-top: 8px; align-items: center; }
+        .btn { border: 2px solid #000; font-weight: bold; cursor: pointer; padding: 10px 5px; color: white; text-transform: uppercase; font-size: 11px; display: flex; align-items: center; justify-content: center; min-width: 50px; }
         .btn-green { background: #28a745; flex: 1; }
         .btn-red { background: #dc3545; flex: 1; }
         .btn-blue { background: #007bff; }
         .btn-orange { background: #ff8c00; }
-        .btn-black { background: #000; width: 100%; margin-top: 8px; font-size: 12px; }
+        .btn-black { background: #000; width: 100%; margin-top: 10px; font-size: 12px; }
+        .amt-box { width: 65px; padding: 8px; border: 2px solid #000; font-size: 14px; font-weight: bold; text-align: center; }
         .pass-tag { background: #fff0f0; border: 1px solid red; color: red; font-size: 11px; padding: 1px 4px; margin-left: 5px; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { border: 1px solid #000; padding: 5px; text-align: left; }
@@ -72,7 +76,7 @@
             });
         });
 
-        // 2. Deposit Requests (የላክኸው አዲሱ ዲዛይን ገብቷል)
+        // 2. Deposit Requests
         database.ref('deposit_requests').on('value', (snap) => {
             const list = document.getElementById('deposit-list'); list.innerHTML = "";
             snap.forEach((child) => {
@@ -80,11 +84,9 @@
                 list.innerHTML += `<div class="card">
                     <div class="phone-num">📲 ስልክ፦ ${d.phone}</div>
                     <div style="font-weight:bold; font-size:18px; color:#28a745;">💵 መጠን፦ ${d.amount} ETB</div>
-                    <div style="font-size:12px; margin-top:5px; font-weight:bold;">የማስተላለፊያ ቁጥር (TRANS NO):</div>
-                    <div style="background: #dc3545; color: white; padding: 12px; margin: 10px 0; font-size: 22px; font-weight: 900; text-align: center; border: 3px solid #000; border-radius: 5px;">
+                    <div style="background: #dc3545; color: white; padding: 12px; margin: 10px 0; font-size: 22px; font-weight: 900; text-align: center; border: 3px solid #000;">
                         ${d.trCode || d.code || 'ኮድ የለም'}
                     </div>
-                    <div style="font-size:11px; color:#666;">🕒 ${d.time || ''} | 📅 ${d.date || ''}</div>
                     <div class="row">
                         <button class="btn btn-green" onclick="approveDep('${child.key}','${d.phone}',${d.amount})">APPROVE</button>
                         <button class="btn btn-red" onclick="removeData('deposit_requests/${child.key}')">REJECT</button>
@@ -93,31 +95,33 @@
             });
         });
 
-        // 3. Withdraw Requests
+        // 3. Withdraw Requests (የተስተካከለ - መጠንና ሰዓት ጎልቶ ይታያል)
         database.ref('withdraw_requests').on('value', (snap) => {
             const list = document.getElementById('withdraw-list'); list.innerHTML = "";
             snap.forEach((child) => {
                 const d = child.val();
                 list.innerHTML += `<div class="card">
-                    <div class="phone-num">📤 ${d.phone} | ${d.amount} ETB</div>
-                    <div class="req-info" style="color: blue;">🕒 ሰዓት፦ ${d.time || ''}</div>
+                    <div class="phone-num">👤 ተጠቃሚ፦ ${d.phone}</div>
+                    <div class="withdraw-amt">💵 መጠን፦ ${d.amount} ETB</div>
+                    <div class="time-tag">🕒 ${d.time || 'ሰዓት የለም'}</div>
                     <div class="row">
-                        <button class="btn btn-red" style="background:#444" onclick="removeData('withdraw_requests/${child.key}')">PAID (DELETE)</button>
+                        <button class="btn btn-red" style="background:#444; flex:2;" onclick="approveWithdraw('${child.key}','${d.phone}',${d.amount})">PAID (ቀንሰህ ክፈል)</button>
+                        <button class="btn btn-red" style="flex:1;" onclick="removeData('withdraw_requests/${child.key}')">CANCEL</button>
                     </div>
                 </div>`;
             });
         });
 
-        // 4. User Management (ስማቸውን ጨምሮ ያሳያል)
+        // 4. User Management
         database.ref('users').on('value', (snap) => {
             const list = document.getElementById('users-list'); list.innerHTML = "";
             snap.forEach((child) => {
                 const id = child.key; const d = child.val();
                 list.innerHTML += `<div class="card">
-                    <div class="phone-num">👤 ${d.name || 'ስም የለም'} | ${id} <span class="pass-tag">PIN: ${d.password}</span></div>
-                    <div style="font-weight:bold; color:green; font-size:13px;">Bal: ${d.balance || 0} ETB</div>
+                    <div class="phone-num">👤 ${d.name || 'ስም የለም'} | ${id}</div>
+                    <div style="font-weight:900; color:green; font-size:14px;">Balance: ${d.balance || 0} ETB</div>
                     <div class="row">
-                        <input type="number" id="amt-${id}" class="amt-box" placeholder="000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)">
+                        <input type="number" id="amt-${id}" class="amt-box" placeholder="000">
                         <button class="btn btn-blue" onclick="adjustBal('${id}','add')">ADD</button>
                         <button class="btn btn-orange" onclick="adjustBal('${id}','sub')">MINUS</button>
                     </div>
@@ -125,6 +129,16 @@
                 </div>`;
             });
         });
+
+        function approveWithdraw(reqId, phone, amt) {
+            if(confirm(amt + " ETB ከሂሳቡ ቀንሼ ልክፍል?")) {
+                database.ref('users/' + phone + '/balance').transaction(c => {
+                    if (c >= amt) return c - amt;
+                    alert("በቂ ሂሳብ የለውም!");
+                    return c;
+                }).then(() => database.ref('withdraw_requests/' + reqId).remove());
+            }
+        }
 
         function adjustBal(id, type) {
             const v = parseFloat(document.getElementById('amt-' + id).value);
@@ -139,13 +153,8 @@
             database.ref('deposit_requests/' + reqId).remove();
         }
 
-        function deleteUser(id) {
-            if(confirm("እርግጠኛ ነዎት? ተጠቃሚ " + id + " ሙሉ በሙሉ ይጥፋ?")) {
-                database.ref('users/' + id).remove();
-            }
-        }
-
-        function removeData(path) { if(confirm("እርግጠኛ ነዎት ይጥፋ?")) database.ref(path).remove(); }
+        function removeData(path) { if(confirm("እርግጠኛ ነዎት?")) database.ref(path).remove(); }
+        function deleteUser(id) { if(confirm("አካውንቱ ይጥፋ?")) database.ref('users/' + id).remove(); }
     </script>
 </body>
 </html>
