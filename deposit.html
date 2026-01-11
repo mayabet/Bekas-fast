@@ -52,7 +52,9 @@
 
         <div class="input-group">
             <span class="label-text" id="tr-label">TRANSACTION CODE (DEPOSIT ONLY)</span>
-            <div class="input-box"><input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10"></div>
+            <div class="input-box">
+                <input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+            </div>
         </div>
         <div class="input-group">
             <span class="label-text" id="am-label">AMOUNT (MAX 5 DIGITS)</span>
@@ -90,16 +92,13 @@
     let currentBalance = 0;
 
     if (!userPhone) {
-        window.location.replace("index.html");
+        window.location.replace("Index.html"); 
     }
 
     function updateClock() {
         const n = new Date();
         const monthsEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        const day = n.getDate();
-        const month = monthsEN[n.getMonth()];
-        const year = n.getFullYear();
-        document.getElementById('date-label').innerText = "DATE: " + month + " " + day + ", " + year;
+        document.getElementById('date-label').innerText = "DATE: " + monthsEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
         document.getElementById('time-label').innerText = "TIME: " + n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
     }
     setInterval(updateClock, 1000); updateClock();
@@ -121,24 +120,19 @@
     function handleDeposit() {
         const code = document.getElementById('tr-input').value;
         const amount = document.getElementById('am-input').value;
-        // በትክክል 10 ዲጂት መሆኑን እዚህም እናረጋግጣለን
         if (code.length === 10 && amount > 0) {
             database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: amount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); document.getElementById('tr-input').value=""; document.getElementById('am-input').value=""; });
-        } else { 
-            showMsg(currentLang==='am'?"ኮዱ 10 ዲጂት መሆን አለበት":"CODE MUST BE 10 DIGITS", "red"); 
-        }
+        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ":"INCORRECT INFO", "red"); }
     }
 
     function handleWithdraw() {
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
-        if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 10) {
+        if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 50) {
             database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
-        } else { 
-            showMsg(currentLang==='am'?"የተሳሳተ መረጃ ወይም በቂ ሂሳብ የለም":"INCORRECT INFO OR LOW BALANCE", "red"); 
-        }
+        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ ወይም በቂ ሂሳብ የለም":"INCORRECT INFO OR LOW BALANCE", "red"); }
     }
 
     function setLang(l) {
