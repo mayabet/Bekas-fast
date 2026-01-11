@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bekas Fast - Deposit & Withdraw</title>
+    <title>Mita Betting - Deposit & Withdraw</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -42,7 +42,7 @@
             <div id="date-label" class="dt-row">DATE: ...</div>
             <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
-        <div class="branding"><h1>BEKAS FAST</h1></div>
+        <div class="branding"><h1>MITA BETTING</h1></div>
         <div class="tele-box">
             <span style="font-size: 12px; font-weight: 900; color: #000;" id="tele-msg">SEND DEPOSIT TO:</span>
             <span class="tele-num">+2510978272061</span>
@@ -129,10 +129,14 @@
     function handleWithdraw() {
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
-        if (numAmount > 0 && numAmount <= currentBalance && numAmount >= 50) {
+        // ማስተካከያ፡ የ10 እጥፍ መሆኑን ማረጋገጫ (numAmount % 10 === 0)
+        if (numAmount > 0 && numAmount <= currentBalance && numAmount % 10 === 0) {
             database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
             .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
-        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ ወይም በቂ ሂሳብ የለም":"INCORRECT INFO OR LOW BALANCE", "red"); }
+        } else { 
+            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም በቂ ሂሳብ የለም" : "USE MULTIPLES OF 10 OR LOW BALANCE";
+            showMsg(errorMsg, "red"); 
+        }
     }
 
     function setLang(l) {
