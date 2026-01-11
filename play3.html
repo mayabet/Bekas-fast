@@ -107,7 +107,6 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        msg.innerHTML = ""; 
 
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
@@ -125,10 +124,11 @@
             return; 
         }
 
-        database.ref('users/' + userPhone).update({ balance: balance - 20 });
-        gameRef.child(n).set(userName);
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
+
+        database.ref('users/' + userPhone).update({ balance: balance - 20 });
+        gameRef.child(n).set(userName);
     }
 
     function runGame() {
@@ -137,13 +137,12 @@
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
 
-        // የወጣው ቁጥር Bold እንዲሆን <strong> እንጠቀማለን
-        let winDisplay = `<strong>[${win}]</strong>`;
+        let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 360 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
-            msg.style.color = "green";
+            msg.style.color = "#00b050";
         } else {
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
@@ -154,7 +153,6 @@
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
-            // መልዕክቱ እንዲቆይ msg.innerHTML = ""; የሚለው ተወግዷል
         }, 5000);
     }
 
