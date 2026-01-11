@@ -43,7 +43,7 @@
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 10</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box"></td></tr>
+        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box" style="font-size: 15px; font-weight: 900;"></td></tr>
         <tr><td class="bg-green" id="rn">ROUND</td><td id="round-val">1</td><td class="bg-green" id="ls">LAST</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
@@ -55,7 +55,6 @@
 </div>
 
 <script>
-    // 1. Firebase ኮንፊገሬሽን
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -69,7 +68,6 @@
     const database = firebase.database();
     const gameRef = database.ref('live_game/play1');
 
-    // 2. የተጠቃሚ መረጃ ማግኛ
     const userPhone = localStorage.getItem('userPhone');
     let userName = "";
     let balance = 0;
@@ -89,21 +87,18 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 90 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
-        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 90 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል! 90 ብር ተጨምሯል', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'NUM {n} WON! YOU WON! 90 BIRR ADDED', lost:'NUM {n} WON! BETTER LUCK NEXT TIME', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
 
-    // ቁጥሮችን መፍጠር
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=10; i++) {
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    // 3. የጨዋታ መረጃን ከዳታቤዝ በቀጥታ ማዳመጥ (Live Listener)
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
-        // 10ቱም ቁጥሮች ከተያዙ ጨዋታው ይጀምራል
         if (Object.keys(selections).length === 10 && !isPlaying) {
             runGame();
         }
@@ -113,16 +108,20 @@
         if(isPlaying || selections[n]) return;
         
         const msg = document.getElementById('msg-box');
+        
+        // 1. መጀመሪያ ሂሳብ ይፈትሻል - ከሌለው እዚህ ጋር ይቆማል
         if (balance < 10) { 
             msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
-        // ገንዘብ ቀንሶ ዳታቤዝ ላይ መመዝገብ
+        // 2. ሂሳብ ካለ ብቻ ይቀንሳል
         let newBal = balance - 10;
         database.ref('users/' + userPhone).update({ balance: newBal });
-        gameRef.child(n).set(userName); // ቁጥሩን በስምህ መያዝ
+        
+        // 3. ቁጥሩን በዳታቤዝ ላይ ይይዛል
+        gameRef.child(n).set(userName);
 
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
@@ -130,24 +129,23 @@
 
     function runGame() {
         isPlaying = true;
-        // አሸናፊውን መምረጥ (ይህ በሰርቨር ቢሆን ይመረጣል ለጊዜው ግን እዚህ ይሁን)
         let win = Math.floor(Math.random() * 10) + 1;
         document.getElementById('last-val').innerText = win;
         const msg = document.getElementById('msg-box');
 
+        // አሸናፊውን ቁጥር በግልጽ እንዲታይ የማድረግ ማስተካከያ
         if(selections[win] === userName) {
             let winAmt = balance + 90;
             database.ref('users/' + userPhone).update({ balance: winAmt });
-            msg.innerText = trans[currentLang].win;
+            msg.innerText = trans[currentLang].win.replace('{n}', win);
             msg.style.color = "green";
         } else {
             msg.innerText = trans[currentLang].lost.replace('{n}', win);
             msg.style.color = "red";
         }
 
-        // ለሚቀጥለው ዙር ዝግጅት (ከ5 ሰከንድ በኋላ ዳታቤዙን ማጽዳት)
         setTimeout(() => {
-            gameRef.remove(); // ዳታቤዙን ባዶ ማድረግ
+            gameRef.remove(); 
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
@@ -161,7 +159,6 @@
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
             
-            // የከለር ለውጥ
             if (occupant === userName) {
                 cell.className = "num-cell user-selected";
             } else if (occupant !== "") {
@@ -174,10 +171,22 @@
         }
     }
 
-    // ሰዓት እና ቋንቋ
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
-    function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
-    setInterval(updateClock, 1000); updateClock();
+    function setLang(l) { 
+        currentLang = l; 
+        for(let k in trans[l]) { 
+            if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; 
+        } 
+        document.getElementById('l-am').classList.toggle('active', l==='am'); 
+        document.getElementById('l-en').classList.toggle('active', l==='en'); 
+    }
+    
+    function updateClock() { 
+        const now = new Date(); 
+        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
+        document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
+    }
+    setInterval(updateClock, 1000); 
+    updateClock();
 </script>
 </body>
 </html>
