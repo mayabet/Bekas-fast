@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mita Betting - Play 2</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #ffffff; font-family: sans-serif; }
         .app-container { width: 100%; max-width: 400px; height: 100%; border: 3px solid #002d4b; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
@@ -26,27 +28,17 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
+        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; cursor: pointer; border: none; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
     </style>
 </head>
 <body>
-
 <div class="app-container">
-    <div class="yellow-banner">
-        <span class="game-title" id="gt">10 BIRR IN TO 180 BIRR</span>
-        <span class="plus18">+18</span>
-    </div>
-    <div class="info-section">
-        <div>DATE: <span id="date-label"></span></div>
-        <div>TIME: <span id="time-label"></span></div>
-    </div>
-    <div class="balance-bar">
-        <span id="bl">BALANCE</span>
-        <span><span id="cash">0.00</span> <small>ETB</small></span>
-    </div>
+    <div class="yellow-banner"><span class="game-title" id="gt">10 BIRR IN TO 180 BIRR</span><span class="plus18">+18</span></div>
+    <div class="info-section"><div>DATE: <span id="date-label"></span></div><div>TIME: <span id="time-label"></span></div></div>
+    <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">...</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 20</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
@@ -57,65 +49,80 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav">
-        <a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
-    </div>
-    <div class="lang-bar">
-        <span id="ll">LANGUAGE</span>
-        <div>
-            <span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | 
-            <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span>
-        </div>
-    </div>
+    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
+    <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
 <script>
-    // ተጠቃሚው ያለውን ባላንስ እዚህ ጋር ብቻ ይጻፍ
-    let balance = 0.00; 
-
-    function syncBalance() {
-        document.getElementById('cash').innerText = balance.toFixed(2);
-        localStorage.setItem('userBalance', balance.toFixed(2));
-    }
-
-    let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
-
-    const trans = {
-        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 180 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
-        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 180 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+    // 1. Firebase Configuration (Must match index.html and home.html)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
+        authDomain: "bekas-fast-d2a3b.firebaseapp.com",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
+        projectId: "bekas-fast-d2a3b",
+        storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
+        messagingSenderId: "130702344830",
+        appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
 
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const userPhone = localStorage.getItem('userPhone');
+    let balance = 0.00;
+
+    // 2. Load Real Balance from Firebase
+    if (!userPhone) {
+        window.location.replace("index.html");
+    } else {
+        database.ref('users/' + userPhone).on('value', (snapshot) => {
+            const userData = snapshot.val();
+            if (userData) {
+                balance = parseFloat(userData.balance || 0);
+                document.getElementById('cash').innerText = balance.toFixed(2);
+            }
+        });
+    }
+
+    // 3. Game Logic Variables
+    let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
+    const trans = {
+        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', win:'አሸንፈዋል! 180 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', win:'YOU WON! 180 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+    };
+
+    // Initialize Grid for 20 numbers
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=20; i++) {
-        let cell = document.createElement('div');
-        cell.className = 'num-cell';
-        cell.id = `c-${i}`;
-        cell.innerText = i;
-        cell.onclick = () => pick(i);
-        grid.appendChild(cell);
+        let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
+    }
+
+    // Sync balance to Database
+    function updateBalanceInDB(newAmount) {
+        database.ref('users/' + userPhone).update({ balance: newAmount });
     }
 
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
         
-        if (selections[n] === "YOU") {
-            delete selections[n]; balance += 10;
-            syncBalance(); msg.innerText = ""; updateUI(); return;
+        // Deselect if already picked
+        if (selections[n] === "YOU") { 
+            updateBalanceInDB(balance + 10);
+            delete selections[n]; 
+            msg.innerText = ""; updateUI(); return; 
         }
-        if (balance < 10) {
-            msg.innerText = trans[currentLang].low; msg.style.color = "red"; return;
-        }
-        
-        selections[n] = "YOU"; balance -= 10;
-        syncBalance();
-        msg.innerText = trans[currentLang].pick.replace('{n}', n);
-        msg.style.color = "#002d4b";
-        updateUI();
 
-        if(Object.keys(selections).length === 20) {
-            runGame();
+        // Check for sufficient balance
+        if (balance < 10) { 
+            msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; 
         }
+
+        // Process pick
+        selections[n] = "YOU"; 
+        updateBalanceInDB(balance - 10);
+        msg.innerText = trans[currentLang].pick.replace('{n}', n); msg.style.color = "#002d4b"; updateUI(); 
+        
+        if (Object.keys(selections).length === 20) { runGame(); }
     }
 
     function runGame() {
@@ -124,20 +131,17 @@
         document.getElementById('last-val').innerText = win;
         const msg = document.getElementById('msg-box');
         
-        if(selections[win] === "YOU") {
-            balance += 180;
-            syncBalance();
-            msg.innerText = trans[currentLang].win; msg.style.color = "green";
+        if(selections[win] === "YOU") { 
+            updateBalanceInDB(balance + 180);
+            msg.innerText = trans[currentLang].win; msg.style.color = "green"; 
+        } else { 
+            msg.innerText = trans[currentLang].lost.replace('{n}', win); msg.style.color = "red"; 
         }
         setTimeout(resetGame, 4000);
     }
 
-    function resetGame() {
-        round++; document.getElementById('round-val').innerText = round;
-        selections = {}; isPlaying = false;
-        document.getElementById('msg-box').innerText = ""; updateUI();
-    }
-
+    function resetGame() { round++; document.getElementById('round-val').innerText = round; selections = {}; isPlaying = false; document.getElementById('msg-box').innerText = ""; updateUI(); }
+    
     function updateUI() {
         const table = document.getElementById('sel-table'); table.innerHTML = "";
         for(let i=1; i<=20; i++) {
@@ -148,19 +152,16 @@
         }
     }
 
-    function setLang(l) {
-        currentLang = l;
-        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; }
-        document.getElementById('l-am').classList.toggle('active', l==='am');
-        document.getElementById('l-en').classList.toggle('active', l==='en');
+    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
+    function updateClock() { 
+        const now = new Date(); 
+        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
+        document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
     }
-
-    function updateClock() {
-        const now = new Date();
-        document.getElementById('time-label').innerText = now.toLocaleTimeString();
-        document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
-    }
-    setInterval(updateClock, 1000); updateClock(); updateUI(); syncBalance();
+    
+    setInterval(updateClock, 1000); 
+    updateClock(); 
+    updateUI();
 </script>
 </body>
 </html>
