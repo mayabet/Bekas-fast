@@ -62,7 +62,7 @@
             <a href="lost_password.html" class="lost-link" id="lost-btn">LOST</a>
         </div>
         <button class="btn login-btn" id="l-btn" onclick="handleLogin()">LOG IN</button>
-        <button class="btn register-btn" id="r-btn" onclick="location.href='register.html'">REGISTER</button>
+        <button class="btn register-btn" id="r-btn" onclick="window.location.href='register.html'">REGISTER</button>
     </div>
     <div class="footer">
         <div id="l-text">LANGUAGE</div>
@@ -88,12 +88,9 @@
     const database = firebase.database();
     const onlineRef = database.ref('online_users_count');
 
-    // ቀድሞ ገብቶ ከሆነ ወደ home.html ይላከው
-    if(localStorage.getItem('userPhone')) window.location.replace("home.html");
-
     let currentLang = 'en';
-    let globalOnlineCount = 0;
 
+    // ሰዓት
     function updateClock() {
         const n = new Date();
         const mEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
@@ -110,6 +107,7 @@
     }
     setInterval(updateClock, 1000);
 
+    // ቋንቋ መቀየሪያ
     function setLang(l) {
         currentLang = l;
         document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
@@ -117,52 +115,49 @@
         document.getElementById('r-btn').innerText = (l === 'am') ? "ተመዝገብ" : "REGISTER";
         document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
         document.getElementById('pass-input').placeholder = (l === 'am') ? "ፒን" : "PIN";
-        updateOnlineDisplay();
         document.getElementById('lang-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
     }
 
-    function updateOnlineDisplay() {
-        const onlineArea = document.getElementById('online-area');
-        if (onlineArea) {
-            onlineArea.innerHTML = currentLang === 'am' ? 
-                `<span class="live-dot"></span> <span id="online-count">${globalOnlineCount}</span> ሰዎች አሁን በመጫወት ላይ ናቸው` : 
-                `<span class="live-dot"></span> <span id="online-count">${globalOnlineCount}</span> PEOPLE ARE PLAYING NOW`;
+    // መግቢያ (Login) ሎጂክ - ሙሉ ለሙሉ ተስተካክሏል
+    function handleLogin() {
+        const phone = document.getElementById('p-input').value.trim();
+        const pass = document.getElementById('pass-input').value.trim();
+        const errorDiv = document.getElementById('error-msg');
+
+        if (phone === "" || pass === "") {
+            errorDiv.innerText = currentLang === 'am' ? "መረጃውን ያስገቡ" : "ENTER INFORMATION";
+            return;
         }
+
+        errorDiv.innerText = currentLang === 'am' ? "በመፈለግ ላይ..." : "LOGGING IN...";
+
+        database.ref('users/' + phone).once('value').then((snapshot) => {
+            const userData = snapshot.val();
+            
+            if (userData && userData.password === pass) {
+                localStorage.setItem('userPhone', phone);
+                window.location.replace("home.html"); // ወደ home.html ይወስዳል
+            } else {
+                errorDiv.innerText = currentLang === 'am' ? "ስልክ ወይም ፒን ተሳስቷል" : "WRONG PHONE OR PIN";
+                setTimeout(() => { errorDiv.innerText = ""; }, 3000);
+            }
+        }).catch((err) => {
+            errorDiv.innerText = "Error: " + err.message;
+        });
     }
 
+    // Online ተጠቃሚዎች ቆጣሪ
     database.ref('.info/connected').on('value', (snap) => {
         if (snap.val() === true) {
             onlineRef.transaction(c => (c || 0) + 1);
             onlineRef.onDisconnect().transaction(c => (c || 0) - 1);
         }
     });
-
     onlineRef.on('value', (snap) => {
-        globalOnlineCount = snap.val() || 0;
-        if(globalOnlineCount < 0) globalOnlineCount = 0;
-        updateOnlineDisplay();
+        const count = snap.val() || 0;
+        document.getElementById('online-count').innerText = count < 0 ? 0 : count;
     });
-
-    function handleLogin() {
-        const phone = document.getElementById('p-input').value.trim();
-        const pass = document.getElementById('pass-input').value.trim();
-        const errorDiv = document.getElementById('error-msg');
-        if (phone.length < 10 || pass.length !== 5) {
-            errorDiv.innerText = currentLang === 'am' ? "መረጃውን በትክክል ያስገቡ" : "INVALID INFORMATION";
-            return;
-        }
-        database.ref('users/' + phone).once('value').then((snapshot) => {
-            const userData = snapshot.val();
-            if (userData && userData.password === pass) {
-                localStorage.setItem('userPhone', phone);
-                window.location.replace("home.html");
-            } else {
-                errorDiv.innerText = currentLang === 'am' ? "ስልክ ወይም ፒን ተሳስቷል" : "WRONG PHONE OR PIN";
-                setTimeout(() => { errorDiv.innerText = ""; }, 3000);
-            }
-        });
-    }
 </script>
 </body>
 </html>
