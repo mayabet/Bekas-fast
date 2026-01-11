@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mita Betting - Login</title>
+    <title>BEKAS FAST - Login</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
     <style>
         body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
         .card { width: 92%; max-width: 360px; background: white; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; display: flex; flex-direction: column; }
@@ -42,36 +41,29 @@
         <div class="online-now" id="online-area">
             <span class="live-dot"></span> <span id="online-count">0</span> PEOPLE ARE PLAYING NOW
         </div>
-
         <div class="dt-section">
             <div class="dt-row" id="date-label">DATE: LOADING...</div>
             <div class="dt-row" id="time-label">TIME: 00:00:00</div>
         </div>
-
         <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
         <div class="motto" id="motto">WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!</div>
-        
         <div id="error-msg"></div>
-
         <div class="input-row">
             <div class="input-box">
                 <img src="https://flagcdn.com/w40/et.png" width="25">
                 <b style="font-size: 20px; margin-left: 8px; margin-right: 8px;">+251</b>
-                <input type="number" id="p-input" placeholder="09..." oninput="if(this.value.length>10)this.value=this.value.slice(0,10)">
+                <input type="tel" id="p-input" placeholder="09..." oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
             </div>
         </div>
-
         <div class="input-row">
             <div class="input-box">
-                <input type="password" id="pass-input" placeholder="PASSWORD" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)">
+                <input type="password" id="pass-input" placeholder="PIN" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
             <a href="lost_password.html" class="lost-link" id="lost-btn">LOST</a>
         </div>
-
         <button class="btn login-btn" id="l-btn" onclick="handleLogin()">LOG IN</button>
         <button class="btn register-btn" id="r-btn" onclick="location.href='register.html'">REGISTER</button>
     </div>
-
     <div class="footer">
         <div id="l-text">LANGUAGE</div>
         <div class="lang-options">
@@ -82,7 +74,6 @@
 </div>
 
 <script>
-    // 1. Firebase መረጃ (አንድ ጊዜ ብቻ)
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -93,13 +84,13 @@
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const onlineRef = database.ref('online_users_count');
 
-    // 2. ሰዓት እና ቋንቋ ሎጂክ
+    // ቀድሞ ገብቶ ከሆነ ወደ home.html ይላከው
+    if(localStorage.getItem('userPhone')) window.location.replace("home.html");
+
     let currentLang = 'en';
     let globalOnlineCount = 0;
 
@@ -109,7 +100,6 @@
         const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
         let hours = n.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
         const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
-        
         if(currentLang === 'am') {
             document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + ", " + n.getDate() + ", " + n.getFullYear();
             document.getElementById('time-label').innerText = "ሰዓት: " + timeStr;
@@ -118,28 +108,20 @@
             document.getElementById('time-label').innerText = "TIME: " + timeStr;
         }
     }
-    setInterval(updateClock, 1000); updateClock();
+    setInterval(updateClock, 1000);
 
     function setLang(l) {
         currentLang = l;
-        // ስሙን እዚህ ጋር ይቀይረዋል
         document.getElementById('brand-name').innerText = (l === 'am') ? "ቤካስ ፈጣን" : "BEKAS FAST";
-        document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
-        document.getElementById('motto').innerText = (l === 'am') ? "ሁልጊዜም የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!" : "WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!";
         document.getElementById('l-btn').innerText = (l === 'am') ? "ግባ" : "LOG IN";
         document.getElementById('r-btn').innerText = (l === 'am') ? "ተመዝገብ" : "REGISTER";
         document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
-        document.getElementById('pass-input').placeholder = (l === 'am') ? "የይለፍ ቃል" : "PASSWORD";
-        document.getElementById('lost-btn').innerText = (l === 'am') ? "ጠፋ" : "LOST";
-        
-        updateOnlineDisplay(); // ቆጣሪውን በቋንቋው መሰረት ያድሳል
-
+        document.getElementById('pass-input').placeholder = (l === 'am') ? "ፒን" : "PIN";
+        updateOnlineDisplay();
         document.getElementById('lang-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
-        updateClock();
     }
 
-    // 3. ቆጣሪውን የሚያሳይ ፈንክሽን
     function updateOnlineDisplay() {
         const onlineArea = document.getElementById('online-area');
         if (onlineArea) {
@@ -149,7 +131,6 @@
         }
     }
 
-    // Firebase ቆጠራ ትእዛዝ
     database.ref('.info/connected').on('value', (snap) => {
         if (snap.val() === true) {
             onlineRef.transaction(c => (c || 0) + 1);
@@ -164,12 +145,23 @@
     });
 
     function handleLogin() {
-        const phone = document.getElementById('p-input').value;
-        const pass = document.getElementById('pass-input').value;
-        if (phone.length < 9 || pass.length !== 5) {
-            document.getElementById('error-msg').innerText = currentLang === 'am' ? "የተሳሳተ መረጃ" : "INCORRECT INFORMATION";
-            setTimeout(() => { document.getElementById('error-msg').innerText = ""; }, 3000);
-        } else { window.location.href = "index.html"; }
+        const phone = document.getElementById('p-input').value.trim();
+        const pass = document.getElementById('pass-input').value.trim();
+        const errorDiv = document.getElementById('error-msg');
+        if (phone.length < 10 || pass.length !== 5) {
+            errorDiv.innerText = currentLang === 'am' ? "መረጃውን በትክክል ያስገቡ" : "INVALID INFORMATION";
+            return;
+        }
+        database.ref('users/' + phone).once('value').then((snapshot) => {
+            const userData = snapshot.val();
+            if (userData && userData.password === pass) {
+                localStorage.setItem('userPhone', phone);
+                window.location.replace("home.html");
+            } else {
+                errorDiv.innerText = currentLang === 'am' ? "ስልክ ወይም ፒን ተሳስቷል" : "WRONG PHONE OR PIN";
+                setTimeout(() => { errorDiv.innerText = ""; }, 3000);
+            }
+        });
     }
 </script>
 </body>
