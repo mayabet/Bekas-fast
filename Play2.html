@@ -43,7 +43,7 @@
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 20</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box"></td></tr>
+        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box" style="font-weight: 900;"></td></tr>
         <tr><td class="bg-green" id="rn">ROUND</td><td id="round-val">1</td><td class="bg-green" id="ls">LAST</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
@@ -55,7 +55,6 @@
 </div>
 
 <script>
-    // 1. Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -69,7 +68,6 @@
     const database = firebase.database();
     const gameRef = database.ref('live_game/play2');
 
-    // 2. User State
     const userPhone = localStorage.getItem('userPhone');
     let userName = "Guest";
     let balance = 0;
@@ -89,17 +87,15 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 180 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
-        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 180 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
 
-    // Grid creation
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=20; i++) {
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    // 3. Live Updates
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
@@ -111,6 +107,8 @@
     function pick(n) {
         if(isPlaying || selections[n]) return;
         const msg = document.getElementById('msg-box');
+        
+        // ማስተካከያ፡ ሂሳብ ከሌለው ወደ ዳታቤዝ አይልክም
         if (balance < 10) { 
             msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
@@ -132,7 +130,7 @@
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 180 });
-            msg.innerText = trans[currentLang].win;
+            msg.innerText = trans[currentLang].win.replace('{n}', win);
             msg.style.color = "green";
         } else {
             msg.innerText = trans[currentLang].lost.replace('{n}', win);
