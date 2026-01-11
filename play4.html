@@ -12,51 +12,25 @@
         .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
         .game-title { font-weight: 900; font-size: 18px; color: #000; }
         .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
-        .info-section { padding: 4px 12px; color: #002d4b; font-weight: 900; font-size: 13px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
-        .balance-bar { background: #002d4b; color: #fff; padding: 6px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 16px; flex-shrink: 0; }
-        .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 4px 0; font-size: 14px; text-transform: uppercase; flex-shrink: 0; }
-        
-        /* ቁጥሮቹን ትልቅ እና ጎላ ለማድረግ የተስተካከለ */
-        .number-grid { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
-            gap: 2px; 
-            padding: 5px; 
-            background: #002d4b; 
-            margin: 0 5px; 
-            flex-shrink: 0; 
-            max-height: 45%; /* ቁጥሮቹ ሰፋ ያለ ቦታ እንዲይዙ */
-            overflow-y: auto;
-        }
-        .num-cell { 
-            background: #fff;
-            height: 45px; /* ቁመቱ እንዲጨምር ተደርጓል */
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 18px; /* የቁጥሩ መጠን ትልቅ ሆኗል */
-            font-weight: 900; 
-            color: #002d4b; 
-            cursor: pointer; 
-        }
-        .user-selected { background: #ffcc00 !important; color: #000 !important; }
-        .taken-cell { background: #ccc !important; color: #777 !important; cursor: not-allowed; }
-
-        .stats-table { width: 100%; border-collapse: collapse; margin-top: 2px; flex-shrink: 0; }
-        .stats-table td { border: 2px solid #002d4b; padding: 4px; font-weight: 900; text-align: center; font-size: 13px; }
+        .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
+        .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
+        .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 4px 0; font-size: 15px; text-transform: uppercase; flex-shrink: 0; }
+        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; overflow-y: auto; max-height: 200px; }
+        .num-cell { border: 1px solid #002d4b; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #002d4b; cursor: pointer; }
+        .user-selected { background: #002d4b !important; color: #fff !important; }
+        .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
+        .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
+        .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
-        
-        /* የተመረጡ ቁጥሮች ዝርዝር (አጭር እንዲሆን ተደርጓል) */
-        .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; max-height: 150px; }
-        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 4px; border-bottom: 2px solid #002d4b; font-size: 13px; flex-shrink: 0; }
+        .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
-        .selected-list td { border-bottom: 1px solid #002d4b; height: 26px; padding: 0 8px; font-weight: 900; font-size: 12px; }
+        .selected-list td { border-bottom: 1px solid #002d4b; height: 30px; padding: 0 10px; font-weight: 900; font-size: 12px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
-        
-        .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { display: block; padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; background: #002d4b; }
-        .lang-bar { background: #fff; padding: 6px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 13px; flex-shrink: 0; }
+        .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
+        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
+        .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
     </style>
@@ -66,21 +40,17 @@
     <div class="yellow-banner"><span class="game-title" id="gt">20 BIRR IN TO 900 BIRR</span><span class="plus18">+18</span></div>
     <div class="info-section"><div>DATE: <span id="date-label"></span></div><div>TIME: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
-    <div class="instruction" id="ins">SELECT 1 UP 50</div>
-    
+    <div class="instruction" id="ins">SELECT NUMBER 1 UP 50</div>
     <div class="number-grid" id="grid-container"></div>
-    
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box"></td></tr>
+        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box" style="font-weight: 900;"></td></tr>
         <tr><td class="bg-green" id="rn">ROUND</td><td id="round-val">1</td><td class="bg-green" id="ls">LAST</td><td id="last-val">0</td></tr>
     </table>
-    
     <div class="list-container">
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    
-    <div class="footer-nav"><a href="home.html" class="nav-btn" id="bb">BACK</a></div>
+    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -117,15 +87,13 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 900 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
-        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 900 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
 
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=50; i++) {
-        let cell = document.createElement('div'); 
-        cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; 
-        cell.onclick = () => pick(i); grid.appendChild(cell);
+        let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
     gameRef.on('value', (snapshot) => {
@@ -138,13 +106,20 @@
 
     function pick(n) {
         if(isPlaying || selections[n]) return;
+        const msg = document.getElementById('msg-box');
+        
+        // በቂ ሂሳብ (20 ብር) መኖሩን ማረጋገጥ
         if (balance < 20) { 
-            document.getElementById('msg-box').innerText = trans[currentLang].low; 
-            document.getElementById('msg-box').style.color = "red"; 
+            msg.innerText = trans[currentLang].low; 
+            msg.style.color = "red"; 
             return; 
         }
+
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
+        
+        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
     }
 
     function runGame() {
@@ -155,7 +130,7 @@
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 900 });
-            msg.innerText = trans[currentLang].win;
+            msg.innerText = trans[currentLang].win.replace('{n}', win);
             msg.style.color = "green";
         } else {
             msg.innerText = trans[currentLang].lost.replace('{n}', win);
@@ -176,20 +151,30 @@
         for(let i=1; i<=50; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
-
-            if(occupant !== "") {
+            
+            if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
     }
 
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
-    function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
-    setInterval(updateClock, 1000); updateClock();
+    function setLang(l) { 
+        currentLang = l; 
+        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } 
+        document.getElementById('l-am').classList.toggle('active', l==='am'); 
+        document.getElementById('l-en').classList.toggle('active', l==='en'); 
+    }
+    
+    function updateClock() { 
+        const now = new Date(); 
+        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
+        document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
+    }
+    setInterval(updateClock, 1000); 
+    updateClock();
 </script>
 </body>
 </html>
