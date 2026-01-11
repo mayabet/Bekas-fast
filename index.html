@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ቤካስ ፈጣን - መግቢያ</title>
+    <title>Bekas Fast - Login</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -35,18 +35,18 @@
 <body>
 
 <div class="card">
-    <div class="yellow-bar"><span id="new-tag">አዲስ</span><span style="color:red; font-size:26px">+18</span></div>
+    <div class="yellow-bar"><span id="new-tag">NEW</span><span style="color:red; font-size:26px">+18</span></div>
     <div class="header-line"></div>
     <div class="content">
         <div class="online-now" id="online-area">
-            <span class="live-dot"></span> <span id="online-count">0</span> ሰዎች አሁን እየተጫወቱ ነው
+            <span class="live-dot"></span> <span id="online-count">0</span> PEOPLE ARE PLAYING NOW
         </div>
         <div class="dt-section">
-            <div class="dt-row" id="date-label">ቀን: በመጫን ላይ...</div>
-            <div class="dt-row" id="time-label">ሰዓት: 00:00:00</div>
+            <div class="dt-row" id="date-label">DATE: LOADING...</div>
+            <div class="dt-row" id="time-label">TIME: 00:00:00</div>
         </div>
-        <div class="branding"><h1 id="brand-name">ቤካስ ፈጣን</h1></div>
-        <div class="motto" id="motto">ሁልጊዜ የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!</div>
+        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
+        <div class="motto" id="motto">WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!</div>
         <div id="error-msg"></div>
         <div class="input-row">
             <div class="input-box">
@@ -57,18 +57,18 @@
         </div>
         <div class="input-row">
             <div class="input-box">
-                <input type="password" id="pass-input" placeholder="ፒን (PIN)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
+                <input type="password" id="pass-input" placeholder="PIN" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
-            <a href="lost_password.html" class="lost-link" id="lost-btn">ረስተዋል?</a>
+            <a href="lost_password.html" class="lost-link" id="lost-btn">LOST</a>
         </div>
-        <button class="btn login-btn" id="l-btn" onclick="handleLogin()">ግባ</button>
-        <button class="btn register-btn" id="r-btn" onclick="window.location.href='register.html'">ተመዝገብ</button>
+        <button class="btn login-btn" id="l-btn" onclick="handleLogin()">LOG IN</button>
+        <button class="btn register-btn" id="r-btn" onclick="window.location.href='register.html'">REGISTER</button>
     </div>
     <div class="footer">
-        <div id="l-text">ቋንቋ</div>
+        <div id="l-text">LANGUAGE</div>
         <div class="lang-options">
-            <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | 
-            <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
+            <span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span>
         </div>
     </div>
 </div>
@@ -88,20 +88,23 @@
     const database = firebase.database();
     const onlineRef = database.ref('online_users_count');
 
-    let currentLang = 'am'; // በነባሪ ወደ አማርኛ ተቀይሯል
+    let currentLang = 'en';
 
     function updateClock() {
         const n = new Date();
         const mEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
         const mAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        let hours = n.getHours(); const ampm = hours >= 12 ? ' ከሰዓት' : ' ጠዋት'; hours = hours % 12 || 12;
-        const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampm;
+        let hours = n.getHours(); 
+        const ampmAM = hours >= 12 ? ' ከሰዓት' : ' ጠዋት';
+        const ampmEN = hours >= 12 ? ' PM' : ' AM';
+        hours = hours % 12 || 12;
         
         if(currentLang === 'am') {
+            const timeStr = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampmAM;
             document.getElementById('date-label').innerText = "ቀን: " + mAM[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
             document.getElementById('time-label').innerText = "ሰዓት: " + timeStr;
         } else {
-            const timeStrEN = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + (n.getHours() >= 12 ? ' PM' : ' AM');
+            const timeStrEN = hours + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0') + ampmEN;
             document.getElementById('date-label').innerText = "DATE: " + mEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
             document.getElementById('time-label').innerText = "TIME: " + timeStrEN;
         }
@@ -126,6 +129,11 @@
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
         updateClock();
     }
+
+    // ገጹ እንደተከፈተ በእንግሊዝኛ እንዲጀምር ማድረግ
+    window.onload = function() {
+        setLang('en');
+    };
 
     function handleLogin() {
         const phone = document.getElementById('p-input').value.trim();
