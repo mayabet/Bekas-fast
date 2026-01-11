@@ -43,13 +43,13 @@
         <div class="input-row">
             <div class="input-box">
                 <input type="tel" id="p-input" placeholder="09..." 
-                maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
             </div>
         </div>
         <div class="input-row">
             <div class="input-box">
                 <input type="tel" id="pass-input" placeholder="PIN (5 DIGITS)" 
-                maxlength="5" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
         </div>
 
@@ -79,7 +79,11 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    function goBack() { window.location.href = "Index.html"; }
+    // BACK TO LOGIN FUNCTION
+    function goBack() { 
+        // Index.html ተብሎ ከተሰየመው ገጽ ጋር እንዲመሳሰል ተደርጓል
+        window.location.replace("index.html"); 
+    }
 
     function handleRegister() {
         const name = document.getElementById('name-input').value.trim();
@@ -87,12 +91,16 @@
         const pass = document.getElementById('pass-input').value.trim();
         const errorDiv = document.getElementById('error-msg');
         
-        if (name.length < 3 || name.length > 10) { 
-            errorDiv.innerText = (currentLang === 'am') ? "ስም ከ3-10 ፊደል መሆን አለበት" : "NAME MUST BE 3-10 CHARS"; 
+        if (name.length < 3) { 
+            errorDiv.innerText = (currentLang === 'am') ? "ስም በጣም አጭር ነው" : "NAME TOO SHORT"; 
+            return; 
+        }
+        if (name.length > 10) { 
+            errorDiv.innerText = (currentLang === 'am') ? "ስም ከ10 ፊደል መብለጥ የለበትም" : "NAME MAX 10 CHARS"; 
             return; 
         }
         if (!/^09\d{8}$/.test(phone)) { 
-            errorDiv.innerText = (currentLang === 'am') ? "በ09 ይጀምሩ (10 ቁጥር)" : "START WITH 09 (10 DIGITS)"; 
+            errorDiv.innerText = (currentLang === 'am') ? "ትክክለኛ ስልክ ቁጥር ያስገቡ (09...)" : "ENTER VALID PHONE (09...)"; 
             return; 
         }
         if (pass.length !== 5) { 
@@ -112,6 +120,8 @@
             localStorage.setItem('userPhone', phone);
             alert((currentLang === 'am') ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "Registered Successfully!");
             window.location.replace("home.html");
+        }).catch(err => {
+            errorDiv.innerText = "Error: " + err.message;
         });
     }
 
@@ -122,10 +132,9 @@
         document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፋስት" : "BEKAS FAST";
         document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
         document.getElementById('reg-btn-text').innerText = isAm ? "አካውንት ክፈት" : "CREATE ACCOUNT";
-        document.getElementById('back-btn-text').innerText = isAm ? "ወደ መግቢያ ተመለስ" : "BACK TO LOGIN";
+        document.getElementById('back-btn-text').innerText = isAm ? "ወደ ኋላ ተመለስ" : "BACK TO LOGIN";
         document.getElementById('lang-label').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
         
-        // Placeholder update
         document.getElementById('name-input').placeholder = isAm ? "ስም (3-10 ፊደል)" : "NAME (3-10 CHARS)";
         document.getElementById('p-input').placeholder = isAm ? "ስልክ (09...)" : "PHONE (09...)";
         document.getElementById('pass-input').placeholder = isAm ? "ፒን (5 ቁጥር)" : "PIN (5 DIGITS)";
