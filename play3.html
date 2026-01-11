@@ -29,7 +29,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; }
+        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -43,7 +43,7 @@
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 20</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box"></td></tr>
+        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box" style="font-weight: 900;"></td></tr>
         <tr><td class="bg-green" id="rn">ROUND</td><td id="round-val">1</td><td class="bg-green" id="ls">LAST</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
@@ -55,7 +55,6 @@
 </div>
 
 <script>
-    // 1. Firebase Configuration
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -69,7 +68,6 @@
     const database = firebase.database();
     const gameRef = database.ref('live_game/play3');
 
-    // 2. የተጠቃሚ መረጃ ማግኛ
     const userPhone = localStorage.getItem('userPhone');
     let userName = "Guest";
     let balance = 0;
@@ -89,17 +87,15 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 350 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
-        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 350 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
 
-    // Grid creation
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=20; i++) {
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    // 3. የቀጥታ ስርጭት ለውጦች (Live Updates)
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
@@ -111,13 +107,14 @@
     function pick(n) {
         if(isPlaying || selections[n]) return;
         const msg = document.getElementById('msg-box');
+        
+        // 20 ብር ከሌለው አይይዘውም
         if (balance < 20) { 
             msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
-        // ሂሳብ መቀነስ እና ዳታቤዝ ላይ መመዝገብ
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
         
@@ -133,7 +130,7 @@
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 350 });
-            msg.innerText = trans[currentLang].win;
+            msg.innerText = trans[currentLang].win.replace('{n}', win);
             msg.style.color = "green";
         } else {
             msg.innerText = trans[currentLang].lost.replace('{n}', win);
@@ -141,7 +138,7 @@
         }
 
         setTimeout(() => {
-            gameRef.remove(); // ዳታቤዙን ማጽዳት
+            gameRef.remove();
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
@@ -154,32 +151,27 @@
         for(let i=1; i<=20; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            
-            if (occupant === userName) {
-                cell.className = "num-cell user-selected";
-            } else if (occupant !== "") {
-                cell.className = "num-cell taken-cell";
-            } else {
-                cell.className = "num-cell";
-            }
-            
+            if (occupant === userName) cell.className = "num-cell user-selected";
+            else if (occupant !== "") cell.className = "num-cell taken-cell";
+            else cell.className = "num-cell";
             table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
 
-    function setLang(l) {
+    function setLang(l) { 
         currentLang = l; 
         for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } 
         document.getElementById('l-am').classList.toggle('active', l==='am'); 
         document.getElementById('l-en').classList.toggle('active', l==='en'); 
     }
     
-    function updateClock() {
+    function updateClock() { 
         const now = new Date(); 
         document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
         document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
     }
-    setInterval(updateClock, 1000); updateClock();
+    setInterval(updateClock, 1000); 
+    updateClock();
 </script>
 </body>
 </html>
