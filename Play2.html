@@ -16,7 +16,6 @@
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
         .num-cell { border: 1px solid #002d4b; height: 42px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
-        .taken-selected { background: #e0e0e0; color: #999; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
@@ -40,35 +39,27 @@
         <span class="game-title" id="gt">10 BIRR IN TO 180 BIRR</span>
         <span class="plus18">+18</span>
     </div>
-
     <div class="info-section">
         <div>DATE: <span id="date-label"></span></div>
         <div>TIME: <span id="time-label"></span></div>
     </div>
-
     <div class="balance-bar">
         <span id="bl">BALANCE</span>
         <span><span id="cash">0.00</span> <small>ETB</small></span>
     </div>
-
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 20</div>
-
     <div class="number-grid" id="grid-container"></div>
-
     <table class="stats-table">
         <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box"></td></tr>
         <tr><td class="bg-green" id="rn">ROUND</td><td id="round-val">1</td><td class="bg-green" id="ls">LAST</td><td id="last-val">0</td></tr>
     </table>
-
     <div class="list-container">
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-
     <div class="footer-nav">
-        <a href="index.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
+        <a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
     </div>
-
     <div class="lang-bar">
         <span id="ll">LANGUAGE</span>
         <div>
@@ -79,22 +70,19 @@
 </div>
 
 <script>
-    // --- Balance Sync Logic ---
     let balance = parseFloat(localStorage.getItem('userBalance')) || 100.00;
     function syncBalance() {
         document.getElementById('cash').innerText = balance.toFixed(2);
         localStorage.setItem('userBalance', balance.toFixed(2));
     }
 
-    let currentLang = 'en', round = 1, selections = {}, isPlaying = false, autoTimer = null;
-    let others = [3, 8, 11, 16]; 
+    let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
 
     const trans = {
-        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', hb:'ታሪክ', mb:'የእኔ', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 180 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
-        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', hb:'HISTORY', mb:'MINE', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 180 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
+        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 180 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 180 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
 
-    // Grid creation
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=20; i++) {
         let cell = document.createElement('div');
@@ -108,55 +96,38 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
+        
         if (selections[n] === "YOU") {
             delete selections[n]; balance += 10;
-            syncBalance(); msg.innerText = ""; updateUI(); checkAndStart(); return;
+            syncBalance(); msg.innerText = ""; updateUI(); return;
         }
         if (balance < 10) {
             msg.innerText = trans[currentLang].low; msg.style.color = "red"; return;
         }
-        if (others.includes(n) || (selections[n] && selections[n] !== "YOU")) {
-            msg.innerText = trans[currentLang].taken.replace('{n}', n);
-            msg.style.color = "red"; return;
-        }
+        
         selections[n] = "YOU"; balance -= 10;
         syncBalance();
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
-        updateUI(); checkAndStart();
-    }
+        updateUI();
 
-    function checkAndStart() {
-        if(autoTimer) clearTimeout(autoTimer);
-        autoTimer = setTimeout(fillRemaining, 2000);
-    }
-
-    function fillRemaining() {
-        if(Object.keys(selections).filter(k => selections[k]==="YOU").length === 0) return;
-        isPlaying = true;
-        let fillInterval = setInterval(() => {
-            let rand = Math.floor(Math.random() * 20) + 1;
-            if(!selections[rand] && !others.includes(rand)) {
-                selections[rand] = "User_" + Math.floor(Math.random()*900+100);
-                updateUI();
-            }
-            if(Object.keys(selections).length + others.length >= 20) {
-                clearInterval(fillInterval); runGame();
-            }
-        }, 100);
+        // Start game only when 20 numbers are selected
+        if(Object.keys(selections).length === 20) {
+            runGame();
+        }
     }
 
     function runGame() {
+        isPlaying = true;
+        // Randomly pick 1 winner from 1-20
         let win = Math.floor(Math.random() * 20) + 1;
         document.getElementById('last-val').innerText = win;
         const msg = document.getElementById('msg-box');
+        
         if(selections[win] === "YOU") {
             balance += 180;
             syncBalance();
             msg.innerText = trans[currentLang].win; msg.style.color = "green";
-        } else {
-            msg.innerText = trans[currentLang].lost.replace('{n}', win);
-            msg.style.color = "red";
         }
         setTimeout(resetGame, 4000);
     }
@@ -171,9 +142,9 @@
         const table = document.getElementById('sel-table'); table.innerHTML = "";
         for(let i=1; i<=20; i++) {
             const cell = document.getElementById(`c-${i}`);
-            let occupant = others.includes(i) ? "User_X" : (selections[i] || "");
-            cell.className = "num-cell" + (selections[i]==="YOU" ? " user-selected" : (occupant!=="" ? " taken-selected" : ""));
-            table.innerHTML += `<tr><td class="id-col">${i}</td><td>${selections[i]==="YOU" ? "YOU" : occupant}</td></tr>`;
+            let occupant = selections[i] || "";
+            cell.className = "num-cell" + (occupant === "YOU" ? " user-selected" : "");
+            table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
 
