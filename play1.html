@@ -18,6 +18,7 @@
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
         .num-cell { border: 1px solid #002d4b; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: #002d4b; cursor: pointer; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
+        .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
@@ -28,7 +29,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; cursor: pointer; border: none; }
+        .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -38,7 +39,7 @@
 <div class="app-container">
     <div class="yellow-banner"><span class="game-title" id="gt">10 BIRR IN TO 90 BIRR</span><span class="plus18">+18</span></div>
     <div class="info-section"><div>DATE: <span id="date-label"></span></div><div>TIME: <span id="time-label"></span></div></div>
-    <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">...</span> <small>ETB</small></span></div>
+    <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 10</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
@@ -54,7 +55,7 @@
 </div>
 
 <script>
-    // 1. Firebase Configuration (Must match index.html and home.html)
+    // 1. Firebase ኮንፊገሬሽን
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -64,103 +65,119 @@
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
-
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    const userPhone = localStorage.getItem('userPhone');
-    let balance = 0.00;
+    const gameRef = database.ref('live_game/play1');
 
-    // 2. Load Real Balance from Firebase
+    // 2. የተጠቃሚ መረጃ ማግኛ
+    const userPhone = localStorage.getItem('userPhone');
+    let userName = "";
+    let balance = 0;
+
     if (!userPhone) {
         window.location.replace("index.html");
     } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-                balance = parseFloat(userData.balance || 0);
+            const data = snapshot.val();
+            if (data) {
+                userName = data.username;
+                balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
             }
         });
     }
 
-    // 3. Game Logic Variables
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
         'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'አሸንፈዋል! 90 ብር ተጨምሯል', lost:'ቁጥር {n} አሸንፏል', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
         'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'YOU WON! 90 BIRR ADDED', lost:'NUM {n} WON', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
 
-    // Initialize Grid
+    // ቁጥሮችን መፍጠር
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=10; i++) {
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    function updateBalanceInDB(newAmount) {
-        database.ref('users/' + userPhone).update({ balance: newAmount });
-    }
+    // 3. የጨዋታ መረጃን ከዳታቤዝ በቀጥታ ማዳመጥ (Live Listener)
+    gameRef.on('value', (snapshot) => {
+        selections = snapshot.val() || {};
+        updateUI();
+        // 10ቱም ቁጥሮች ከተያዙ ጨዋታው ይጀምራል
+        if (Object.keys(selections).length === 10 && !isPlaying) {
+            runGame();
+        }
+    });
 
     function pick(n) {
-        if(isPlaying) return;
+        if(isPlaying || selections[n]) return;
+        
         const msg = document.getElementById('msg-box');
-        
-        // Deselect if already picked
-        if (selections[n] === "YOU") { 
-            updateBalanceInDB(balance + 10);
-            delete selections[n]; 
-            msg.innerText = ""; updateUI(); return; 
-        }
-
-        // Check for sufficient balance
         if (balance < 10) { 
-            msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; 
+            msg.innerText = trans[currentLang].low; 
+            msg.style.color = "red"; 
+            return; 
         }
 
-        // Process pick
-        selections[n] = "YOU"; 
-        updateBalanceInDB(balance - 10);
-        msg.innerText = trans[currentLang].pick.replace('{n}', n); msg.style.color = "#002d4b"; updateUI(); 
-        
-        if (Object.keys(selections).length === 10) { runGame(); }
+        // ገንዘብ ቀንሶ ዳታቤዝ ላይ መመዝገብ
+        let newBal = balance - 10;
+        database.ref('users/' + userPhone).update({ balance: newBal });
+        gameRef.child(n).set(userName); // ቁጥሩን በስምህ መያዝ
+
+        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
     }
 
     function runGame() {
         isPlaying = true;
+        // አሸናፊውን መምረጥ (ይህ በሰርቨር ቢሆን ይመረጣል ለጊዜው ግን እዚህ ይሁን)
         let win = Math.floor(Math.random() * 10) + 1;
         document.getElementById('last-val').innerText = win;
         const msg = document.getElementById('msg-box');
-        
-        if(selections[win] === "YOU") { 
-            updateBalanceInDB(balance + 90);
-            msg.innerText = trans[currentLang].win; msg.style.color = "green"; 
-        } else { 
-            msg.innerText = trans[currentLang].lost.replace('{n}', win); msg.style.color = "red"; 
+
+        if(selections[win] === userName) {
+            let winAmt = balance + 90;
+            database.ref('users/' + userPhone).update({ balance: winAmt });
+            msg.innerText = trans[currentLang].win;
+            msg.style.color = "green";
+        } else {
+            msg.innerText = trans[currentLang].lost.replace('{n}', win);
+            msg.style.color = "red";
         }
-        setTimeout(resetGame, 4000);
+
+        // ለሚቀጥለው ዙር ዝግጅት (ከ5 ሰከንድ በኋላ ዳታቤዙን ማጽዳት)
+        setTimeout(() => {
+            gameRef.remove(); // ዳታቤዙን ባዶ ማድረግ
+            round++;
+            document.getElementById('round-val').innerText = round;
+            isPlaying = false;
+            msg.innerText = "";
+        }, 5000);
     }
 
-    function resetGame() { round++; document.getElementById('round-val').innerText = round; selections = {}; isPlaying = false; document.getElementById('msg-box').innerText = ""; updateUI(); }
-    
     function updateUI() {
         const table = document.getElementById('sel-table'); table.innerHTML = "";
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            cell.className = "num-cell" + (occupant === "YOU" ? " user-selected" : "");
+            
+            // የከለር ለውጥ
+            if (occupant === userName) {
+                cell.className = "num-cell user-selected";
+            } else if (occupant !== "") {
+                cell.className = "num-cell taken-cell";
+            } else {
+                cell.className = "num-cell";
+            }
+            
             table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
 
+    // ሰዓት እና ቋንቋ
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
-    function updateClock() { 
-        const now = new Date(); 
-        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
-        document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
-    }
-    
-    setInterval(updateClock, 1000); 
-    updateClock(); 
-    updateUI();
+    function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
+    setInterval(updateClock, 1000); updateClock();
 </script>
 </body>
 </html>
