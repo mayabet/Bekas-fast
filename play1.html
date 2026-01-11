@@ -107,12 +107,12 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        msg.innerText = ""; 
+        msg.innerHTML = ""; 
 
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
             gameRef.child(n).remove();
-            msg.innerText = trans[currentLang].removed.replace('{n}', n);
+            msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
             msg.style.color = "orange";
             return;
         }
@@ -120,14 +120,14 @@
         if (selections[n]) return;
 
         if (balance < 10) { 
-            msg.innerText = trans[currentLang].low; 
+            msg.innerHTML = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
-        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
 
@@ -138,12 +138,14 @@
 
         document.getElementById('last-val').innerText = win;
 
+        // የወጣው ቁጥር በ Message Box ላይ Bold ሆኖ እንዲወጣ ተደርጓል
+        let winText = `<strong>${win}</strong>`;
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 90 });
-            msg.innerText = trans[currentLang].win.replace('{n}', win);
+            msg.innerHTML = trans[currentLang].win.replace('{n}', winText);
             msg.style.color = "green";
         } else {
-            msg.innerText = trans[currentLang].lost.replace('{n}', win);
+            msg.innerHTML = trans[currentLang].lost.replace('{n}', winText);
             msg.style.color = "red";
         }
 
@@ -152,7 +154,7 @@
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
-            // እዚህ ጋር msg.innerText = ""; የሚለው ተወግዷል መልዕክቱ እንዲቆይ
+            // እዚህ ጋር msg.innerHTML = ""; የሚለው ስለሌለ መልዕክቱ ቀጣዩ ሰው እስኪመርጥ ይቆያል
         }, 5000);
     }
 
