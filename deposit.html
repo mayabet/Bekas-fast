@@ -120,21 +120,35 @@
     function handleDeposit() {
         const code = document.getElementById('tr-input').value;
         const amount = document.getElementById('am-input').value;
-        if (code.length === 10 && amount > 0) {
-            database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: amount, status: "pending", time: new Date().toLocaleString() })
-            .then(() => { showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); document.getElementById('tr-input').value=""; document.getElementById('am-input').value=""; });
-        } else { showMsg(currentLang==='am'?"የተሳሳተ መረጃ":"INCORRECT INFO", "red"); }
+        const numAmount = parseFloat(amount);
+        
+        // Multiple of 10 limit
+        if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
+            database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
+            .then(() => { 
+                showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); 
+                document.getElementById('tr-input').value=""; 
+                document.getElementById('am-input').value=""; 
+            });
+        } else { 
+            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም መረጃው ስህተት ነው" : "ENTER MULTIPLES OF 10 OR WRONG CODE";
+            showMsg(errorMsg, "red"); 
+        }
     }
 
     function handleWithdraw() {
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
-        // ማስተካከያ፡ የ10 እጥፍ መሆኑን ማረጋገጫ (numAmount % 10 === 0)
+        
+        // Multiple of 10 and balance limit
         if (numAmount > 0 && numAmount <= currentBalance && numAmount % 10 === 0) {
             database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
-            .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
+            .then(() => { 
+                showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); 
+                document.getElementById('am-input').value=""; 
+            });
         } else { 
-            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም በቂ ሂሳብ የለም" : "USE MULTIPLES OF 10 OR LOW BALANCE";
+            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም በቂ ሂሳብ የለም" : "ENTER MULTIPLES OF 10 OR LOW BALANCE";
             showMsg(errorMsg, "red"); 
         }
     }
