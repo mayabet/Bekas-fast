@@ -87,8 +87,8 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
-        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
+        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', taken:'ቁጥር {n} ተይዟል!', win:'ቁጥር {n} ወጥቷል! 180 ብር አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', taken:'{n} IS TAKEN!', win:'NUM {n} WON! YOU WON 180 BIRR!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -105,44 +105,38 @@
     });
 
     function pick(n) {
-        if(isPlaying) return;
+        if(isPlaying || selections[n]) return;
         const msg = document.getElementById('msg-box');
-        msg.innerText = ""; 
-
-        if (selections[n] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 10 });
-            gameRef.child(n).remove();
-            msg.innerText = trans[currentLang].removed.replace('{n}', n);
-            msg.style.color = "orange";
-            return;
-        }
-
-        if (selections[n]) return;
+        msg.innerHTML = ""; // ምርጫ ሲጀመር የድሮውን ሜሴጅ ያጠፋዋል
 
         if (balance < 10) { 
-            msg.innerText = trans[currentLang].low; 
+            msg.innerHTML = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
-        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        
+        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
 
     function runGame() {
         isPlaying = true;
         let win = Math.floor(Math.random() * 20) + 1;
-        const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
+        const msg = document.getElementById('msg-box');
+
+        // ቁጥሩን ጎልቶ እንዲታይ ለማድረግ <strong> እንጠቀማለን
+        let winDisplay = `<strong>[${win}]</strong>`;
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 180 });
-            msg.innerText = trans[currentLang].win.replace('{n}', win);
+            msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
             msg.style.color = "green";
         } else {
-            msg.innerText = trans[currentLang].lost.replace('{n}', win);
+            msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
         }
 
@@ -151,6 +145,7 @@
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
+            // msg.innerHTML = ""; እዚህ ጋር የነበረው ኮድ ተወግዷል ውጤቱ እንዲቆይ
         }, 5000);
     }
 
