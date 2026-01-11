@@ -10,28 +10,21 @@
         .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
         .game-title { font-weight: 900; font-size: 18px; color: #000; }
         .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
-        
         .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
-        
-        /* ቁጥሮቹ በደንብ እንዲታዩ የረዘመ ሳጥን */
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; overflow-y: auto; height: 320px; }
         .num-cell { border: 1px solid #002d4b; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: #002d4b; cursor: pointer; }
-        
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
-        
-        /* የተመረጡ ቁጥሮች ሳጥን (ለ 3-4 ተጠቃሚዎች በስክሮል) */
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; max-height: 125px; }
         .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 4px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; height: 30px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
-        
         .footer-nav { display: flex; flex-direction: column; flex-shrink: 0; margin-top: auto; }
         .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; }
@@ -55,19 +48,15 @@
         <span><span id="cash">0.00</span> <small>ETB</small></span>
     </div>
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 50</div>
-    
     <div class="number-grid" id="grid-container"></div>
-    
     <table class="stats-table">
         <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box"></td></tr>
         <tr><td class="bg-green" id="rn">ROUND</td><td id="round-val">1</td><td class="bg-green" id="ls">LAST</td><td id="last-val">0</td></tr>
     </table>
-
     <div class="list-container">
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-
     <div class="footer-nav">
         <a href="home.html" class="nav-btn" id="bb">BACK</a>
         <div class="lang-bar">
@@ -81,9 +70,9 @@
 </div>
 
 <script>
-    // Balance መጀመሪያ 0 እንዲሆን ተደርጓል
-    let balance = parseFloat(localStorage.getItem('userBalance')) || 0.00;
-    
+    // ተጠቃሚው ያለውን ባላንስ እዚህ ጋር ብቻ ይጻፍ
+    let balance = 0.00; 
+
     function syncBalance() {
         document.getElementById('cash').innerText = balance.toFixed(2);
         localStorage.setItem('userBalance', balance.toFixed(2));
@@ -110,15 +99,13 @@
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
         if (selections[n] === "YOU") {
-            delete selections[n]; balance += 20; 
-            syncBalance();
+            delete selections[n]; balance += 20; syncBalance();
             msg.innerText = ""; updateUI(); return;
         }
-        if (balance < 20) { 
+        if (balance < 20) {
             msg.innerText = trans[currentLang].low; msg.style.color = "red"; return;
         }
-        selections[n] = "YOU"; balance -= 20; 
-        syncBalance();
+        selections[n] = "YOU"; balance -= 20; syncBalance();
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b"; updateUI();
         if(Object.keys(selections).length === 50) runGame();
@@ -167,10 +154,7 @@
         document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
     }
     setInterval(updateClock, 1000); 
-    updateClock(); 
-    setLang('en'); 
-    updateUI(); 
-    syncBalance();
+    updateClock(); setLang('en'); updateUI(); syncBalance();
 </script>
 </body>
 </html>
