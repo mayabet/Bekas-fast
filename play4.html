@@ -15,8 +15,8 @@
         .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
-        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; height: 250px; overflow-y: auto; }
-        .num-cell { border: 1px solid #002d4b; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #002d4b; cursor: pointer; }
+        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; overflow-y: auto; max-height: 220px; }
+        .num-cell { border: 1px solid #002d4b; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #002d4b; cursor: pointer; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
@@ -66,7 +66,7 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    const gameRef = database.ref('live_game/play4'); // play4 database ref
+    const gameRef = database.ref('live_game/play4');
 
     const userPhone = localStorage.getItem('userPhone');
     let userName = "";
@@ -107,7 +107,6 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        msg.innerHTML = ""; // አዲስ ምርጫ ሲጀመር የድሮውን ሜሴጅ ያጸዳል
 
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
@@ -125,10 +124,11 @@
             return; 
         }
 
-        database.ref('users/' + userPhone).update({ balance: balance - 20 });
-        gameRef.child(n).set(userName);
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
+
+        database.ref('users/' + userPhone).update({ balance: balance - 20 });
+        gameRef.child(n).set(userName);
     }
 
     function runGame() {
@@ -137,13 +137,12 @@
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
 
-        // አሸናፊው ቁጥር ደማቅ (Bold) ሆኖ እንዲወጣ
-        let winDisplay = `<strong>[${win}]</strong>`;
+        let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 900 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
-            msg.style.color = "green";
+            msg.style.color = "#00b050";
         } else {
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
@@ -154,7 +153,6 @@
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
-            // msg.innerHTML = ""; ተወግዷል መልዕክቱ እንዲቆይ
         }, 5000);
     }
 
