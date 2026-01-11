@@ -13,11 +13,8 @@
         .section-title { background: #002d4b; color: white; padding: 10px; font-size: 13px; font-weight: bold; text-transform: uppercase; }
         .card { padding: 12px; border-bottom: 1px solid #ddd; }
         .phone-num { font-weight: 900; color: #002d4b; font-size: 15px; }
-        
-        /* ዊዝድሮው ላይ መጠኑን እና ጊዜውን ጎላ የሚያደርግ ስታይል */
-        .withdraw-amt { font-size: 22px; font-weight: 900; color: #c00000; margin: 5px 0; }
-        .time-tag { background: #eefbff; border: 1px solid #007bff; color: #007bff; padding: 5px; font-weight: 900; font-size: 14px; display: inline-block; margin-top: 5px; width: 100%; text-align: center; }
-        
+        .withdraw-amt { font-size: 24px; font-weight: 900; color: #c00000; margin: 5px 0; }
+        .time-tag { background: #eefbff; border: 2px solid #007bff; color: #007bff; padding: 8px; font-weight: 900; font-size: 16px; display: block; margin-top: 5px; text-align: center; }
         .row { display: flex; gap: 4px; margin-top: 8px; align-items: center; }
         .btn { border: 2px solid #000; font-weight: bold; cursor: pointer; padding: 10px 5px; color: white; text-transform: uppercase; font-size: 11px; display: flex; align-items: center; justify-content: center; min-width: 50px; }
         .btn-green { background: #28a745; flex: 1; }
@@ -26,9 +23,9 @@
         .btn-orange { background: #ff8c00; }
         .btn-black { background: #000; width: 100%; margin-top: 10px; font-size: 12px; }
         .amt-box { width: 65px; padding: 8px; border: 2px solid #000; font-size: 14px; font-weight: bold; text-align: center; }
-        .pass-tag { background: #fff0f0; border: 1px solid red; color: red; font-size: 11px; padding: 1px 4px; margin-left: 5px; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        th, td { border: 1px solid #000; padding: 5px; text-align: left; }
+        .pass-tag { background: #fff0f0; border: 1px solid red; color: red; font-size: 12px; padding: 2px 6px; margin-left: 5px; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
     </style>
 </head>
 <body>
@@ -37,7 +34,12 @@
 
     <div class="section">
         <div class="section-title">🔑 Password Requests</div>
-        <div id="password-list"><table><tbody id="p-body"></tbody></table></div>
+        <div id="password-list">
+            <table>
+                <thead><tr style="background:#eee;"><th>User Info</th><th>Action</th></tr></thead>
+                <tbody id="p-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="section">
@@ -68,11 +70,15 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // 1. Password Requests
+        // 1. Password Requests - ስም እንዲያሳይ እና እንዲጠፋ ተደርጓል
         database.ref('password_requests').on('value', (snap) => {
             const body = document.getElementById('p-body'); body.innerHTML = "";
             snap.forEach((child) => {
-                body.innerHTML += `<tr><td><b>${child.val().phone}</b></td><td><button class="btn btn-red" onclick="removeData('password_requests/${child.key}')">DONE</button></td></tr>`;
+                const d = child.val();
+                body.innerHTML += `<tr>
+                    <td><b>${d.name || 'ስም የለም'}</b><br><small>${d.phone}</small></td>
+                    <td><button class="btn btn-red" onclick="removeData('password_requests/${child.key}')">DONE</button></td>
+                </tr>`;
             });
         });
 
@@ -95,17 +101,17 @@
             });
         });
 
-        // 3. Withdraw Requests (የተስተካከለ - መጠንና ሰዓት ጎልቶ ይታያል)
+        // 3. Withdraw Requests - መጠንና ሰዓት በትልቁ
         database.ref('withdraw_requests').on('value', (snap) => {
             const list = document.getElementById('withdraw-list'); list.innerHTML = "";
             snap.forEach((child) => {
                 const d = child.val();
                 list.innerHTML += `<div class="card">
-                    <div class="phone-num">👤 ተጠቃሚ፦ ${d.phone}</div>
+                    <div class="phone-num">👤 ስም፦ ${d.name || 'ስም የለም'} | 📲 ${d.phone}</div>
                     <div class="withdraw-amt">💵 መጠን፦ ${d.amount} ETB</div>
                     <div class="time-tag">🕒 ${d.time || 'ሰዓት የለም'}</div>
                     <div class="row">
-                        <button class="btn btn-red" style="background:#444; flex:2;" onclick="approveWithdraw('${child.key}','${d.phone}',${d.amount})">PAID (ቀንሰህ ክፈል)</button>
+                        <button class="btn btn-red" style="background:#444; flex:2;" onclick="approveWithdraw('${child.key}','${d.phone}',${d.amount})">PAID (REDUCE BAL)</button>
                         <button class="btn btn-red" style="flex:1;" onclick="removeData('withdraw_requests/${child.key}')">CANCEL</button>
                     </div>
                 </div>`;
@@ -118,8 +124,8 @@
             snap.forEach((child) => {
                 const id = child.key; const d = child.val();
                 list.innerHTML += `<div class="card">
-                    <div class="phone-num">👤 ${d.name || 'ስም የለም'} | ${id}</div>
-                    <div style="font-weight:900; color:green; font-size:14px;">Balance: ${d.balance || 0} ETB</div>
+                    <div class="phone-num">👤 ${d.name || 'ስም የለም'} | 📲 ${id}</div>
+                    <div style="font-weight:900; color:green; font-size:14px;">Balance: ${d.balance || 0} ETB | <span class="pass-tag">PIN: ${d.password}</span></div>
                     <div class="row">
                         <input type="number" id="amt-${id}" class="amt-box" placeholder="000">
                         <button class="btn btn-blue" onclick="adjustBal('${id}','add')">ADD</button>
