@@ -29,7 +29,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; }
+        .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; border: none; cursor: pointer; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -37,7 +37,7 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">10 BIRR IN TO 90 BIRR</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title" id="gt">10 BIRR IN TO 90 BIRR</span><span class="plus18">+18</span></div>
     <div class="info-section"><div>DATE: <span id="date-label"></span></div><div>TIME: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 10</div>
@@ -50,7 +50,9 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
+    <div class="footer-nav">
+        <button onclick="goBack()" class="nav-btn" style="background:#002d4b;" id="bb">BACK</button>
+    </div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -107,12 +109,12 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
+        msg.innerText = ""; 
 
-        // አዲስ ቁጥር ሲመረጥ (Next Selection) የቀድሞውን ውጤት ያጠፋል
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
             gameRef.child(n).remove();
-            msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
+            msg.innerText = trans[currentLang].removed.replace('{n}', n);
             msg.style.color = "orange";
             return;
         }
@@ -120,35 +122,31 @@
         if (selections[n]) return;
 
         if (balance < 10) { 
-            msg.innerHTML = trans[currentLang].low; 
+            msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
-        // ልክ ምርጫ ሲካሄድ አሮጌው የአሸናፊ መልዕክት ይጠፋል
-        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
-        msg.style.color = "#002d4b";
-
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
+        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
     }
 
     function runGame() {
         isPlaying = true;
         let win = Math.floor(Math.random() * 10) + 1;
         const msg = document.getElementById('msg-box');
-        document.getElementById('last-val').innerText = win;
 
-        // አሸናፊው ቁጥር በአረንጓዴ እና በደማቁ እንዲወጣ
-        let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
+        document.getElementById('last-val').innerText = win;
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 90 });
-            msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
-            msg.style.color = "#00b050"; 
+            msg.innerText = trans[currentLang].win.replace('{n}', win);
+            msg.style.color = "green";
         } else {
-            msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
-            msg.style.color = "red"; 
+            msg.innerText = trans[currentLang].lost.replace('{n}', win);
+            msg.style.color = "red";
         }
 
         setTimeout(() => {
@@ -156,7 +154,6 @@
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
-            // እዚህ ጋር መልዕክቱን የሚያጠፋ ኮድ የለም - ቀጣይ ቁጥር እስኪመረጥ ይቆያል
         }, 5000);
     }
 
@@ -170,6 +167,17 @@
             else cell.className = "num-cell";
             table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
+    }
+
+    // የ BACK በተን ተግባር - ቁጥር ካለው ያጠፋል ብር ይመልሳል
+    function goBack() {
+        for (let n in selections) {
+            if (selections[n] === userName) {
+                database.ref('users/' + userPhone).update({ balance: balance + 10 });
+                gameRef.child(n).remove();
+            }
+        }
+        window.location.href = "home.html";
     }
 
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
