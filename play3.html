@@ -29,7 +29,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
+        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; cursor: pointer; border: none; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -50,7 +50,9 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
+    <div class="footer-nav">
+        <button onclick="goBackAndClear()" class="nav-btn" style="background:#002d4b;" id="bb">BACK</button>
+    </div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -129,6 +131,30 @@
 
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
+    }
+
+    // ተመላሽ የሚያደርገው አዲሱ ፋንክሽን
+    function goBackAndClear() {
+        let refundAmount = 0;
+        let count = 0;
+
+        for (let n in selections) {
+            if (selections[n] === userName) {
+                refundAmount += 20;
+                count++;
+                gameRef.child(n).remove();
+            }
+        }
+
+        if (refundAmount > 0) {
+            database.ref('users/' + userPhone).update({ 
+                balance: balance + refundAmount 
+            }).then(() => {
+                window.location.href = "home.html";
+            });
+        } else {
+            window.location.href = "home.html";
+        }
     }
 
     function runGame() {
