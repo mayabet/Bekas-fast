@@ -29,7 +29,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
+        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; border: none; cursor: pointer; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -50,7 +50,9 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
+    <div class="footer-nav">
+        <button onclick="goBack()" class="nav-btn" style="background:#002d4b;" id="bb">BACK</button>
+    </div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -124,7 +126,6 @@
             return; 
         }
 
-        // አዲስ ቁጥር ሲመረጥ የቀድሞው አሸናፊ ውጤት እንዲጠፋ
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
 
@@ -138,7 +139,6 @@
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
 
-        // አሸናፊው ቁጥር በአረንጓዴ እና Bold ሆኖ እንዲወጣ
         let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
@@ -155,7 +155,6 @@
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
-            // msg.innerHTML = ""; ተወግዷል ውጤቱ እንዲቆይ
         }, 5000);
     }
 
@@ -169,6 +168,17 @@
             else cell.className = "num-cell";
             table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
+    }
+
+    // የ BACK ተግባር - ተጫዋቹ የያዘው ቁጥር ካለ ይለቃል፣ ብር ይመልሳል
+    function goBack() {
+        for (let n in selections) {
+            if (selections[n] === userName) {
+                database.ref('users/' + userPhone).update({ balance: balance + 10 });
+                gameRef.child(n).remove();
+            }
+        }
+        window.location.href = "home.html";
     }
 
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
