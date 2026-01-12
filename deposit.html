@@ -135,15 +135,26 @@
         }
     }
 
+    // አዲሱ የተሻሻለው የ Withdrawal ፈንክሽን
     function handleWithdraw() {
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
         if (numAmount > 0 && numAmount <= currentBalance && numAmount % 10 === 0) {
-            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
-            .then(() => { 
-                showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); 
-                document.getElementById('am-input').value=""; 
+            // 1. መጀመሪያ ከባላንስ ላይ ገንዘቡን ይቀንሳል
+            database.ref('users/' + userPhone).update({ 
+                balance: currentBalance - numAmount 
+            }).then(() => {
+                // 2. በመቀጠል ጥያቄውን ለአድሚን ይልካል
+                database.ref('withdraw_requests').push({ 
+                    phone: userPhone, 
+                    amount: numAmount, 
+                    status: "pending", 
+                    time: new Date().toLocaleString() 
+                }).then(() => { 
+                    showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); 
+                    document.getElementById('am-input').value=""; 
+                });
             });
         } else { 
             const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም በቂ ሂሳብ የለም" : "ENTER MULTIPLES OF 10 OR LOW BALANCE";
