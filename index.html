@@ -19,6 +19,8 @@
         .input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
         .input-box { border: 2.5px solid #00b050; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; flex-grow: 1; background: #fff; height: 32px; }
         input { border: none; outline: none; width: 100%; font-size: 22px; font-weight: 900; color: #333; }
+        /* Chrome, Safari, Edge, Opera ቁጥር መቆጣጠሪያ ማጥፊያ */
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         #error-msg { color: red; font-size: 14px; font-weight: 900; text-align: center; margin-bottom: 10px; min-height: 18px; text-transform: uppercase; }
         .lost-link { color: #d00000; font-size: 13px; font-weight: 900; text-decoration: none; border: 1px solid #ccc; padding: 6px 8px; border-radius: 4px; background-color: #fdfdfd; white-space: nowrap; }
         .btn { width: 100%; padding: 14px; border-radius: 8px; border: none; font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 20px; text-transform: uppercase; }
@@ -48,19 +50,22 @@
         <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
         <div class="motto" id="motto">WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!</div>
         <div id="error-msg"></div>
+        
         <div class="input-row">
             <div class="input-box">
                 <img src="https://flagcdn.com/w40/et.png" width="25">
                 <b style="font-size: 20px; margin-left: 8px; margin-right: 8px;">+251</b>
-                <input type="tel" id="p-input" placeholder="09..." oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                <input type="tel" id="p-input" placeholder="09..." inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
             </div>
         </div>
+        
         <div class="input-row">
             <div class="input-box">
-                <input type="password" id="pass-input" placeholder="PIN" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
+                <input type="tel" id="pass-input" placeholder="PIN" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);">
             </div>
             <a href="lost_password.html" class="lost-link" id="lost-btn">LOST</a>
         </div>
+
         <button class="btn login-btn" id="l-btn" onclick="handleLogin()">LOG IN</button>
         <button class="btn register-btn" id="r-btn" onclick="window.location.href='register.html'">REGISTER</button>
     </div>
@@ -74,6 +79,7 @@
 </div>
 
 <script>
+    // Firebase ኮንፊገሬሽን
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -130,7 +136,6 @@
         updateClock();
     }
 
-    // ገጹ እንደተከፈተ በእንግሊዝኛ እንዲጀምር ማድረግ
     window.onload = function() {
         setLang('en');
     };
