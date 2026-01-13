@@ -123,8 +123,9 @@
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
+        // 10 አሃዝ መሆኑን እና ከዜሮ መብለጡን ያረጋግጣል
         if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
-            // 'code' ወደ 'transactionCode' ተቀይሯል አውቶማቲክ እንዲያጸድቅ
+            // የአድሚን ፓነሉ አውቶማቲክ እንዲያጸድቅ 'transactionCode' በሚል ስያሜ ይላካል
             database.ref('deposit_requests').push({ 
                 phone: userPhone, 
                 transactionCode: code, 
