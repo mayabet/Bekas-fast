@@ -117,18 +117,16 @@
         setTimeout(() => d.innerText = "", 3000);
     }
 
-    // --- [የተስተካከለ] የአድሚን ፓነል ማመሳከሪያ ---
     function handleDeposit() {
         const code = document.getElementById('tr-input').value;
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
-        // 10 አሃዝ መሆኑን እና ከዜሮ መብለጡን ያረጋግጣል
         if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
-            // የአድሚን ፓነሉ አውቶማቲክ እንዲያጸድቅ 'transactionCode' በሚል ስያሜ ይላካል
+            // 'code' የሚለው ስያሜ ወደ 'transactionCode' ተቀይሯል ከአድሚን ፓነሉ ጋር እንዲመሳሰል
             database.ref('deposit_requests').push({ 
                 phone: userPhone, 
-                transactionCode: code, 
+                transactionCode: code, // እዚህ ጋር ተስተካክሏል
                 amount: numAmount, 
                 status: "pending", 
                 time: new Date().toLocaleString() 
