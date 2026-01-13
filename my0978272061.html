@@ -11,45 +11,31 @@
         .header { background: #ffcc00; padding: 10px; text-align: center; font-weight: 900; font-size: 18px; border-bottom: 2px solid #000; position: sticky; top: 0; z-index: 1000; }
         
         .section { background: white; margin-bottom: 10px; border-bottom: 2px solid #002d4b; width: 100%; }
-        .section-title { background: #002d4b; color: white; padding: 10px; font-size: 14px; font-weight: 900; text-transform: uppercase; text-align: center; display: flex; justify-content: center; align-items: center; gap: 15px; }
+        .section-title { background: #002d4b; color: white; padding: 8px; font-size: 13px; font-weight: 900; text-transform: uppercase; text-align: center; }
         
-        .card { padding: 12px; border-bottom: 1px solid #ddd; width: 100%; box-sizing: border-box; position: relative; }
+        .card { padding: 8px 12px; border-bottom: 1px solid #ddd; width: 100%; box-sizing: border-box; }
         .row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         
-        .phone-text { font-weight: 900; font-size: 20px; color: #002d4b; }
-        .user-name { color: #00b050; font-size: 20px; font-weight: 900; margin-left: 10px; text-transform: uppercase; }
-        .pass-text { font-size: 20px; color: #ffffff; font-weight: 900; background: #dc3545; padding: 3px 10px; border-radius: 5px; border: 2px solid #000; display: inline-block; }
+        .phone-text { font-weight: 900; font-size: 17px; color: #002d4b; }
+        .user-name { color: #666; font-size: 14px; font-weight: 700; margin-left: 5px; }
         
         /* የገንዘብ መጠን */
-        .amt-bold { color: #28a745; font-weight: 900; font-size: 26px; background: #e8f5e9; padding: 5px 12px; border-radius: 6px; border: 2px solid #28a745; }
+        .amt-bold { color: #28a745; font-weight: 900; font-size: 18px; background: #e8f5e9; padding: 2px 8px; border-radius: 4px; border: 1px solid #28a745; }
         
-        /* ትራንዛክሽን ቁጥር - እጅግ ጎልቶ እንዲታይ የተደረገ */
-        .trans-no-box { 
-            font-size: 18px; 
-            color: #fff; 
-            background: #000; 
-            font-weight: 900; 
-            padding: 8px; 
-            margin: 10px 0; 
-            text-align: center; 
-            display: block; 
-            border-radius: 5px;
-            letter-spacing: 1px;
-            border: 2px solid #ffcc00;
-        }
+        /* ትራንዛክሽን ኮድ - አነስ ተደርጓል */
+        .trans-no-box { font-size: 13px; color: #333; background: #f1f1f1; font-weight: 700; padding: 3px 6px; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; }
 
-        .joined-date { font-size: 11px; color: #666; font-weight: bold; margin-top: 2px; display: block; }
-        .del-user-btn { background: #000; color: #fff; border: 1px solid #fff; font-weight: 900; border-radius: 4px; padding: 8px 12px; cursor: pointer; font-size: 14px; }
-
-        .history-item { padding: 12px; border-bottom: 2px solid #ccc; background: #fff; border-left: 5px solid #002d4b; }
-        .btn-clear { background: #ff4444; color: white; border: 2px solid #fff; padding: 5px 12px; font-size: 12px; cursor: pointer; font-weight: 900; border-radius: 4px; }
+        .btn-green { background: #28a745; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
+        .btn-red { background: #dc3545; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; }
+        .btn-blue { background: #002d4b; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; border-radius: 4px; }
+        .btn-clear { background: #ff4444; color: white; border: 1px solid #fff; padding: 4px 8px; font-size: 11px; font-weight: 900; border-radius: 4px; cursor: pointer; }
         
-        button { border: 2px solid #000; padding: 12px; font-weight: 900; cursor: pointer; color: white; flex: 1; font-size: 16px; border-radius: 6px; width: 100%; margin-top: 5px; }
-        .btn-green { background: #28a745; }
-        .btn-red { background: #dc3545; }
-        .btn-blue { background: #002d4b; }
+        .pass-text { font-size: 14px; color: #ffffff; font-weight: 900; background: #dc3545; padding: 2px 6px; border-radius: 4px; }
+        input[type="number"] { padding: 5px; border: 2px solid #002d4b; width: 65px; font-weight: 900; font-size: 14px; border-radius: 4px; text-align: center; }
         
-        input[type="number"] { padding: 8px; border: 2px solid #002d4b; width: 85px; font-weight: 900; font-size: 16px; border-radius: 4px; text-align: center; }
+        /* ታሪክ ማሳያ */
+        .history-item { padding: 8px 12px; border-bottom: 2px solid #ccc; background: #fff; border-left: 4px solid #002d4b; margin-bottom: 2px; }
+        .hist-date { font-size: 11px; font-weight: 900; color: #666; }
     </style>
 </head>
 <body>
@@ -57,12 +43,12 @@
 <div class="header">MITA BETTING - ADMIN PANEL</div>
 
 <div class="section">
-    <div class="section-title">Deposits (የገንዘብ ማስገቢያ ጥያቄዎች)</div>
+    <div class="section-title">Deposits (ማስገቢያ)</div>
     <div id="dep-list"></div>
 </div>
 
 <div class="section">
-    <div class="section-title">Withdrawals</div>
+    <div class="section-title">Withdrawals (ማውጫ)</div>
     <div id="with-list"></div>
 </div>
 
@@ -77,11 +63,11 @@
 </div>
 
 <div class="section">
-    <div class="section-title">
-        History 
-        <button class="btn-clear" style="width:auto;" onclick="clearAllHistory()">CLEAR ALL</button>
+    <div class="section-title" style="display:flex; justify-content: space-around; align-items: center;">
+        Transaction History 
+        <button class="btn-clear" onclick="clearAllHistory()">CLEAR ALL</button>
     </div>
-    <div id="history-list" style="max-height: 600px; overflow-y: auto;"></div>
+    <div id="history-list" style="max-height: 400px; overflow-y: auto;"></div>
 </div>
 
 <script>
@@ -97,7 +83,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- Deposits (የተስተካከለ) ---
+    // --- Deposits ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -108,8 +94,10 @@
                         <span class="phone-text">${r.phone}</span>
                         <span class="amt-bold">${r.amount} ETB</span>
                     </div>
-                    <div class="trans-no-box">CODE: ${r.transactionCode || 'No Code'}</div>
-                    <button class="btn-green" onclick="approveDep('${child.key}', '${r.phone}', ${r.amount})">APPROVE (አረጋግጥ)</button>
+                    <div class="row" style="margin-top:5px;">
+                        <span class="trans-no-box">ID: ${r.transactionCode || 'N/A'}</span>
+                        <button class="btn-green" onclick="approveDep('${child.key}', '${r.phone}', ${r.amount})">APPROVE</button>
+                    </div>
                 </div>`;
         });
     });
@@ -125,7 +113,9 @@
                         <span class="phone-text">${r.phone}</span>
                         <span class="amt-bold" style="color:#dc3545; background:#fff5f5; border-color:#dc3545;">${r.amount} ETB</span>
                     </div>
-                    <button class="btn-red" onclick="approveWithdraw('${child.key}', '${r.phone}', ${r.amount})">PAID (ተከፍሏል)</button>
+                    <div style="text-align:right; margin-top:5px;">
+                        <button class="btn-red" onclick="approveWithdraw('${child.key}', '${r.phone}', ${r.amount})">PAID</button>
+                    </div>
                 </div>`;
         });
     });
@@ -138,44 +128,67 @@
             const phone = child.key;
             cont.innerHTML += `<div class="card">
                 <div class="row">
-                    <span>
-                        <span class="phone-text">${phone}</span><span class="user-name">${u.username || ''}</span>
-                    </span>
+                    <span><span class="phone-text">${phone}</span><span class="user-name">${u.username || ''}</span></span>
                     <span class="pass-text">${u.password}</span>
                 </div>
-                <div class="row" style="margin-top:10px;">
-                    <span style="font-weight:900; font-size:17px;">BAL: ${(u.balance || 0).toFixed(1)}</span>
+                <div class="row" style="margin-top:8px;">
+                    <span style="font-weight:900; font-size:14px;">BAL: ${(u.balance || 0).toFixed(0)}</span>
                     <div style="display:flex; gap:5px; align-items:center;">
                         <input type="number" id="amt-${phone}" placeholder="Amt">
-                        <button class="btn-green" style="width:40px;" onclick="adjustBal('${phone}', 'add')">+</button>
-                        <button class="btn-red" style="width:40px;" onclick="adjustBal('${phone}', 'sub')">-</button>
-                        <button class="del-user-btn" style="width:auto;" onclick="deleteUser('${phone}')">DEL</button>
+                        <button class="btn-green" style="padding:4px 8px;" onclick="adjustBal('${phone}', 'add')">+</button>
+                        <button class="btn-red" style="padding:4px 8px;" onclick="adjustBal('${phone}', 'sub')">-</button>
                     </div>
                 </div>
             </div>`;
         });
     });
 
+    // --- History ---
+    database.ref('transaction_history').limitToLast(30).on('value', snap => {
+        const cont = document.getElementById('history-list'); cont.innerHTML = "";
+        let items = [];
+        snap.forEach(child => {
+            const h = child.val();
+            const isPos = (h.type.includes('Deposit') || h.type.includes('Add'));
+            items.unshift(`
+                <div class="history-item">
+                    <div class="row">
+                        <span style="font-size:13px; font-weight:800;">${h.phone}</span>
+                        <span style="color:${isPos?'#28a745':'#dc3545'}; font-weight:900;">${h.amount} ETB</span>
+                    </div>
+                    <div class="row">
+                        <span style="font-size:11px; font-weight:700;">${h.type.toUpperCase()}</span>
+                        <span class="hist-date">${h.time || ''}</span>
+                    </div>
+                </div>`);
+        });
+        cont.innerHTML = items.join("");
+    });
+
     // --- Password Requests ---
     database.ref('password_requests').on('value', snap => {
-        const cont = document.getElementById('pw-req-list');
-        cont.innerHTML = "";
+        const cont = document.getElementById('pw-req-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
             cont.innerHTML += `
                 <div class="card">
                     <div class="row">
                         <span class="phone-text">${r.phone}</span>
-                        <span style="font-size:12px; font-weight:900;">${r.time}</span>
+                        <button class="btn-blue" onclick="clearPwReq('${child.key}')">DONE</button>
                     </div>
-                    <button class="btn-blue" onclick="clearPwReq('${child.key}')">DONE</button>
                 </div>`;
         });
     });
 
-    // Functions
+    // --- Functions ---
+    function logTransaction(phone, type, amount) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + now.toLocaleDateString();
+        database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
+    }
+
     function approveDep(reqId, phone, amt) {
-        if(confirm(amt + " ብር ለ " + phone + " ይጨመር?")) {
+        if(confirm("Approve " + amt + " ETB?")) {
             database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
                 logTransaction(phone, 'Deposit', amt);
                 database.ref('deposit_requests/' + reqId).remove();
@@ -184,7 +197,7 @@
     }
 
     function approveWithdraw(reqId, phone, amt) {
-        if(confirm(amt + " ብር ተከፍሏል?")) {
+        if(confirm("Mark " + amt + " ETB as Paid?")) {
             database.ref('users/' + phone + '/balance').transaction(c => (c >= amt ? c - amt : c)).then(() => {
                 logTransaction(phone, 'Withdraw', amt);
                 database.ref('withdraw_requests/' + reqId).remove();
@@ -192,25 +205,18 @@
         }
     }
 
-    function logTransaction(phone, type, amount) {
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + now.toLocaleDateString();
-        database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
-    }
-
     function adjustBal(phone, type) {
         const el = document.getElementById('amt-' + phone);
         const v = parseFloat(el.value);
         if(!v) return;
-        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + ((type === 'add') ? v : -v)).then(() => {
+        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
             logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v);
             el.value = "";
         });
     }
 
-    function deleteUser(phone) { if(confirm("Delete " + phone + "?")) database.ref('users/' + phone).remove(); }
     function clearPwReq(id) { database.ref('password_requests/' + id).remove(); }
-    function clearAllHistory() { if(confirm("Clear All?")) database.ref('transaction_history').remove(); }
+    function clearAllHistory() { if(confirm("Clear All History?")) database.ref('transaction_history').remove(); }
 </script>
 </body>
 </html>
