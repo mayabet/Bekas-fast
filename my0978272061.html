@@ -32,7 +32,7 @@
 <div class="header">MITA BETTING - ADMIN PANEL</div>
 
 <div class="section">
-    <div class="section-title">Deposits (ማስገቢያ) - Automatic Sync</div>
+    <div class="section-title">Deposits (ማስገቢያ) - Dual-Verification Active</div>
     <div id="dep-list"></div>
 </div>
 
@@ -44,11 +44,6 @@
 <div class="section">
     <div class="section-title">User Management</div>
     <div id="user-list"></div>
-</div>
-
-<div class="section">
-    <div class="section-title">Password Recovery</div>
-    <div id="pw-req-list"></div>
 </div>
 
 <div class="section">
@@ -72,21 +67,19 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- [የተሻሻለ] ቴሌብር SMS ማመሳከሪያ (ID + Amount) ---
+    // --- [ማሻሻያ] የሁለትዮሽ ማረጋገጫ (Amount + Code) ---
     database.ref('incoming_sms').on('child_added', snap => {
         const sms = snap.val();
         const message = sms.message || ""; 
         
-        // 1. የትራንዛክሽን ቁጥሩን መለየት
+        // 1. ትራንዛክሽን ኮድ መፈለግ (10 characters)
         const transIdMatch = message.match(/[A-Z0-9]{10}/); 
-        
-        // 2. የገንዘብ መጠኑን መለየት (ለምሳሌ፦ 100.00 ብር ወይም 100.00 ETB የሚለውን ይፈልጋል)
-        const amountMatch = message.match(/(\d+(\.\d{1,2})?)\s?(ETB|ብር)/i) || message.match(/(?:amount|ብር)\s?(\d+(\.\d{1,2})?)/i);
+        // 2. የብር መጠን መፈለግ (ቁጥር ከ ETB በፊት ያለውን ይወስዳል)
+        const amountMatch = message.match(/(\d+(\.\d{1,2})?)\s*(?:ETB|ብር)/i);
 
         if (transIdMatch && amountMatch) {
             const detectedCode = transIdMatch[0];
-            // ቁጥሩን ብቻ ነጥሎ ማውጣት
-            const detectedAmount = parseFloat(amountMatch[1] || amountMatch[0].replace(/[^0-9.]/g, ''));
+            const detectedAmount = parseFloat(amountMatch[1]);
 
             database.ref('used_transactions/' + detectedCode).once('value', usedSnap => {
                 if (usedSnap.exists()) {
@@ -97,11 +90,12 @@
                 database.ref('deposit_requests').once('value', dSnap => {
                     dSnap.forEach(child => {
                         const req = child.val();
-                        
-                        // ማጣሪያ፡ ID መመሳሰል አለበት AND መጠኑ እኩል መሆን አለበት
+                        // ኮዱም መጠኑም እኩል መሆን አለባቸው
                         if (req.transactionCode === detectedCode && parseFloat(req.amount) === detectedAmount) {
                             autoApproveWithSecurity(child.key, req.phone, req.amount, detectedCode);
                             database.ref('incoming_sms/' + snap.key).remove(); 
+                        } else if (req.transactionCode === detectedCode) {
+                            console.log("ስህተት፡ ኮዱ ቢመሳሰልም መጠኑ አይመሳሰልም! SMS: " + detectedAmount + " Req: " + req.amount);
                         }
                     });
                 });
@@ -121,7 +115,7 @@
         });
     }
 
-    // --- የተቀሩት የፋይሉ ክፍሎች (Deposits, Withdrawals, Users...) ---
+    // --- የተቀረው የኮዱ ክፍል እንዳለ ይቀጥላል ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -143,7 +137,9 @@
     function manualApprove(reqId, phone, amt, code) {
         if(confirm("Approve " + amt + " ETB?")) {
             database.ref('used_transactions/' + code).set({
-                usedAt: firebase.database.ServerValue.TIMESTAMP, phone: phone, amount: amt
+                usedAt: firebase.database.ServerValue.TIMESTAMP,
+                phone: phone,
+                amount: amt
             });
             database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
                 logTransaction(phone, 'Deposit', amt);
