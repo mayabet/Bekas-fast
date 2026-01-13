@@ -117,14 +117,21 @@
         setTimeout(() => d.innerText = "", 3000);
     }
 
+    // --- [የተስተካከለ] የአድሚን ፓነል ማመሳከሪያ ---
     function handleDeposit() {
         const code = document.getElementById('tr-input').value;
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
         if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
-            // Updated to transactionCode to match Admin Panel
-            database.ref('deposit_requests').push({ phone: userPhone, transactionCode: code, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
+            // 'code' ወደ 'transactionCode' ተቀይሯል አውቶማቲክ እንዲያጸድቅ
+            database.ref('deposit_requests').push({ 
+                phone: userPhone, 
+                transactionCode: code, 
+                amount: numAmount, 
+                status: "pending", 
+                time: new Date().toLocaleString() 
+            })
             .then(() => { 
                 showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); 
                 document.getElementById('tr-input').value=""; 
