@@ -29,7 +29,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; cursor: pointer; border: none; }
+        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -50,9 +50,7 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav">
-        <button onclick="goBackAndClear()" class="nav-btn" style="background:#002d4b;" id="bb">BACK</button>
-    </div>
+    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -89,8 +87,8 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'20 ብር ወደ 360 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
-        'en': {gt:'20 BIRR IN TO 360 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
+        'am': {gt:'20 ብር ወደ 360 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
+        'en': {gt:'20 BIRR IN TO 360 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -133,53 +131,39 @@
         gameRef.child(n).set(userName);
     }
 
-    // ተመላሽ የሚያደርገው አዲሱ ፋንክሽን
-    function goBackAndClear() {
-        let refundAmount = 0;
-        let count = 0;
-
-        for (let n in selections) {
-            if (selections[n] === userName) {
-                refundAmount += 20;
-                count++;
-                gameRef.child(n).remove();
-            }
-        }
-
-        if (refundAmount > 0) {
-            database.ref('users/' + userPhone).update({ 
-                balance: balance + refundAmount 
-            }).then(() => {
-                window.location.href = "home.html";
-            });
-        } else {
-            window.location.href = "home.html";
-        }
-    }
-
     function runGame() {
         isPlaying = true;
-        let win = Math.floor(Math.random() * 20) + 1;
         const msg = document.getElementById('msg-box');
-        document.getElementById('last-val').innerText = win;
-
-        let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
-
-        if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 360 });
-            msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
-            msg.style.color = "#00b050";
-        } else {
-            msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
-            msg.style.color = "red";
-        }
+        
+        // 1. መጀመሪያ "መልካም እድል" (GOOD LUCK) ለ 2 ሰከንድ
+        msg.innerHTML = trans[currentLang].luck;
+        msg.style.color = "#002d4b";
 
         setTimeout(() => {
-            gameRef.remove();
-            round++;
-            document.getElementById('round-val').innerText = round;
-            isPlaying = false;
-        }, 5000);
+            // 2. ከ 2 ሰከንድ በኋላ እጣውን ማውጣት
+            let win = Math.floor(Math.random() * 20) + 1;
+            document.getElementById('last-val').innerText = win;
+
+            let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
+
+            if(selections[win] === userName) {
+                database.ref('users/' + userPhone).update({ balance: balance + 360 });
+                msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
+                msg.style.color = "#00b050";
+            } else {
+                msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
+                msg.style.color = "red";
+            }
+
+            // 3. ከ 5 ሰከንድ በኋላ ጌሙን ዳግም ማስጀመር
+            setTimeout(() => {
+                gameRef.remove();
+                round++;
+                document.getElementById('round-val').innerText = round;
+                isPlaying = false;
+            }, 5000);
+
+        }, 2000); 
     }
 
     function updateUI() {
