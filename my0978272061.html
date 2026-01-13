@@ -72,33 +72,42 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- [ደህንነት ተጨምሯል] ቴሌብር SMS ማመሳከሪያ ---
+    // --- [የተስተካከለ] ቴሌብር SMS ማመሳከሪያ ---
     database.ref('incoming_sms').on('child_added', snap => {
         const sms = snap.val();
         const message = sms.message || ""; 
-        const transIdMatch = message.match(/[A-Z0-9]{10}/); 
+        
+        // አዲሱ የቴሌብር ትራንዛክሽን ቁጥር መፈለጊያ (ከ10-15 ቁምፊዎች)
+        const transIdMatch = message.match(/[A-Z0-9]{10,15}/); 
 
         if (transIdMatch) {
-            const detectedCode = transIdMatch[0];
+            // ቁጥሩን በትልቅ ፊደል እና ባዶ ቦታ በማጥፋት ማዘጋጀት
+            const detectedCode = transIdMatch[0].trim().toUpperCase();
 
             // 1. መጀመሪያ ይህ ኮድ ከዚህ በፊት ጥቅም ላይ መዋሉን ያረጋግጣል
             database.ref('used_transactions/' + detectedCode).once('value', usedSnap => {
                 if (usedSnap.exists()) {
-                    console.log("ይህ ኮድ ቀደም ብሎ ጥቅም ላይ ውሏል!");
+                    console.log("ይህ ኮድ ቀደም ብሎ ጥቅም ላይ ውሏል: " + detectedCode);
                     database.ref('incoming_sms/' + snap.key).remove(); 
                     return;
                 }
 
                 // 2. ኮዱ አዲስ ከሆነ ወደ ማጽደቅ ይሄዳል
                 database.ref('deposit_requests').once('value', dSnap => {
+                    let found = false;
                     dSnap.forEach(child => {
                         const req = child.val();
-                        if (req.transactionCode === detectedCode) {
-                            // አውቶማቲክ ባላንስ ይጨምራል
+                        // የደንበኛው ኮድ እና የSMS ኮዱ መመሳሰላቸውን ማረጋገጥ
+                        if (req.transactionCode && req.transactionCode.trim().toUpperCase() === detectedCode) {
                             autoApproveWithSecurity(child.key, req.phone, req.amount, detectedCode);
                             database.ref('incoming_sms/' + snap.key).remove(); 
+                            found = true;
                         }
                     });
+                    
+                    if(!found) {
+                        console.log("ተዛማጅ ጥያቄ አልተገኘም: " + detectedCode);
+                    }
                 });
             });
         }
@@ -139,9 +148,10 @@
     });
 
     function manualApprove(reqId, phone, amt, code) {
+        if(!code) { alert("Transaction ID missing!"); return; }
+        const cleanCode = code.trim().toUpperCase();
         if(confirm("Approve " + amt + " ETB?")) {
-            // በእጅ ሲጸድቅም ኮዱን በጥቁር መዝገብ ውስጥ ያስቀምጣል
-            database.ref('used_transactions/' + code).set({
+            database.ref('used_transactions/' + cleanCode).set({
                 usedAt: firebase.database.ServerValue.TIMESTAMP,
                 phone: phone,
                 amount: amt
