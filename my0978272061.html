@@ -72,42 +72,38 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- [የተስተካከለ] ቴሌብር SMS ማመሳከሪያ ---
+    // --- [የተሻሻለ] ቴሌብር SMS ማመሳከሪያ (ID + Amount) ---
     database.ref('incoming_sms').on('child_added', snap => {
         const sms = snap.val();
         const message = sms.message || ""; 
         
-        // አዲሱ የቴሌብር ትራንዛክሽን ቁጥር መፈለጊያ (ከ10-15 ቁምፊዎች)
-        const transIdMatch = message.match(/[A-Z0-9]{10,15}/); 
+        // 1. የትራንዛክሽን ቁጥሩን መለየት
+        const transIdMatch = message.match(/[A-Z0-9]{10}/); 
+        
+        // 2. የገንዘብ መጠኑን መለየት (ለምሳሌ፦ 100.00 ብር ወይም 100.00 ETB የሚለውን ይፈልጋል)
+        const amountMatch = message.match(/(\d+(\.\d{1,2})?)\s?(ETB|ብር)/i) || message.match(/(?:amount|ብር)\s?(\d+(\.\d{1,2})?)/i);
 
-        if (transIdMatch) {
-            // ቁጥሩን በትልቅ ፊደል እና ባዶ ቦታ በማጥፋት ማዘጋጀት
-            const detectedCode = transIdMatch[0].trim().toUpperCase();
+        if (transIdMatch && amountMatch) {
+            const detectedCode = transIdMatch[0];
+            // ቁጥሩን ብቻ ነጥሎ ማውጣት
+            const detectedAmount = parseFloat(amountMatch[1] || amountMatch[0].replace(/[^0-9.]/g, ''));
 
-            // 1. መጀመሪያ ይህ ኮድ ከዚህ በፊት ጥቅም ላይ መዋሉን ያረጋግጣል
             database.ref('used_transactions/' + detectedCode).once('value', usedSnap => {
                 if (usedSnap.exists()) {
-                    console.log("ይህ ኮድ ቀደም ብሎ ጥቅም ላይ ውሏል: " + detectedCode);
                     database.ref('incoming_sms/' + snap.key).remove(); 
                     return;
                 }
 
-                // 2. ኮዱ አዲስ ከሆነ ወደ ማጽደቅ ይሄዳል
                 database.ref('deposit_requests').once('value', dSnap => {
-                    let found = false;
                     dSnap.forEach(child => {
                         const req = child.val();
-                        // የደንበኛው ኮድ እና የSMS ኮዱ መመሳሰላቸውን ማረጋገጥ
-                        if (req.transactionCode && req.transactionCode.trim().toUpperCase() === detectedCode) {
+                        
+                        // ማጣሪያ፡ ID መመሳሰል አለበት AND መጠኑ እኩል መሆን አለበት
+                        if (req.transactionCode === detectedCode && parseFloat(req.amount) === detectedAmount) {
                             autoApproveWithSecurity(child.key, req.phone, req.amount, detectedCode);
                             database.ref('incoming_sms/' + snap.key).remove(); 
-                            found = true;
                         }
                     });
-                    
-                    if(!found) {
-                        console.log("ተዛማጅ ጥያቄ አልተገኘም: " + detectedCode);
-                    }
                 });
             });
         }
@@ -116,19 +112,16 @@
     function autoApproveWithSecurity(reqId, phone, amt, code) {
         database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
             logTransaction(phone, 'Auto-Deposit', amt);
-            
-            // 3. ኮዱን ለሁለተኛ ጊዜ እንዳይሠራ "ጥቅም ላይ ውሏል" ብሎ ይመዘግባል
             database.ref('used_transactions/' + code).set({
                 usedAt: firebase.database.ServerValue.TIMESTAMP,
                 phone: phone,
                 amount: amt
             });
-
             database.ref('deposit_requests/' + reqId).remove();
         });
     }
 
-    // --- Deposits ---
+    // --- የተቀሩት የፋይሉ ክፍሎች (Deposits, Withdrawals, Users...) ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -148,13 +141,9 @@
     });
 
     function manualApprove(reqId, phone, amt, code) {
-        if(!code) { alert("Transaction ID missing!"); return; }
-        const cleanCode = code.trim().toUpperCase();
         if(confirm("Approve " + amt + " ETB?")) {
-            database.ref('used_transactions/' + cleanCode).set({
-                usedAt: firebase.database.ServerValue.TIMESTAMP,
-                phone: phone,
-                amount: amt
+            database.ref('used_transactions/' + code).set({
+                usedAt: firebase.database.ServerValue.TIMESTAMP, phone: phone, amount: amt
             });
             database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
                 logTransaction(phone, 'Deposit', amt);
@@ -163,7 +152,6 @@
         }
     }
 
-    // --- Withdrawals ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -181,7 +169,6 @@
         });
     });
 
-    // --- Users ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -204,7 +191,6 @@
         });
     });
 
-    // --- History ---
     database.ref('transaction_history').limitToLast(30).on('value', snap => {
         const cont = document.getElementById('history-list'); cont.innerHTML = "";
         let items = [];
@@ -226,7 +212,6 @@
         cont.innerHTML = items.join("");
     });
 
-    // --- Functions ---
     function logTransaction(phone, type, amount) {
         const now = new Date();
         const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + now.toLocaleDateString();
@@ -252,7 +237,6 @@
         });
     }
 
-    function clearPwReq(id) { database.ref('password_requests/' + id).remove(); }
     function clearAllHistory() { if(confirm("Clear All History?")) database.ref('transaction_history').remove(); }
 </script>
 </body>
