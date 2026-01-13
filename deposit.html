@@ -130,8 +130,15 @@
         const code = document.getElementById('tr-input').value;
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
+        // እዚህ ጋር 'transactionCode' ተብሎ እንዲላክ ተስተካክሏል
         if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
-            database.ref('deposit_requests').push({ phone: userPhone, code: code, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
+            database.ref('deposit_requests').push({ 
+                phone: userPhone, 
+                transactionCode: code, 
+                amount: numAmount, 
+                status: "pending", 
+                time: new Date().toLocaleString() 
+            })
             .then(() => { 
                 showMsg(currentLang==='am'?"ጥያቄው ተልኳል":"REQUEST SENT", "#00b050"); 
                 document.getElementById('tr-input').value=""; 
@@ -146,12 +153,10 @@
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         if (numAmount > 0 && numAmount <= currentBalance && numAmount % 10 === 0) {
-            database.ref('users/' + userPhone).update({ balance: currentBalance - numAmount }).then(() => {
-                database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
-                .then(() => { 
-                    showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); 
-                    document.getElementById('am-input').value=""; 
-                });
+            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
+            .then(() => { 
+                showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); 
+                document.getElementById('am-input').value=""; 
             });
         } else { 
             showMsg(currentLang==='am'?"በቂ ሂሳብ የለም":"LOW BALANCE", "red"); 
@@ -161,30 +166,8 @@
     function setLang(l) {
         currentLang = l;
         const labels = {
-            'am': { 
-                't': 'ማስገቢያ / ማውጫ', 
-                'tmsg': 'በዚህ ቁጥር ያስገቡ፦', 
-                'tr': 'የግብይት መለያ (10 ዲጂት)', 
-                'am': 'የገንዘብ መጠን (ቢበዛ 5)', 
-                'dp': 'ገንዘብ አስገባ', 
-                'wt': 'ገንዘብ አውጣ', 
-                'if': 'መመሪያ', 
-                'bk': 'ተመለስ',
-                'tr_ph': '10 ዲጂት',
-                'am_ph': '00000'
-            },
-            'en': { 
-                't': 'DEPOSIT / WITHDRAW', 
-                'tmsg': 'SEND DEPOSIT TO:', 
-                'tr': 'TRANSACTION CODE (10 DIGITS)', 
-                'am': 'AMOUNT (MAX 5 DIGITS)', 
-                'dp': 'DEPOSIT', 
-                'wt': 'WITHDRAW', 
-                'if': 'INFO', 
-                'bk': 'BACK',
-                'tr_ph': '10 DIGITS',
-                'am_ph': '00000'
-            }
+            'am': { 't': 'ማስገቢያ / ማውጫ', 'tmsg': 'በዚህ ቁጥር ያስገቡ፦', 'tr': 'የግብይት መለያ (10 ዲጂት)', 'am': 'የገንዘብ መጠን (ቢበዛ 5)', 'dp': 'ገንዘብ አስገባ', 'wt': 'ገንዘብ አውጣ', 'if': 'መመሪያ', 'bk': 'ተመለስ', 'tr_ph': '10 ዲጂት', 'am_ph': '00000' },
+            'en': { 't': 'DEPOSIT / WITHDRAW', 'tmsg': 'SEND DEPOSIT TO:', 'tr': 'TRANSACTION CODE (10 DIGITS)', 'am': 'AMOUNT (MAX 5 DIGITS)', 'dp': 'DEPOSIT', 'wt': 'WITHDRAW', 'if': 'INFO', 'bk': 'BACK', 'tr_ph': '10 DIGITS', 'am_ph': '00000' }
         };
         const s = labels[l];
         document.getElementById('top-title').innerText = s.t;
