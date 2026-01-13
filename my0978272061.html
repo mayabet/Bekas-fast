@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MITA BETTING - ADMIN PANEL</title>
+    <title>BEKAS FAST - ADMIN PANEL</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -20,6 +20,11 @@
         .user-name { color: #00b050; font-size: 20px; font-weight: 900; margin-left: 10px; text-transform: uppercase; }
         .pass-text { font-size: 20px; color: #ffffff; font-weight: 900; background: #dc3545; padding: 3px 10px; border-radius: 5px; border: 2px solid #000; display: inline-block; }
         
+        /* የገንዘብ መጠን ጎላ እንዲል */
+        .amt-bold { color: #28a745; font-weight: 900; font-size: 24px; background: #e8f5e9; padding: 2px 8px; border-radius: 4px; border: 1.5px solid #28a745; }
+        /* ትራንዛክሽን ቁጥር ማሳያ */
+        .trans-no-box { font-size: 14px; color: #d9534f; font-weight: 900; background: #fff5f5; border: 1px dashed #d9534f; padding: 5px; margin: 5px 0; text-align: center; display: block; }
+
         .joined-date { font-size: 11px; color: #666; font-weight: bold; margin-top: 2px; display: block; }
         .del-user-btn { background: #000; color: #fff; border: 1px solid #fff; font-weight: 900; border-radius: 4px; padding: 8px 12px; cursor: pointer; font-size: 14px; }
 
@@ -38,7 +43,7 @@
 </head>
 <body>
 
-<div class="header">MITA BETTING - ADMIN PANEL</div>
+<div class="header">BEKAS FAST - ADMIN PANEL</div>
 
 <div class="section">
     <div class="section-title">Password Recovery Requests</div>
@@ -81,7 +86,6 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // 1. Password Requests Loader (አዲስ የተጨመረ)
     database.ref('password_requests').on('value', snap => {
         const cont = document.getElementById('pw-req-list');
         cont.innerHTML = "";
@@ -106,7 +110,6 @@
         }
     }
 
-    // 2. User Management Display
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -135,24 +138,39 @@
         });
     });
 
-    // 3. Deposits & Withdrawals
+    // --- Deposits (Updated with Trans No & Bold Amount) ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
-            cont.innerHTML += `<div class="card"><div class="row"><span class="phone-text">${r.phone}</span><span style="color:#28a745; font-weight:900;">${r.amount}</span></div><button class="btn-green" onclick="approveDep('${child.key}', '${r.phone}', ${r.amount})">APPROVE</button></div>`;
+            cont.innerHTML += `
+                <div class="card">
+                    <div class="row">
+                        <span class="phone-text">${r.phone}</span>
+                        <span class="amt-bold">${r.amount} ETB</span>
+                    </div>
+                    <span class="trans-no-box">TRANS NO: ${r.transactionCode || 'N/A'}</span>
+                    <button class="btn-green" onclick="approveDep('${child.key}', '${r.phone}', ${r.amount})">APPROVE</button>
+                </div>`;
         });
     });
 
+    // --- Withdrawals (Updated with Bold Amount) ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
-            cont.innerHTML += `<div class="card"><div class="row"><span class="phone-text">${r.phone}</span><span style="color:#dc3545; font-weight:900;">${r.amount}</span></div><button class="btn-red" onclick="approveWithdraw('${child.key}', '${r.phone}', ${r.amount})">PAID</button></div>`;
+            cont.innerHTML += `
+                <div class="card">
+                    <div class="row">
+                        <span class="phone-text">${r.phone}</span>
+                        <span class="amt-bold" style="color:#dc3545; background:#fff5f5; border-color:#dc3545;">${r.amount} ETB</span>
+                    </div>
+                    <button class="btn-red" style="margin-top:5px;" onclick="approveWithdraw('${child.key}', '${r.phone}', ${r.amount})">PAID</button>
+                </div>`;
         });
     });
 
-    // 4. History Display
     database.ref('transaction_history').limitToLast(50).on('value', snap => {
         const cont = document.getElementById('history-list'); cont.innerHTML = "";
         let items = [];
@@ -180,7 +198,6 @@
         cont.innerHTML = items.join("");
     });
 
-    // --- Helper Functions ---
     function deleteUser(phone) {
         if(confirm("ተጠቃሚውን (" + phone + ") ማጥፋት ትፈልጋለህ?")) {
             database.ref('users/' + phone).remove();
