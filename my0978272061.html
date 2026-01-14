@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MITA BETTING - ADMIN PANEL</title>
+    <title>BEKAS FAST - ADMIN PANEL</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -19,7 +19,6 @@
         .trans-no-box { font-size: 13px; color: #333; background: #f1f1f1; font-weight: 700; padding: 3px 6px; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; }
         .btn-green { background: #28a745; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
         .btn-red { background: #dc3545; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; }
-        .btn-blue { background: #002d4b; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; border-radius: 4px; }
         .btn-clear { background: #ff4444; color: white; border: 1px solid #fff; padding: 4px 8px; font-size: 11px; font-weight: 900; border-radius: 4px; cursor: pointer; }
         .pass-text { font-size: 14px; color: #ffffff; font-weight: 900; background: #dc3545; padding: 2px 6px; border-radius: 4px; }
         input[type="number"] { padding: 5px; border: 2px solid #002d4b; width: 65px; font-weight: 900; font-size: 14px; border-radius: 4px; text-align: center; }
@@ -29,10 +28,10 @@
 </head>
 <body>
 
-<div class="header">MITA BETTING - ADMIN PANEL</div>
+<div class="header">BEKAS FAST - ADMIN PANEL</div>
 
 <div class="section">
-    <div class="section-title">Deposits (ማስገቢያ) - Dual-Verification Active</div>
+    <div class="section-title">Deposits (ማስገቢያ) - Automatic Amount & ID Check</div>
     <div id="dep-list"></div>
 </div>
 
@@ -67,14 +66,12 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- [ማሻሻያ] የሁለትዮሽ ማረጋገጫ (Amount + Code) ---
+    // --- የገንዘብ መጠንና ትራንዛክሽን ማመሳከሪያ ---
     database.ref('incoming_sms').on('child_added', snap => {
         const sms = snap.val();
         const message = sms.message || ""; 
         
-        // 1. ትራንዛክሽን ኮድ መፈለግ (10 characters)
         const transIdMatch = message.match(/[A-Z0-9]{10}/); 
-        // 2. የብር መጠን መፈለግ (ቁጥር ከ ETB በፊት ያለውን ይወስዳል)
         const amountMatch = message.match(/(\d+(\.\d{1,2})?)\s*(?:ETB|ብር)/i);
 
         if (transIdMatch && amountMatch) {
@@ -90,12 +87,10 @@
                 database.ref('deposit_requests').once('value', dSnap => {
                     dSnap.forEach(child => {
                         const req = child.val();
-                        // ኮዱም መጠኑም እኩል መሆን አለባቸው
+                        // እዚህ ጋር ID እና Amount እኩል መሆናቸውን ያረጋግጣል
                         if (req.transactionCode === detectedCode && parseFloat(req.amount) === detectedAmount) {
-                            autoApproveWithSecurity(child.key, req.phone, req.amount, detectedCode);
+                            autoApproveWithSecurity(child.key, req.phone, detectedAmount, detectedCode);
                             database.ref('incoming_sms/' + snap.key).remove(); 
-                        } else if (req.transactionCode === detectedCode) {
-                            console.log("ስህተት፡ ኮዱ ቢመሳሰልም መጠኑ አይመሳሰልም! SMS: " + detectedAmount + " Req: " + req.amount);
                         }
                     });
                 });
@@ -115,7 +110,7 @@
         });
     }
 
-    // --- የተቀረው የኮዱ ክፍል እንዳለ ይቀጥላል ---
+    // --- Deposits ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -148,6 +143,7 @@
         }
     }
 
+    // --- Withdrawals ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -165,6 +161,7 @@
         });
     });
 
+    // --- Users ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -187,6 +184,7 @@
         });
     });
 
+    // --- History ---
     database.ref('transaction_history').limitToLast(30).on('value', snap => {
         const cont = document.getElementById('history-list'); cont.innerHTML = "";
         let items = [];
