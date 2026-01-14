@@ -122,11 +122,11 @@
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
+        // ማስተካከያ፦ 'transactionCode' የሚለውን ስም ለAdmin Panel እንዲመች ተጠቅመናል
         if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
-            // 'code' የሚለው ስያሜ ወደ 'transactionCode' ተቀይሯል ከአድሚን ፓነሉ ጋር እንዲመሳሰል
             database.ref('deposit_requests').push({ 
                 phone: userPhone, 
-                transactionCode: code, // እዚህ ጋር ተስተካክሏል
+                transactionCode: code, 
                 amount: numAmount, 
                 status: "pending", 
                 time: new Date().toLocaleString() 
