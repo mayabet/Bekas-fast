@@ -7,22 +7,51 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
-        html, body { width: 100%; margin: 0; padding: 0; background: #f0f0f0; font-family: sans-serif; overflow-x: hidden; }
-        .header { background: #ffcc00; padding: 10px; text-align: center; font-weight: 900; font-size: 18px; border-bottom: 2px solid #000; position: sticky; top: 0; z-index: 1000; }
-        .section { background: white; margin-bottom: 10px; border-bottom: 2px solid #002d4b; width: 100%; }
-        .section-title { background: #002d4b; color: white; padding: 8px; font-size: 13px; font-weight: 900; text-transform: uppercase; text-align: center; }
-        .card { padding: 8px 12px; border-bottom: 1px solid #ddd; width: 100%; box-sizing: border-box; }
+        html, body { width: 100%; margin: 0; padding: 0; background: #f4f4f4; font-family: sans-serif; overflow-x: hidden; }
+        
+        .header { 
+            background: #ffcc00; padding: 12px; text-align: center; 
+            font-weight: 900; font-size: 19px; border-bottom: 2px solid #000; 
+            position: sticky; top: 0; z-index: 1000; 
+        }
+
+        .section { background: white; margin-bottom: 8px; border-bottom: 2px solid #002d4b; width: 100%; }
+        
+        .section-title { 
+            background: #002d4b; color: white; padding: 8px; 
+            font-size: 14px; font-weight: 900; text-transform: uppercase; text-align: center; 
+        }
+
+        .card { padding: 10px 12px; border-bottom: 1px solid #eee; width: 100%; box-sizing: border-box; }
         .row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+
         .phone-text { font-weight: 900; font-size: 17px; color: #002d4b; }
-        .user-name { color: #666; font-size: 14px; font-weight: 700; margin-left: 5px; }
-        .amt-bold { color: #28a745; font-weight: 900; font-size: 18px; background: #e8f5e9; padding: 2px 8px; border-radius: 4px; border: 1px solid #28a745; }
-        .trans-no-box { font-size: 13px; color: #333; background: #f1f1f1; font-weight: 700; padding: 3px 6px; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; }
-        .btn-green { background: #28a745; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
-        .btn-red { background: #dc3545; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
-        .pass-text { font-size: 14px; color: #ffffff; font-weight: 900; background: #dc3545; padding: 2px 6px; border-radius: 4px; }
-        input[type="number"] { padding: 5px; border: 2px solid #002d4b; width: 65px; font-weight: 900; font-size: 14px; border-radius: 4px; text-align: center; }
-        .history-item { padding: 8px 12px; border-bottom: 2px solid #ccc; background: #fff; border-left: 4px solid #002d4b; margin-bottom: 2px; }
-        .hist-date { font-size: 11px; font-weight: 900; color: #666; }
+        
+        /* User Name Bold እንዲሆን ተደርጓል */
+        .user-name { color: #000; font-size: 15px; font-weight: 900; margin-left: 8px; text-decoration: underline; }
+        
+        .amt-bold { 
+            color: #28a745; font-weight: 900; font-size: 18px; 
+            background: #e8f5e9; padding: 2px 8px; border-radius: 4px; border: 1px solid #28a745; 
+        }
+
+        .trans-no-box { 
+            font-size: 13px; color: #333; background: #f9f9f9; 
+            font-weight: 700; padding: 3px 6px; border-radius: 4px; 
+            border: 1px solid #ddd; font-family: monospace; 
+        }
+
+        .btn-green { background: #28a745; color: white; border: 1px solid #000; padding: 8px 14px; font-weight: 900; font-size: 13px; border-radius: 5px; cursor: pointer; }
+        .btn-red { background: #dc3545; color: white; border: 1px solid #000; padding: 8px 14px; font-weight: 900; font-size: 13px; border-radius: 5px; cursor: pointer; }
+
+        .pass-text { font-size: 14px; color: #ffffff; font-weight: 900; background: #333; padding: 2px 6px; border-radius: 4px; }
+
+        input[type="number"] { padding: 6px; border: 2px solid #002d4b; width: 65px; font-weight: 900; font-size: 15px; border-radius: 5px; text-align: center; }
+
+        .history-item { padding: 10px; border-bottom: 1px solid #ddd; background: #fff; border-left: 4px solid #002d4b; margin-bottom: 2px; }
+        
+        /* History Date/Time Bold እንዲሆን ተደርጓል */
+        .hist-date { font-size: 12px; font-weight: 900; color: #000; background: #eee; padding: 2px 5px; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -47,7 +76,7 @@
 <div class="section">
     <div class="section-title" style="display:flex; justify-content: space-around; align-items: center;">
         Transaction History 
-        <button onclick="if(confirm('Clear All?')) database.ref('transaction_history').remove();" style="font-size:10px;">CLEAR</button>
+        <button onclick="if(confirm('Clear All?')) database.ref('transaction_history').remove();" style="font-size:10px; padding: 4px 8px; cursor: pointer; font-weight: 900;">CLEAR</button>
     </div>
     <div id="history-list" style="max-height: 400px; overflow-y: auto;"></div>
 </div>
@@ -65,7 +94,6 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- [ወሳኝ] የቴሌብር SMS አውቶማቲክ ማመሳከሪያ ---
     database.ref('incoming_sms').on('child_added', snap => {
         const sms = snap.val();
         const message = sms.msg || sms.message || ""; 
@@ -106,14 +134,13 @@
         });
     }
 
-    // --- Deposits List (YES/NO Buttons) ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
             cont.innerHTML += `<div class="card">
                 <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold">${r.amount} ETB</span></div>
-                <div class="row" style="margin-top:5px;">
+                <div class="row" style="margin-top:8px;">
                     <span class="trans-no-box">ID: ${r.transactionCode || 'N/A'}</span>
                     <div style="display:flex; gap:8px;">
                         <button class="btn-green" onclick="manualApprove('${child.key}', '${r.phone}', ${r.amount}, '${r.transactionCode}')">YES</button>
@@ -134,14 +161,13 @@
         }
     }
 
-    // --- Withdrawals List ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
             cont.innerHTML += `<div class="card">
                 <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold" style="color:#dc3545; background:#fff5f5;">${r.amount} ETB</span></div>
-                <div style="text-align:right; margin-top:5px;"><button class="btn-red" onclick="approveWithdraw('${child.key}', '${r.phone}', ${r.amount})">PAID</button></div>
+                <div style="text-align:right; margin-top:8px;"><button class="btn-red" style="width:80px;" onclick="approveWithdraw('${child.key}', '${r.phone}', ${r.amount})">PAID</button></div>
             </div>`;
         });
     });
@@ -155,20 +181,19 @@
         }
     }
 
-    // --- Users List (DELETE Button ተጨምሯል) ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const u = child.val(); const phone = child.key;
             cont.innerHTML += `<div class="card">
-                <div class="row"><span><span class="phone-text">${phone}</span><span class="user-name">${u.username || ''}</span></span><span class="pass-text">${u.password}</span></div>
-                <div class="row" style="margin-top:8px;">
-                    <span style="font-weight:900; font-size:14px;">BAL: ${(u.balance || 0).toFixed(0)}</span>
-                    <div style="display:flex; gap:5px;">
+                <div class="row"><span><span class="phone-text">${phone}</span><span class="user-name">${u.username || 'No Name'}</span></span><span class="pass-text">${u.password}</span></div>
+                <div class="row" style="margin-top:10px;">
+                    <span style="font-weight:900; font-size:15px;">BAL: ${(u.balance || 0).toFixed(0)}</span>
+                    <div style="display:flex; gap:6px;">
                         <input type="number" id="amt-${phone}" placeholder="Amt">
                         <button class="btn-green" onclick="adjustBal('${phone}', 'add')">+</button>
                         <button class="btn-red" onclick="adjustBal('${phone}', 'sub')">-</button>
-                        <button class="btn-red" style="background:#000; margin-left:10px;" onclick="deleteAccount('${phone}')">DELETE</button>
+                        <button class="btn-red" style="background:#000;" onclick="deleteAccount('${phone}')">DEL</button>
                     </div>
                 </div>
             </div>`;
@@ -188,15 +213,14 @@
         }
     }
 
-    // --- History ---
     database.ref('transaction_history').limitToLast(20).on('value', snap => {
         const cont = document.getElementById('history-list'); cont.innerHTML = "";
         let items = [];
         snap.forEach(child => {
             const h = child.val(); const isPos = (h.type.includes('Deposit') || h.type.includes('Add'));
             items.unshift(`<div class="history-item">
-                <div class="row"><span style="font-size:13px; font-weight:800;">${h.phone}</span><span style="color:${isPos?'#28a745':'#dc3545'}; font-weight:900;">${h.amount} ETB</span></div>
-                <div class="row"><span style="font-size:11px; font-weight:700;">${h.type.toUpperCase()}</span><span class="hist-date">${h.time || ''}</span></div>
+                <div class="row"><span style="font-size:14px; font-weight:800;">${h.phone}</span><span style="color:${isPos?'#28a745':'#dc3545'}; font-weight:900; font-size:15px;">${h.amount} ETB</span></div>
+                <div class="row" style="margin-top:6px;"><span style="font-size:11px; font-weight:900; color:#333;">${h.type.toUpperCase()}</span><span class="hist-date">${h.time || ''}</span></div>
             </div>`);
         });
         cont.innerHTML = items.join("");
