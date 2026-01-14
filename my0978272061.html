@@ -19,7 +19,6 @@
         .trans-no-box { font-size: 13px; color: #333; background: #f1f1f1; font-weight: 700; padding: 3px 6px; border-radius: 4px; border: 1px solid #ccc; font-family: monospace; }
         .btn-green { background: #28a745; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
         .btn-red { background: #dc3545; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; }
-        .btn-clear { background: #ff4444; color: white; border: 1px solid #fff; padding: 4px 8px; font-size: 11px; font-weight: 900; border-radius: 4px; cursor: pointer; }
         .pass-text { font-size: 14px; color: #ffffff; font-weight: 900; background: #dc3545; padding: 2px 6px; border-radius: 4px; }
         input[type="number"] { padding: 5px; border: 2px solid #002d4b; width: 65px; font-weight: 900; font-size: 14px; border-radius: 4px; text-align: center; }
         .history-item { padding: 8px 12px; border-bottom: 2px solid #ccc; background: #fff; border-left: 4px solid #002d4b; margin-bottom: 2px; }
@@ -31,7 +30,7 @@
 <div class="header">BEKAS FAST - ADMIN PANEL</div>
 
 <div class="section">
-    <div class="section-title">Deposits (ማስገቢያ) - Auto Sync (Amount + ID)</div>
+    <div class="section-title">Deposits (ማስገቢያ) - Auto Sync</div>
     <div id="dep-list"></div>
 </div>
 
@@ -48,7 +47,7 @@
 <div class="section">
     <div class="section-title" style="display:flex; justify-content: space-around; align-items: center;">
         Transaction History 
-        <button class="btn-clear" onclick="clearAllHistory()">CLEAR ALL</button>
+        <button onclick="if(confirm('Clear All?')) database.ref('transaction_history').remove();" style="font-size:10px;">CLEAR</button>
     </div>
     <div id="history-list" style="max-height: 400px; overflow-y: auto;"></div>
 </div>
@@ -66,17 +65,17 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- [የተስተካከለ] ቴሌብር SMS ማመሳከሪያ ---
+    // --- የቴሌብር SMS አውቶማቲክ ማመሳከሪያ ---
     database.ref('incoming_sms').on('child_added', snap => {
         const sms = snap.val();
-        // አፑ ዳታውን "msg" በሚል ስም ስለሚልከው እዚህ ጋር እንዲያገኘው ተደርጓል
         const message = sms.msg || sms.message || ""; 
         
-        const transIdMatch = message.match(/[A-Z0-9]{10}/); 
-        const amountMatch = message.match(/(\d+(\.\d{1,2})?)\s*(?:ETB|ብር)/i);
+        // በትክክል ከላክኸው የቴሌብር መልዕክት ጋር የሚገጥም (Amount + ID)
+        const transIdMatch = message.match(/transaction number is ([A-Z0-9]{10})/i); 
+        const amountMatch = message.match(/received ETB\s*(\d+(\.\d{1,2})?)/i);
 
         if (transIdMatch && amountMatch) {
-            const detectedCode = transIdMatch[0];
+            const detectedCode = transIdMatch[1];
             const detectedAmount = parseFloat(amountMatch[1]);
 
             database.ref('used_transactions/' + detectedCode).once('value', usedSnap => {
@@ -88,9 +87,8 @@
                 database.ref('deposit_requests').once('value', dSnap => {
                     dSnap.forEach(child => {
                         const req = child.val();
-                        // የገንዘብ መጠኑ እና ትራንዛክሽን ID በትክክል ከተገጣጠሙ ብቻ ያጸድቃል
                         if (req.transactionCode === detectedCode && parseFloat(req.amount) === detectedAmount) {
-                            autoApproveWithSecurity(child.key, req.phone, detectedAmount, detectedCode);
+                            autoApprove(child.key, req.phone, detectedAmount, detectedCode);
                             database.ref('incoming_sms/' + snap.key).remove(); 
                         }
                     });
@@ -99,7 +97,7 @@
         }
     });
 
-    function autoApproveWithSecurity(reqId, phone, amt, code) {
+    function autoApprove(reqId, phone, amt, code) {
         database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
             logTransaction(phone, 'Auto-Deposit', amt);
             database.ref('used_transactions/' + code).set({
@@ -111,7 +109,7 @@
         });
     }
 
-    // --- የተቀሩት ተግባራት (Deposits, Withdrawals, Users, History) ---
+    // --- Deposits List ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -127,15 +125,10 @@
     });
 
     function manualApprove(reqId, phone, amt, code) {
-        if(confirm("Approve " + amt + " ETB?")) {
-            database.ref('used_transactions/' + code).set({ usedAt: firebase.database.ServerValue.TIMESTAMP, phone: phone, amount: amt });
-            database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
-                logTransaction(phone, 'Deposit', amt);
-                database.ref('deposit_requests/' + reqId).remove();
-            });
-        }
+        if(confirm("Approve?")) autoApprove(reqId, phone, amt, code);
     }
 
+    // --- Withdrawals List ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -147,6 +140,16 @@
         });
     });
 
+    function approveWithdraw(reqId, phone, amt) {
+        if(confirm("Mark as Paid?")) {
+            database.ref('users/' + phone + '/balance').transaction(c => (c >= amt ? c - amt : c)).then(() => {
+                logTransaction(phone, 'Withdraw', amt);
+                database.ref('withdraw_requests/' + reqId).remove();
+            });
+        }
+    }
+
+    // --- Users List ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -161,7 +164,15 @@
         });
     });
 
-    database.ref('transaction_history').limitToLast(30).on('value', snap => {
+    function adjustBal(phone, type) {
+        const el = document.getElementById('amt-' + phone); const v = parseFloat(el.value); if(!v) return;
+        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
+            logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v); el.value = "";
+        });
+    }
+
+    // --- History ---
+    database.ref('transaction_history').limitToLast(20).on('value', snap => {
         const cont = document.getElementById('history-list'); cont.innerHTML = "";
         let items = [];
         snap.forEach(child => {
@@ -178,24 +189,6 @@
         const now = new Date(); const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + now.toLocaleDateString();
         database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
     }
-
-    function approveWithdraw(reqId, phone, amt) {
-        if(confirm("Mark " + amt + " ETB as Paid?")) {
-            database.ref('users/' + phone + '/balance').transaction(c => (c >= amt ? c - amt : c)).then(() => {
-                logTransaction(phone, 'Withdraw', amt);
-                database.ref('withdraw_requests/' + reqId).remove();
-            });
-        }
-    }
-
-    function adjustBal(phone, type) {
-        const el = document.getElementById('amt-' + phone); const v = parseFloat(el.value); if(!v) return;
-        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
-            logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v); el.value = "";
-        });
-    }
-
-    function clearAllHistory() { if(confirm("Clear All History?")) database.ref('transaction_history').remove(); }
 </script>
 </body>
 </html>
