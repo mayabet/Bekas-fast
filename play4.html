@@ -175,12 +175,23 @@
                 cell.className = "num-cell";
             }
 
-            // እዚህ ጋር ነው ማንኛውም የተያዘ ቁጥር በዝርዝሩ ውስጥ እንዲገባ የተደረገው
             if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
     }
+
+    // ተጠቃሚው ሳይጨርስ ገጹን ሲዘጋው ወይም ተመልሶ ሲወጣ ብሩን የሚመልስ ኮድ
+    window.onbeforeunload = function() {
+        if (!isPlaying) {
+            for (let i = 1; i <= 50; i++) {
+                if (selections[i] === userName) {
+                    database.ref('users/' + userPhone).update({ balance: balance + 20 });
+                    gameRef.child(i).remove();
+                }
+            }
+        }
+    };
 
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
