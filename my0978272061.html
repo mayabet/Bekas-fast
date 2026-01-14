@@ -30,7 +30,7 @@
 <div class="header">BEKAS FAST - ADMIN PANEL</div>
 
 <div class="section">
-    <div class="section-title">Deposits (ማስገቢያ) - Auto Sync</div>
+    <div class="section-title">Deposits (ማስገቢያ) - Auto Sync Active</div>
     <div id="dep-list"></div>
 </div>
 
@@ -65,33 +65,44 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- የቴሌብር SMS አውቶማቲክ ማመሳከሪያ ---
+    // --- [ወሳኝ] የቴሌብር SMS አውቶማቲክ ማመሳከሪያ (ከ T.html የመጣ) ---
     database.ref('incoming_sms').on('child_added', snap => {
         const sms = snap.val();
         const message = sms.msg || sms.message || ""; 
         
-        // በትክክል ከላክኸው የቴሌብር መልዕክት ጋር የሚገጥም (Amount + ID)
+        // 1. የትራንዛክሽን ቁጥሩን መፈለጊያ (ለምሳሌ፡ DAE4SMZWFW)
         const transIdMatch = message.match(/transaction number is ([A-Z0-9]{10})/i); 
+        // 2. የገንዘብ መጠኑን መፈለጊያ (ለምሳሌ፡ received ETB 50.00)
         const amountMatch = message.match(/received ETB\s*(\d+(\.\d{1,2})?)/i);
 
         if (transIdMatch && amountMatch) {
             const detectedCode = transIdMatch[1];
             const detectedAmount = parseFloat(amountMatch[1]);
 
+            // ትራንዛክሽኑ በፊት ጥቅም ላይ መዋሉን ማረጋገጥ
             database.ref('used_transactions/' + detectedCode).once('value', usedSnap => {
                 if (usedSnap.exists()) {
                     database.ref('incoming_sms/' + snap.key).remove(); 
                     return;
                 }
 
+                // የተጠቃሚውን የዲፖዚት ጥያቄ መፈለግ
                 database.ref('deposit_requests').once('value', dSnap => {
+                    let found = false;
                     dSnap.forEach(child => {
                         const req = child.val();
+                        // ትራንዛክሽን ኮድ እና የገንዘብ መጠን ከተገጣጠሙ
                         if (req.transactionCode === detectedCode && parseFloat(req.amount) === detectedAmount) {
                             autoApprove(child.key, req.phone, detectedAmount, detectedCode);
                             database.ref('incoming_sms/' + snap.key).remove(); 
+                            found = true;
                         }
                     });
+                    
+                    // ጥያቄው ካልተገኘ ግን መልዕክቱ ትክክለኛ ከሆነ ኤስኤምኤሱን ማጥፋት (አላስፈላጊ ክምችት ለመቀነስ)
+                    if(!found) {
+                         // ለጊዜው እንዲቆይ ማድረግ ይቻላል ወይም በሌላ መንገድ ማስተናገድ
+                    }
                 });
             });
         }
@@ -100,12 +111,14 @@
     function autoApprove(reqId, phone, amt, code) {
         database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
             logTransaction(phone, 'Auto-Deposit', amt);
+            // ትራንዛክሽኑን "ጥቅም ላይ ውሏል" ብሎ መመዝገብ
             database.ref('used_transactions/' + code).set({
                 usedAt: firebase.database.ServerValue.TIMESTAMP,
                 phone: phone,
                 amount: amt
             });
-            database.ref('deposit_requests/' + reqId).remove();
+            // የጥያቄ ፋይሉን መሰረዝ
+            if(reqId) database.ref('deposit_requests/' + reqId).remove();
         });
     }
 
@@ -125,7 +138,7 @@
     });
 
     function manualApprove(reqId, phone, amt, code) {
-        if(confirm("Approve?")) autoApprove(reqId, phone, amt, code);
+        if(confirm("Approve " + amt + " ETB?")) autoApprove(reqId, phone, amt, code);
     }
 
     // --- Withdrawals List ---
