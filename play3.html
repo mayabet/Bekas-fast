@@ -135,12 +135,10 @@
         isPlaying = true;
         const msg = document.getElementById('msg-box');
         
-        // 1. መጀመሪያ "መልካም እድል" (GOOD LUCK) ለ 2 ሰከንድ
         msg.innerHTML = trans[currentLang].luck;
         msg.style.color = "#002d4b";
 
         setTimeout(() => {
-            // 2. ከ 2 ሰከንድ በኋላ እጣውን ማውጣት
             let win = Math.floor(Math.random() * 20) + 1;
             document.getElementById('last-val').innerText = win;
 
@@ -155,7 +153,6 @@
                 msg.style.color = "red";
             }
 
-            // 3. ከ 5 ሰከንድ በኋላ ጌሙን ዳግም ማስጀመር
             setTimeout(() => {
                 gameRef.remove();
                 round++;
@@ -177,6 +174,18 @@
             table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
+
+    // ተጠቃሚው ሳይጨርስ ገጹን ሲዘጋው ወይም ተመልሶ ሲወጣ ብሩን የሚመልስ ኮድ
+    window.onbeforeunload = function() {
+        if (!isPlaying) {
+            for (let i = 1; i <= 20; i++) {
+                if (selections[i] === userName) {
+                    database.ref('users/' + userPhone).update({ balance: balance + 20 });
+                    gameRef.child(i).remove();
+                }
+            }
+        }
+    };
 
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
