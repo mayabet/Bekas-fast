@@ -15,7 +15,11 @@
         .motto-plain { text-align: center; color: #000; font-size: 15px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
         .input-row { margin-bottom: 12px; }
         .input-box { border: 3.5px solid #00b050; border-radius: 0; padding: 12px 10px; display: flex; align-items: center; background: #fff; height: 35px; }
+        
+        /* እዚህ ጋር ጽሁፎቹ ጎላ እንዲሉ (Bold) ተደርጓል */
         input { border: none; outline: none; width: 100%; font-size: 17px; font-weight: 900; color: #000; background: transparent; }
+        input::placeholder { font-weight: 900; color: #555; }
+
         #error-msg { color: red; font-size: 13px; font-weight: 900; text-align: center; min-height: 18px; margin-bottom: 8px; }
         .btn { width: 100%; padding: 14px; border-radius: 0; border: 2.5px solid #000; font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 16px; text-transform: uppercase; display: block; }
         .register-btn { background: #00b050; color: white; }
@@ -79,7 +83,6 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // በትክክል ወደ መጀመሪያው ገጽ የሚመልስ ፈንክሽን
     function goBack() { 
         window.location.replace("index.html"); 
     }
@@ -103,18 +106,26 @@
             return; 
         }
 
-        database.ref('users/' + phone).set({
-            username: name,
-            password: pass,
-            balance: 0,
-            status: "active"
-        }).then(() => {
-            database.ref('admin_notifications').push({ 
-                phone: phone, username: name, password: pass, time: new Date().toLocaleString() 
-            });
-            localStorage.setItem('userPhone', phone);
-            alert((currentLang === 'am') ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "Registered Successfully!");
-            window.location.replace("home.html");
+        // ስልኩ መኖሩን ማረጋገጫ (Validation for existing user)
+        database.ref('users/' + phone).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+                errorDiv.innerText = (currentLang === 'am') ? "ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!" : "THIS PHONE IS ALREADY REGISTERED!";
+            } else {
+                // ካልተመዘገበ አዲስ ማስገቢያ
+                database.ref('users/' + phone).set({
+                    username: name,
+                    password: pass,
+                    balance: 0,
+                    status: "active"
+                }).then(() => {
+                    database.ref('admin_notifications').push({ 
+                        phone: phone, username: name, password: pass, time: new Date().toLocaleString() 
+                    });
+                    localStorage.setItem('userPhone', phone);
+                    alert((currentLang === 'am') ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "Registered Successfully!");
+                    window.location.replace("home.html");
+                });
+            }
         });
     }
 
