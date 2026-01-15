@@ -74,8 +74,7 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "";
-    let balance = 0;
+    let userName = "", balance = 0;
 
     if (!userPhone) {
         window.location.replace("index.html");
@@ -133,14 +132,23 @@
 
     function prepareGame() {
         isPlaying = true;
-        // የመጀመሪያው ተጫዋች ውጤቱን እንዲመርጥ እና ዴታቤዝ ላይ እንዲጭን እናደርጋለን
         const firstPlayerKey = Object.keys(selections).sort()[0];
+        
         if (selections[firstPlayerKey] === userName) {
-            let win = Math.floor(Math.random() * 10) + 1;
+            // Fisher-Yates Shuffle ዘዴን በመጠቀም ቁጥሮችን ማማሰል
+            let numbers = [];
+            for (let i = 1; i <= 10; i++) numbers.push(i);
+            
+            for (let i = numbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+            }
+
+            // በደንብ ከታመሰ በኋላ አንዱን በዘፈቀደ መምረጥ
+            let win = numbers[Math.floor(Math.random() * numbers.length)];
             resultRef.set({ winningNum: win, timestamp: Date.now() });
         }
 
-        // ሁሉም ተጫዋቾች ውጤቱ እስኪመጣ ይጠብቃሉ
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
             if (data && data.winningNum) {
