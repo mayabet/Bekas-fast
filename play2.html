@@ -52,7 +52,9 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
+    <div class="footer-nav">
+        <a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
+    </div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -72,7 +74,8 @@
     const resultRef = database.ref('live_game/play2_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0;
+    let userName = "";
+    let balance = 0;
 
     if (!userPhone) {
         window.location.replace("index.html");
@@ -131,20 +134,12 @@
     function prepareGame() {
         isPlaying = true;
         const firstPlayerKey = Object.keys(selections).sort()[0];
-        
-        if (selections[firstPlayerKey] === userName) {
-            // Fisher-Yates Shuffle ዘዴን በመጠቀም ቁጥሮችን ማማሰል
-            let numbers = [];
-            for (let i = 1; i <= 20; i++) numbers.push(i);
-            
-            for (let i = numbers.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
-            }
 
-            // በደንብ ከታመሰ በኋላ አንዱን በዘፈቀደ መምረጥ
-            let win = numbers[Math.floor(Math.random() * numbers.length)];
-            resultRef.set({ winningNum: win, timestamp: Date.now() });
+        if (selections[firstPlayerKey] === userName) {
+            resultRef.remove().then(() => {
+                let win = Math.floor(Math.random() * 20) + 1;
+                resultRef.set({ winningNum: win, timestamp: Date.now() });
+            });
         }
 
         resultRef.on('value', function listenForResult(snap) {
@@ -160,11 +155,13 @@
         const msg = document.getElementById('msg-box');
         msg.innerHTML = trans[currentLang].luck;
         msg.style.color = "#002d4b";
-        let counter = 0, speed = 80;
+
+        let counter = 0, speed = 80; 
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 20) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
+
             counter += speed;
             if (counter >= 3000) { 
                 clearInterval(animationInterval);
@@ -177,8 +174,10 @@
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
+        
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
+
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 180 });
@@ -188,6 +187,7 @@
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
         }
+
         setTimeout(() => {
             const firstPlayerKey = Object.keys(selections).sort()[0];
             if (selections[firstPlayerKey] === userName) {
@@ -214,7 +214,6 @@
         }
     }
 
-    window.onbeforeunload = null;
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     setInterval(updateClock, 1000); updateClock();
