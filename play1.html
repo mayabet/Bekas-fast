@@ -16,9 +16,27 @@
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
-        .num-cell { border: 1px solid #002d4b; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: #002d4b; cursor: pointer; transition: 0.1s; position: relative; }
+        .num-cell { border: 1px solid #002d4b; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
+        
+        /* Animation and Winner Styles */
+        .anim-active { 
+            background-color: #ff0000 !important; 
+            color: white !important; 
+            box-shadow: 0 0 15px #ff0000; 
+            z-index: 10;
+            border: 2px solid #fff !important;
+        }
+        .winner-cell {
+            background-color: #ffcc00 !important;
+            color: black !important;
+            box-shadow: 0 0 25px #ffcc00;
+            transform: scale(1.1);
+            z-index: 15;
+            border: 3px solid #002d4b !important;
+        }
+
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
@@ -33,23 +51,6 @@
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
-
-        /* አዲሱ Flash Light Style */
-        .flash-active {
-            background: #ff0000 !important; /* ቀይ ብልጭታ */
-            color: #fff !important;
-            box-shadow: 0 0 20px #ff0000;
-            border: 2px solid #fff !important;
-            z-index: 10;
-        }
-        .winner-found {
-            background: #00b050 !important; /* አረንጓዴ ለአሸናፊ */
-            color: #fff !important;
-            box-shadow: 0 0 30px #00b050;
-            transform: scale(1.1);
-            border: 3px solid #002d4b !important;
-            z-index: 20;
-        }
     </style>
 </head>
 <body>
@@ -72,7 +73,6 @@
 </div>
 
 <script>
-    // Firebase Config... (Your same config here)
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -82,16 +82,26 @@
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const gameRef = database.ref('live_game/play1');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0;
+    let userName = "";
+    let balance = 0;
 
-    database.ref('users/' + userPhone).on('value', (s) => {
-        const d = s.val(); if(d) { userName = d.username; balance = parseFloat(d.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
-    });
+    if (!userPhone) {
+        window.location.replace("index.html");
+    } else {
+        database.ref('users/' + userPhone).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                userName = data.username;
+                balance = parseFloat(data.balance || 0);
+                document.getElementById('cash').innerText = balance.toFixed(2);
+            }
+        });
+    }
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
@@ -107,71 +117,88 @@
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
-        if (Object.keys(selections).length === 10 && !isPlaying) runGame();
+        if (Object.keys(selections).length === 10 && !isPlaying) {
+            runGame();
+        }
     });
 
     function pick(n) {
         if(isPlaying) return;
+        const msg = document.getElementById('msg-box');
+
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
-            gameRef.child(n).remove(); return;
+            gameRef.child(n).remove();
+            msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
+            msg.style.color = "orange";
+            return;
         }
-        if (selections[n] || balance < 10) return;
+
+        if (selections[n]) return;
+
+        if (balance < 10) { 
+            msg.innerHTML = trans[currentLang].low; 
+            msg.style.color = "red"; 
+            return; 
+        }
+
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
+        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
     }
 
     function runGame() {
         isPlaying = true;
-        document.getElementById('msg-box').innerText = trans[currentLang].luck;
-        
+        const msg = document.getElementById('msg-box');
+        msg.innerHTML = trans[currentLang].luck;
+        msg.style.color = "#002d4b";
+
         let counter = 0;
-        let speed = 50; // በጣም ፈጣን ብልጭታ
-        let currentIdx = 1;
-
+        let speed = 80; 
         let animationInterval = setInterval(() => {
-            // ሁሉንም አጽዳ
-            for(let i=1; i<=10; i++) document.getElementById(`c-${i}`).classList.remove('flash-active');
-            
-            // የቆጣሪውን ቁጥር አብራ
-            document.getElementById(`c-${currentIdx}`).classList.add('flash-active');
-            
-            currentIdx = (currentIdx % 10) + 1;
-            counter += speed;
+            for(let i=1; i<=10; i++) {
+                document.getElementById(`c-${i}`).classList.remove('anim-active');
+            }
 
+            let tempIdx = Math.floor(Math.random() * 10) + 1;
+            document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
+
+            counter += speed;
             if (counter >= 3000) { 
                 clearInterval(animationInterval);
-                finalize();
+                
+                let win = Math.floor(Math.random() * 10) + 1;
+                document.getElementById('last-val').innerText = win;
+
+                for(let i=1; i<=10; i++) {
+                    document.getElementById(`c-${i}`).classList.remove('anim-active');
+                }
+                
+                const winCell = document.getElementById(`c-${win}`);
+                winCell.classList.add('winner-cell');
+
+                let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
+
+                if(selections[win] === userName) {
+                    database.ref('users/' + userPhone).update({ balance: balance + 90 });
+                    msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
+                    msg.style.color = "green";
+                } else {
+                    msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
+                    msg.style.color = "red";
+                }
+
+                setTimeout(() => {
+                    gameRef.remove();
+                    round++;
+                    document.getElementById('round-val').innerText = round;
+                    isPlaying = false;
+                    msg.innerText = "";
+                    winCell.classList.remove('winner-cell');
+                }, 5000);
             }
         }, speed);
-
-        function finalize() {
-            for(let i=1; i<=10; i++) document.getElementById(`c-${i}`).classList.remove('flash-active');
-            
-            let win = Math.floor(Math.random() * 10) + 1;
-            document.getElementById('last-val').innerText = win;
-            const winCell = document.getElementById(`c-${win}`);
-            winCell.classList.add('winner-found');
-
-            const msg = document.getElementById('msg-box');
-            if(selections[win] === userName) {
-                database.ref('users/' + userPhone).update({ balance: balance + 90 });
-                msg.innerText = trans[currentLang].win.replace('{n}', win);
-                msg.style.color = "green";
-            } else {
-                msg.innerText = trans[currentLang].lost.replace('{n}', win);
-                msg.style.color = "red";
-            }
-
-            setTimeout(() => {
-                gameRef.remove();
-                round++;
-                document.getElementById('round-val').innerText = round;
-                isPlaying = false;
-                msg.innerText = "";
-                winCell.classList.remove('winner-found');
-            }, 5000);
-        }
     }
 
     function updateUI() {
@@ -186,8 +213,20 @@
         }
     }
 
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } }
-    setInterval(() => { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }, 1000);
+    window.onbeforeunload = function() {
+        if (!isPlaying) {
+            for (let i = 1; i <= 10; i++) {
+                if (selections[i] === userName) {
+                    database.ref('users/' + userPhone).update({ balance: balance + 10 });
+                    gameRef.child(i).remove();
+                }
+            }
+        }
+    };
+
+    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
+    function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
+    setInterval(updateClock, 1000); updateClock();
 </script>
 </body>
 </html>
