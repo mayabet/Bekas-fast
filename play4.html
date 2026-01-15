@@ -16,9 +16,27 @@
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; overflow-y: auto; max-height: 200px; }
-        .num-cell { border: 1px solid #002d4b; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #002d4b; cursor: pointer; }
+        .num-cell { border: 1px solid #002d4b; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
+        
+        /* አዲስ የተጨመሩ የAnimation Style-ዎች */
+        .anim-active { 
+            background-color: #ff0000 !important; 
+            color: white !important; 
+            box-shadow: 0 0 15px #ff0000; 
+            z-index: 10;
+            border: 2px solid #fff !important;
+        }
+        .winner-cell {
+            background-color: #ffcc00 !important;
+            color: black !important;
+            box-shadow: 0 0 25px #ffcc00;
+            transform: scale(1.1);
+            z-index: 15;
+            border: 3px solid #002d4b !important;
+        }
+
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
@@ -124,11 +142,10 @@
             return; 
         }
 
-        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
-        msg.style.color = "#002d4b";
-
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
+        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
     }
 
     function runGame() {
@@ -137,27 +154,52 @@
         msg.innerHTML = trans[currentLang].luck;
         msg.style.color = "#002d4b";
 
-        setTimeout(() => {
-            let win = Math.floor(Math.random() * 50) + 1;
-            document.getElementById('last-val').innerText = win;
-            let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
-
-            if(selections[win] === userName) {
-                database.ref('users/' + userPhone).update({ balance: balance + 900 });
-                msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
-                msg.style.color = "#00b050";
-            } else {
-                msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
-                msg.style.color = "red";
+        let counter = 0;
+        let speed = 60; 
+        let animationInterval = setInterval(() => {
+            for(let i=1; i<=50; i++) {
+                document.getElementById(`c-${i}`).classList.remove('anim-active');
             }
 
-            setTimeout(() => {
-                gameRef.remove();
-                round++;
-                document.getElementById('round-val').innerText = round;
-                isPlaying = false;
-            }, 5000);
-        }, 2000); 
+            let tempIdx = Math.floor(Math.random() * 50) + 1;
+            document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
+
+            counter += speed;
+            if (counter >= 4000) { 
+                clearInterval(animationInterval);
+                
+                let win = Math.floor(Math.random() * 50) + 1;
+                document.getElementById('last-val').innerText = win;
+
+                for(let i=1; i<=50; i++) {
+                    document.getElementById(`c-${i}`).classList.remove('anim-active');
+                }
+                
+                const winCell = document.getElementById(`c-${win}`);
+                winCell.classList.add('winner-cell');
+                winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
+
+                if(selections[win] === userName) {
+                    database.ref('users/' + userPhone).update({ balance: balance + 900 });
+                    msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
+                    msg.style.color = "green";
+                } else {
+                    msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
+                    msg.style.color = "red";
+                }
+
+                setTimeout(() => {
+                    gameRef.remove();
+                    round++;
+                    document.getElementById('round-val').innerText = round;
+                    isPlaying = false;
+                    msg.innerText = "";
+                    winCell.classList.remove('winner-cell');
+                }, 5000);
+            }
+        }, speed);
     }
 
     function updateUI() {
@@ -166,22 +208,15 @@
         for(let i=1; i<=50; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            
-            if (occupant === userName) {
-                cell.className = "num-cell user-selected";
-            } else if (occupant !== "") {
-                cell.className = "num-cell taken-cell";
-            } else {
-                cell.className = "num-cell";
-            }
-
+            if (occupant === userName) cell.className = "num-cell user-selected";
+            else if (occupant !== "") cell.className = "num-cell taken-cell";
+            else cell.className = "num-cell";
             if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
     }
 
-    // ተጠቃሚው ሳይጨርስ ገጹን ሲዘጋው ወይም ተመልሶ ሲወጣ ብሩን የሚመልስ ኮድ
     window.onbeforeunload = function() {
         if (!isPlaying) {
             for (let i = 1; i <= 50; i++) {
