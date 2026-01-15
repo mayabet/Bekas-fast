@@ -20,7 +20,6 @@
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         
-        /* Animation and Winner Styles */
         .anim-active { 
             background-color: #ff0000 !important; 
             color: white !important; 
@@ -68,7 +67,9 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
+    <div class="footer-nav">
+        <a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
+    </div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -209,20 +210,12 @@
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
-            table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+            table.innerHTML += `<tr><td class=\"id-col\">${i}</td><td>${occupant}</td></tr>`;
         }
     }
 
-    window.onbeforeunload = function() {
-        if (!isPlaying) {
-            for (let i = 1; i <= 10; i++) {
-                if (selections[i] === userName) {
-                    database.ref('users/' + userPhone).update({ balance: balance + 10 });
-                    gameRef.child(i).remove();
-                }
-            }
-        }
-    };
+    // BACK ቁልፍ ሲጫን ምንም ነገር እንዳይሰረዝ ከዚህ በታች ያለው ኮድ ተወግዷል ወይም ተቀይሯል
+    window.onbeforeunload = null;
 
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
