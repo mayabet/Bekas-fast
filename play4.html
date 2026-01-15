@@ -15,7 +15,7 @@
         .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
-        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; overflow-y: auto; max-height: 200px; }
+        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; overflow-y: auto; max-height: 220px; }
         .num-cell { border: 1px solid #002d4b; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
@@ -31,7 +31,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
+        .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -52,7 +52,9 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
+    <div class="footer-nav">
+        <a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
+    </div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -132,18 +134,16 @@
         isPlaying = true;
         const firstPlayerKey = Object.keys(selections).sort()[0];
         if (selections[firstPlayerKey] === userName) {
-            // Fisher-Yates Shuffle ዘዴን በመጠቀም ቁጥሮችን በደንብ ማማሰል
-            let numbers = [];
-            for (let i = 1; i <= 50; i++) numbers.push(i);
-            
-            for (let i = numbers.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
-            }
-
-            // አንዱን ቁጥር በዘፈቀደ መምረጥ
-            let win = numbers[Math.floor(Math.random() * numbers.length)];
-            resultRef.set({ winningNum: win, timestamp: Date.now() });
+            resultRef.remove().then(() => {
+                let numbers = [];
+                for (let i = 1; i <= 50; i++) numbers.push(i);
+                for (let i = numbers.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+                }
+                let win = numbers[Math.floor(Math.random() * numbers.length)];
+                resultRef.set({ winningNum: win, timestamp: Date.now() });
+            });
         }
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
@@ -215,7 +215,6 @@
         }
     }
 
-    window.onbeforeunload = null;
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     setInterval(updateClock, 1000); updateClock();
