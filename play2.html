@@ -16,17 +16,15 @@
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
-        .num-cell { border: 1px solid #002d4b; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
+        .num-cell { border: 1px solid #002d4b; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         
-        /* አኒሜሽኑ በደንብ እንዲታይ የተጨመረ ስታይል */
         .anim-active { 
-            background-color: #ff0000 !important; /* ቀይ ብልጭታ */
+            background-color: #ff0000 !important; 
             color: white !important; 
             box-shadow: 0 0 15px #ff0000; 
             z-index: 10;
-            border: 2px solid #fff !important;
         }
         .winner-cell {
             background-color: #ffcc00 !important;
@@ -34,7 +32,7 @@
             box-shadow: 0 0 25px #ffcc00;
             transform: scale(1.1);
             z-index: 15;
-            border: 3px solid #002d4b !important;
+            border: 2px solid #002d4b !important;
         }
 
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
@@ -47,7 +45,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
+        .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -87,8 +85,7 @@
     const gameRef = database.ref('live_game/play2');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "";
-    let balance = 0;
+    let userName = "", balance = 0;
 
     if (!userPhone) {
         window.location.replace("index.html");
@@ -125,62 +122,47 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
             gameRef.child(n).remove();
-            msg.innerText = trans[currentLang].removed.replace('{n}', n);
+            msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
             msg.style.color = "orange";
             return;
         }
-
         if (selections[n]) return;
-
         if (balance < 10) { 
-            msg.innerText = trans[currentLang].low; 
+            msg.innerHTML = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
-
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
-        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
 
     function runGame() {
         isPlaying = true;
         const msg = document.getElementById('msg-box');
-        msg.innerText = trans[currentLang].luck;
+        msg.innerHTML = trans[currentLang].luck;
         msg.style.color = "#002d4b";
 
-        let counter = 0;
+        let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
-            // ሁሉንም ሴሎች ወደ ነበሩበት መመለስ
-            for(let i=1; i<=20; i++) {
-                document.getElementById(`c-${i}`).classList.remove('anim-active');
-            }
-
-            // በየ 80ms አንዱን ቁጥር ማብራት (ለ 20 ቁጥር ትንሽ እንዲፈጥን ተደርጓል)
+            for(let i=1; i<=20; i++) document.getElementById(`c-${i}`).classList.remove('anim-active');
             let tempIdx = Math.floor(Math.random() * 20) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
-
-            counter += 80;
+            counter += speed;
             if (counter >= 3000) { 
                 clearInterval(animationInterval);
-                
                 let win = Math.floor(Math.random() * 20) + 1;
                 document.getElementById('last-val').innerText = win;
-
-                for(let i=1; i<=20; i++) {
-                    document.getElementById(`c-${i}`).classList.remove('anim-active');
-                }
+                for(let i=1; i<=20; i++) document.getElementById(`c-${i}`).classList.remove('anim-active');
                 
                 const winCell = document.getElementById(`c-${win}`);
                 winCell.classList.add('winner-cell');
 
                 let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
-
                 if(selections[win] === userName) {
                     database.ref('users/' + userPhone).update({ balance: balance + 180 });
                     msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
@@ -189,7 +171,6 @@
                     msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
                     msg.style.color = "red";
                 }
-
                 setTimeout(() => {
                     gameRef.remove();
                     round++;
@@ -199,7 +180,7 @@
                     winCell.classList.remove('winner-cell');
                 }, 5000);
             }
-        }, 80);
+        }, speed);
     }
 
     function updateUI() {
@@ -214,16 +195,8 @@
         }
     }
 
-    window.onbeforeunload = function() {
-        if (!isPlaying) {
-            for (let i = 1; i <= 20; i++) {
-                if (selections[i] === userName) {
-                    database.ref('users/' + userPhone).update({ balance: balance + 10 });
-                    gameRef.child(i).remove();
-                }
-            }
-        }
-    };
+    // BACK ሲጫኑ ወይም ገጹ ሲዘጋ ቁጥር እንዳይሰረዝ onbeforeunload ተወግዷል
+    window.onbeforeunload = null;
 
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
