@@ -16,9 +16,27 @@
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
-        .num-cell { border: 1px solid #002d4b; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; }
+        .num-cell { border: 1px solid #002d4b; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
+        
+        /* Animation Effect Styles */
+        .anim-active { 
+            background-color: #ff0000 !important; /* Red flash */
+            color: white !important; 
+            box-shadow: 0 0 15px #ff0000; 
+            z-index: 10;
+            border: 2px solid #fff !important;
+        }
+        .winner-cell {
+            background-color: #ffcc00 !important;
+            color: black !important;
+            box-shadow: 0 0 25px #ffcc00;
+            transform: scale(1.1);
+            z-index: 15;
+            border: 3px solid #002d4b !important;
+        }
+
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
@@ -111,7 +129,7 @@
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
-            msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
+            msg.innerText = trans[currentLang].removed.replace('{n}', n);
             msg.style.color = "orange";
             return;
         }
@@ -119,48 +137,68 @@
         if (selections[n]) return;
 
         if (balance < 20) { 
-            msg.innerHTML = trans[currentLang].low; 
+            msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
-        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
-        msg.style.color = "#002d4b";
-
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
+        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
     }
 
     function runGame() {
         isPlaying = true;
         const msg = document.getElementById('msg-box');
-        
-        msg.innerHTML = trans[currentLang].luck;
+        msg.innerText = trans[currentLang].luck;
         msg.style.color = "#002d4b";
 
-        setTimeout(() => {
-            let win = Math.floor(Math.random() * 20) + 1;
-            document.getElementById('last-val').innerText = win;
-
-            let winDisplay = `<strong style="color: #00b050; font-size: 20px;">[${win}]</strong>`;
-
-            if(selections[win] === userName) {
-                database.ref('users/' + userPhone).update({ balance: balance + 360 });
-                msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
-                msg.style.color = "#00b050";
-            } else {
-                msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
-                msg.style.color = "red";
+        let counter = 0;
+        let speed = 80; 
+        let animationInterval = setInterval(() => {
+            for(let i=1; i<=20; i++) {
+                document.getElementById(`c-${i}`).classList.remove('anim-active');
             }
 
-            setTimeout(() => {
-                gameRef.remove();
-                round++;
-                document.getElementById('round-val').innerText = round;
-                isPlaying = false;
-            }, 5000);
+            let tempIdx = Math.floor(Math.random() * 20) + 1;
+            document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
 
-        }, 2000); 
+            counter += speed;
+            if (counter >= 3000) { 
+                clearInterval(animationInterval);
+                
+                let win = Math.floor(Math.random() * 20) + 1;
+                document.getElementById('last-val').innerText = win;
+
+                for(let i=1; i<=20; i++) {
+                    document.getElementById(`c-${i}`).classList.remove('anim-active');
+                }
+                
+                const winCell = document.getElementById(`c-${win}`);
+                winCell.classList.add('winner-cell');
+
+                let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
+
+                if(selections[win] === userName) {
+                    database.ref('users/' + userPhone).update({ balance: balance + 360 });
+                    msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
+                    msg.style.color = "green";
+                } else {
+                    msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
+                    msg.style.color = "red";
+                }
+
+                setTimeout(() => {
+                    gameRef.remove();
+                    round++;
+                    document.getElementById('round-val').innerText = round;
+                    isPlaying = false;
+                    msg.innerText = "";
+                    winCell.classList.remove('winner-cell');
+                }, 5000);
+            }
+        }, speed);
     }
 
     function updateUI() {
@@ -175,7 +213,6 @@
         }
     }
 
-    // ተጠቃሚው ሳይጨርስ ገጹን ሲዘጋው ወይም ተመልሶ ሲወጣ ብሩን የሚመልስ ኮድ
     window.onbeforeunload = function() {
         if (!isPlaying) {
             for (let i = 1; i <= 20; i++) {
