@@ -74,7 +74,8 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0;
+    let userName = "";
+    let balance = 0;
 
     if (!userPhone) {
         window.location.replace("index.html");
@@ -103,6 +104,7 @@
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
+        // 10ቱም ቁጥር ሲመረጥ እና ጨዋታው ገና ካልጀመረ ብቻ
         if (Object.keys(selections).length === 10 && !isPlaying) {
             prepareGame();
         }
@@ -133,26 +135,20 @@
     function prepareGame() {
         isPlaying = true;
         const firstPlayerKey = Object.keys(selections).sort()[0];
-        
-        if (selections[firstPlayerKey] === userName) {
-            // Fisher-Yates Shuffle ዘዴን በመጠቀም ቁጥሮችን ማማሰል
-            let numbers = [];
-            for (let i = 1; i <= 10; i++) numbers.push(i);
-            
-            for (let i = numbers.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
-            }
 
-            // በደንብ ከታመሰ በኋላ አንዱን በዘፈቀደ መምረጥ
-            let win = numbers[Math.floor(Math.random() * numbers.length)];
-            resultRef.set({ winningNum: win, timestamp: Date.now() });
+        // ውጤቱን የሚመርጠው የመጀመሪያው ተጫዋች ብቻ ነው
+        if (selections[firstPlayerKey] === userName) {
+            resultRef.remove().then(() => {
+                let win = Math.floor(Math.random() * 10) + 1;
+                resultRef.set({ winningNum: win, timestamp: Date.now() });
+            });
         }
 
+        // ሁሉም ተጫዋቾች አዲሱ ውጤት እስኪመጣ ይጠብቃሉ
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
             if (data && data.winningNum) {
-                resultRef.off('value', listenForResult);
+                resultRef.off('value', listenForResult); // ደጋግሞ እንዳይጠራ
                 runAnimation(data.winningNum);
             }
         });
@@ -172,7 +168,7 @@
             counter += speed;
             if (counter >= 3000) { 
                 clearInterval(animationInterval);
-                finishGame(win);
+                finishGame(win); // የመጣውን ትክክለኛ ቁጥር እንልካለን
             }
         }, speed);
     }
@@ -199,7 +195,7 @@
             const firstPlayerKey = Object.keys(selections).sort()[0];
             if (selections[firstPlayerKey] === userName) {
                 gameRef.remove();
-                resultRef.remove();
+                resultRef.remove(); // ውጤቱን እና ጨዋታውን እናጠፋለን
             }
             round++;
             document.getElementById('round-val').innerText = round;
