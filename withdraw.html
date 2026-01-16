@@ -72,7 +72,7 @@
         </div>
 
         <div class="notice-box" id="bottom-notice">
-            በተመዘገቡበት የቴሌብር ቁጥር ከ 10 ደቂቃ ባልበለጠ ጊዜ ውስጥ ይገባላችኋል። በቤታችን ስለተጫወቱ እናመሰግናለን!
+            Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with us!
         </div>
     </div>
     <div class="footer">
@@ -94,6 +94,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    // Default language is English
     let currentLang = 'en';
     let userPhone = localStorage.getItem('userPhone'); 
     let currentBalance = 0;
@@ -114,9 +115,13 @@
         const userData = snap.val();
         if (userData) {
             currentBalance = parseFloat(userData.balance || 0);
-            document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+            updateBalanceDisplay();
         }
     });
+
+    function updateBalanceDisplay() {
+        document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+    }
 
     function showMsg(txt, color) {
         const d = document.getElementById('msg-display');
@@ -170,10 +175,15 @@
         document.getElementById('info-btn').innerText = s.if;
         document.getElementById('back-btn').innerText = s.bk;
         document.getElementById('bottom-notice').innerText = s.nt;
-        document.getElementById('bal-display').innerText = (l==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+        updateBalanceDisplay();
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
     }
+
+    // Initialize with English when page loads
+    window.onload = function() {
+        setLang('en');
+    };
 </script>
 </body>
 </html>
