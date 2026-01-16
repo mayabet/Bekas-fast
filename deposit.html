@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bekas Fast - Deposit & Withdraw</title>
+    <title>Bekas Fast - Deposit</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -15,57 +15,77 @@
         .dt-section { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; flex-shrink: 0; }
         .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
         .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
-        .tele-box { background: #f9f9f9; border: 2.5px dashed #00b050; padding: 6px; text-align: center; margin-bottom: 10px; flex-shrink: 0; }
-        .tele-num { font-size: 24px; color: #c00000; font-weight: 900; display: block; }
+        
+        .instruction-box {
+            background: #e8f5e9;
+            border: 2px solid #00b050;
+            padding: 8px;
+            text-align: center;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            font-weight: 900;
+            font-size: 13px;
+            color: #000;
+            line-height: 1.4;
+        }
+        .tele-highlight { color: #c00000; font-size: 17px; display: block; margin-top: 3px; }
+
         .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
         #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
-        .input-group { margin-bottom: 10px; flex-shrink: 0; }
-        .label-text { color: #000; font-weight: 900; font-size: 13px; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 42px; box-sizing: border-box; }
-        input { border: none; outline: none; width: 100%; font-size: 18px; font-weight: 900; background: transparent; color: #002d4b; }
+        
+        .input-group { margin-bottom: 8px; flex-shrink: 0; }
+        .label-text { color: #000; font-weight: 900; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 40px; box-sizing: border-box; }
+        input { border: none; outline: none; width: 100%; font-size: 16px; font-weight: 900; background: transparent; color: #002d4b; }
+        
+        /* Button Styles */
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
-        .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .row-btns { display: flex; gap: 6px; }
+        .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 14px; cursor: pointer; text-transform: uppercase; height: 40px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .dep-btn { background: #ffcc00; color: #000; }
-        .with-btn { background: #c00000; }
-        .info-btn { background: #00b050; }
-        .back-btn { background: #002d4b; }
+        .info-btn { background: #00b050; flex: 1; }
+        .back-btn { background: #002d4b; flex: 1; }
+        
         .footer { border-top: 3px solid #000; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; font-size: 15px; font-weight: 900; color: #002d4b; }
+        .lang-btn { cursor: pointer; font-size: 14px; font-weight: 900; color: #002d4b; }
         .active { color: #00b050 !important; }
     </style>
 </head>
 <body>
 <div class="card">
-    <div class="yellow-bar"><span id="top-title">DEPOSIT / WITHDRAW</span><span class="plus18">18+</span></div>
+    <div class="yellow-bar"><span id="top-title">DEPOSIT</span><span class="plus18">18+</span></div>
     <div class="content">
         <div class="dt-section">
             <div id="date-label" class="dt-row">DATE: ...</div>
             <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
         <div class="branding"><h1>BEKAS FAST</h1></div>
-        <div class="tele-box">
-            <span style="font-size: 12px; font-weight: 900; color: #000;" id="tele-msg">SEND DEPOSIT TO:</span>
-            <span class="tele-num">+2510978272061</span>
+
+        <div class="instruction-box" id="instruction-text">
+            በቴሌብር <span class="tele-highlight">0978272061</span> ያስገቡና የትራንዛክሽን ኮዱንና ያስገቡትን ገንዘብ ሞልተው DEPOSIT ያድርጉ።
         </div>
+
         <div id="bal-display" class="balance-box">BALANCE: 0.00 ETB</div>
         <div id="msg-display"></div>
 
         <div class="input-group">
-            <span class="label-text" id="tr-label">TRANSACTION CODE (DEPOSIT ONLY)</span>
+            <span class="label-text" id="tr-label">TRANSACTION CODE</span>
             <div class="input-box">
-                <input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+                <input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10">
             </div>
         </div>
         <div class="input-group">
-            <span class="label-text" id="am-label">AMOUNT (MAX 5 DIGITS)</span>
+            <span class="label-text" id="am-label">AMOUNT</span>
             <div class="input-box"><input type="number" id="am-input" placeholder="00000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)"></div>
         </div>
 
         <div class="btn-group">
             <button class="btn dep-btn" id="dep-btn" onclick="handleDeposit()">DEPOSIT</button>
-            <button class="btn with-btn" id="with-btn" onclick="handleWithdraw()">WITHDRAW</button>
-            <a href="info.html" class="btn info-btn" id="info-btn">INFO</a>
-            <a href="home.html" class="btn back-btn" id="back-btn">BACK TO HOME</a>
+            
+            <div class="row-btns">
+                <a href="info.html" class="btn info-btn" id="info-btn">INFO</a>
+                <a href="home.html" class="btn back-btn" id="back-btn">HOME</a>
+            </div>
         </div>
     </div>
     <div class="footer">
@@ -91,9 +111,7 @@
     let userPhone = localStorage.getItem('userPhone'); 
     let currentBalance = 0;
 
-    if (!userPhone) {
-        window.location.replace("Index.html"); 
-    }
+    if (!userPhone) window.location.replace("Index.html");
 
     function updateClock() {
         const n = new Date();
@@ -107,9 +125,13 @@
         const userData = snap.val();
         if (userData) {
             currentBalance = parseFloat(userData.balance || 0);
-            document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+            updateBalanceDisplay();
         }
     });
+
+    function updateBalanceDisplay() {
+        document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+    }
 
     function showMsg(txt, color) {
         const d = document.getElementById('msg-display');
@@ -122,7 +144,6 @@
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
-        // ማስተካከያ፦ 'transactionCode' የሚለውን ስም ለAdmin Panel እንዲመች ተጠቅመናል
         if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
             database.ref('deposit_requests').push({ 
                 phone: userPhone, 
@@ -142,38 +163,37 @@
         }
     }
 
-    function handleWithdraw() {
-        const amount = document.getElementById('am-input').value;
-        const numAmount = parseFloat(amount);
-        
-        if (numAmount > 0 && numAmount <= currentBalance && numAmount % 10 === 0) {
-            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
-            .then(() => { 
-                showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); 
-                document.getElementById('am-input').value=""; 
-            });
-        } else { 
-            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም በቂ ሂሳብ የለም" : "ENTER MULTIPLES OF 10 OR LOW BALANCE";
-            showMsg(errorMsg, "red"); 
-        }
-    }
-
     function setLang(l) {
         currentLang = l;
         const labels = {
-            'am': { 't': 'ማስገቢያ / ማውጫ', 'tmsg': 'በዚህ ቁጥር ያስገቡ፦', 'tr': 'የግብይት መለያ (ለማስገቢያ)', 'am': 'የገንዘብ መጠን', 'dp': 'ገንዘብ አስገባ', 'wt': 'ገንዘብ አውጣ', 'if': 'መመሪያ', 'bk': 'ተመለስ' },
-            'en': { 't': 'DEPOSIT / WITHDRAW', 'tmsg': 'SEND DEPOSIT TO:', 'tr': 'TRANSACTION CODE (DEPOSIT ONLY)', 'am': 'AMOUNT (MAX 5 DIGITS)', 'dp': 'DEPOSIT', 'wt': 'WITHDRAW', 'if': 'INFO', 'bk': 'BACK TO HOME' }
+            'am': { 
+                't': 'ገንዘብ ማስገቢያ', 
+                'ins': 'በቴሌብር <span class="tele-highlight">0978272061</span> ያስገቡና የትራንዛክሽን ኮዱንና ያስገቡትን ገንዘብ ሞልተው DEPOSIT ያድርጉ።',
+                'tr': 'የግብይት መለያ', 
+                'am': 'የገንዘብ መጠን', 
+                'dp': 'ገንዘብ አስገባ',
+                'if': 'መመሪያ',
+                'bk': 'ቤት'
+            },
+            'en': { 
+                't': 'DEPOSIT', 
+                'ins': 'Send via Telebirr to <span class="tele-highlight">0978272061</span> then enter the transaction code and amount to DEPOSIT.',
+                'tr': 'TRANSACTION CODE', 
+                'am': 'AMOUNT', 
+                'dp': 'DEPOSIT',
+                'if': 'INFO',
+                'bk': 'HOME'
+            }
         };
         const s = labels[l];
         document.getElementById('top-title').innerText = s.t;
-        document.getElementById('tele-msg').innerText = s.tmsg;
+        document.getElementById('instruction-text').innerHTML = s.ins;
         document.getElementById('tr-label').innerText = s.tr;
         document.getElementById('am-label').innerText = s.am;
         document.getElementById('dep-btn').innerText = s.dp;
-        document.getElementById('with-btn').innerText = s.wt;
         document.getElementById('info-btn').innerText = s.if;
         document.getElementById('back-btn').innerText = s.bk;
-        document.getElementById('bal-display').innerText = (l==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+        updateBalanceDisplay();
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
     }
