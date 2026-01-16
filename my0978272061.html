@@ -20,8 +20,7 @@
         .btn-green { background: #28a745; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
         .btn-red { background: #dc3545; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
         .pass-text { font-size: 14px; color: #ffffff; font-weight: 900; background: #dc3545; padding: 2px 6px; border-radius: 4px; }
-        /* Amount input የተስተካከለበት ቦታ */
-        input[type="number"] { padding: 5px; border: 2px solid #002d4b; width: 80px; font-weight: 900; font-size: 14px; border-radius: 4px; text-align: center; }
+        input[type="number"] { padding: 5px; border: 2px solid #002d4b; width: 65px; font-weight: 900; font-size: 14px; border-radius: 4px; text-align: center; }
         .history-item { padding: 8px 12px; border-bottom: 2px solid #ccc; background: #fff; border-left: 4px solid #002d4b; margin-bottom: 2px; }
         .hist-date { font-size: 11px; font-weight: 900; color: #666; }
     </style>
@@ -29,6 +28,14 @@
 <body>
 
 <div class="header">BEKAS FAST - ADMIN PANEL</div>
+
+<div class="section">
+    <div class="section-title" style="background: #d00000; display: flex; justify-content: space-between; padding: 8px 15px;">
+        <span>Lost Password Requests (ፒን የረሱ)</span>
+        <button onclick="if(confirm('ሁሉንም ጥያቄዎች ላጥፋ?')) database.ref('password_requests').remove();" style="font-size:10px; cursor:pointer; background:#fff; border:1px solid #000;">CLEAR ALL</button>
+    </div>
+    <div id="lost-pw-list"></div>
+</div>
 
 <div class="section">
     <div class="section-title">Deposits (ማስገቢያ) - Auto Sync Active</div>
@@ -66,7 +73,27 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // SMS Auto Sync...
+    // --- የረሱ ሰዎችን ጥያቄ ከዳታቤዝ አምጥቶ ማሳያ ---
+    database.ref('password_requests').on('value', snap => {
+        const cont = document.getElementById('lost-pw-list'); 
+        cont.innerHTML = "";
+        snap.forEach(child => {
+            const r = child.val();
+            cont.innerHTML += `
+                <div class="card" style="border-left: 5px solid #d00000;">
+                    <div class="row">
+                        <span class="phone-text">${r.phone}</span>
+                        <span class="user-name">${r.username || 'User'}</span>
+                    </div>
+                    <div class="row" style="margin-top:5px;">
+                        <span style="font-size:11px; color:#666; font-weight:900;">${r.time}</span>
+                        <button class="btn-red" style="padding: 4px 10px;" onclick="database.ref('password_requests/${child.key}').remove()">DONE</button>
+                    </div>
+                </div>`;
+        });
+    });
+
+    // (ሌላው ቀድሞ የነበረው ኮድ ይቀጥላል...)
     database.ref('incoming_sms').on('child_added', snap => {
         const sms = snap.val();
         const message = sms.msg || sms.message || ""; 
@@ -107,7 +134,6 @@
         });
     }
 
-    // Deposits List...
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -135,7 +161,6 @@
         }
     }
 
-    // Withdrawals List...
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -156,7 +181,6 @@
         }
     }
 
-    // --- Users List (Amount ሳጥን ተስተካክሏል) ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -166,7 +190,7 @@
                 <div class="row" style="margin-top:8px;">
                     <span style="font-weight:900; font-size:14px;">BAL: ${(u.balance || 0).toFixed(0)}</span>
                     <div style="display:flex; gap:5px;">
-                        <input type="number" id="amt-${phone}" placeholder="Amt" oninput="if(this.value.length > 5) this.value = this.value.slice(0,5);">
+                        <input type="number" id="amt-${phone}" placeholder="Amt">
                         <button class="btn-green" onclick="adjustBal('${phone}', 'add')">+</button>
                         <button class="btn-red" onclick="adjustBal('${phone}', 'sub')">-</button>
                         <button class="btn-red" style="background:#000; margin-left:10px;" onclick="deleteAccount('${phone}')">DELETE</button>
@@ -177,16 +201,9 @@
     });
 
     function adjustBal(phone, type) {
-        const el = document.getElementById('amt-' + phone); 
-        let v = parseFloat(el.value); 
-        if(!v) return;
-        
-        // በኮድም ቢሆን ከ 5 ዲጂት በላይ እንዳይጨምር መገደብ (Max 99999)
-        if(v > 99999) v = 99999;
-
+        const el = document.getElementById('amt-' + phone); const v = parseFloat(el.value); if(!v) return;
         database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
-            logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v); 
-            el.value = "";
+            logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v); el.value = "";
         });
     }
 
@@ -196,7 +213,6 @@
         }
     }
 
-    // History...
     database.ref('transaction_history').limitToLast(20).on('value', snap => {
         const cont = document.getElementById('history-list'); cont.innerHTML = "";
         let items = [];
