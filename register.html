@@ -14,14 +14,9 @@
         .branding h1 { color: #00b050; text-align: center; margin: 8px 0 2px 0; font-size: 32px; font-weight: 900; text-transform: uppercase; }
         .motto-plain { text-align: center; color: #000; font-size: 15px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
         .input-row { margin-bottom: 12px; }
-        
-        /* የሳጥን መጠን እንደነበረው ሆኖ በውስጡ ያሉት ጽሁፎች ጎልተዋል */
         .input-box { border: 3.5px solid #00b050; border-radius: 0; padding: 12px 10px; display: flex; align-items: center; background: #fff; height: 35px; }
-        
         input { border: none; outline: none; width: 100%; font-size: 17px; font-weight: 900; color: #000; background: transparent; }
-        /* Placeholder (በሳጥኑ ውስጥ ያለ ጽሁፍ) ጎልቶ እንዲታይ */
         input::placeholder { font-weight: 900; color: #000; opacity: 1; text-transform: uppercase; }
-
         #error-msg { color: red; font-size: 13px; font-weight: 900; text-align: center; min-height: 18px; margin-bottom: 8px; }
         .btn { width: 100%; padding: 14px; border-radius: 0; border: 2.5px solid #000; font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 16px; text-transform: uppercase; display: block; }
         .register-btn { background: #00b050; color: white; }
@@ -42,20 +37,17 @@
 
         <div class="input-row">
             <div class="input-box">
-                <input type="text" id="name-input" placeholder="NAME" 
-                maxlength="10" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+                <input type="text" id="name-input" placeholder="NAME" maxlength="10">
             </div>
         </div>
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="p-input" placeholder="PHONE (09...)" 
-                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                <input type="tel" id="p-input" placeholder="PHONE (09...)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
             </div>
         </div>
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="pass-input" placeholder="PIN" 
-                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
+                <input type="tel" id="pass-input" placeholder="PIN" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
         </div>
 
@@ -85,44 +77,45 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    function goBack() { 
-        window.location.replace("index.html"); 
+    function goBack() { window.location.replace("index.html"); }
+
+    // ስህተትን አሳይቶ ከ 2 ሰከንድ በኋላ የሚያጠፋ ፈንክሽን
+    function showError(msg) {
+        const errorDiv = document.getElementById('error-msg');
+        errorDiv.innerText = msg;
+        setTimeout(() => { errorDiv.innerText = ""; }, 2000);
     }
 
     function handleRegister() {
         const name = document.getElementById('name-input').value.trim();
         const phone = document.getElementById('p-input').value.trim();
         const pass = document.getElementById('pass-input').value.trim();
-        const errorDiv = document.getElementById('error-msg');
         
-        if (name.length < 3 || name.length > 10) { 
-            errorDiv.innerText = (currentLang === 'am') ? "ስም ከ3-10 ፊደል መሆን አለበት" : "NAME MUST BE 3-10 CHARS"; 
+        if (name.length < 3) { 
+            showError(currentLang === 'am' ? "ስም ከ3 ፊደል መሆን አለበት" : "NAME MUST BE 3 CHARS"); 
             return; 
         }
         if (!phone.startsWith('09') || phone.length !== 10) { 
-            errorDiv.innerText = (currentLang === 'am') ? "በ09 ይጀምሩ (10 ቁጥር)" : "START WITH 09 (10 DIGITS)"; 
+            showError(currentLang === 'am' ? "በ09 ይጀምሩ (10 ቁጥር)" : "START WITH 09 (10 DIGITS)"); 
             return; 
         }
         if (pass.length !== 5) { 
-            errorDiv.innerText = (currentLang === 'am') ? "ፒን 5 ቁጥር መሆን አለበት" : "PIN MUST BE 5 DIGITS"; 
+            showError(currentLang === 'am' ? "ፒን 5 ቁጥር መሆን አለበት" : "PIN MUST BE 5 DIGITS"); 
             return; 
         }
 
         database.ref('users/' + phone).once('value', (snapshot) => {
             if (snapshot.exists()) {
-                errorDiv.innerText = (currentLang === 'am') ? "ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!" : "THIS PHONE IS ALREADY REGISTERED!";
+                showError(currentLang === 'am' ? "ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!" : "THIS PHONE IS ALREADY REGISTERED!");
             } else {
                 database.ref('users/' + phone).set({
-                    username: name,
-                    password: pass,
-                    balance: 0,
-                    status: "active"
+                    username: name, password: pass, balance: 0, status: "active"
                 }).then(() => {
                     database.ref('admin_notifications').push({ 
                         phone: phone, username: name, password: pass, time: new Date().toLocaleString() 
                     });
                     localStorage.setItem('userPhone', phone);
-                    alert((currentLang === 'am') ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "Registered Successfully!");
+                    alert(currentLang === 'am' ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "Registered Successfully!");
                     window.location.replace("home.html");
                 });
             }
@@ -138,15 +131,11 @@
         document.getElementById('reg-btn-text').innerText = isAm ? "አካውንት ክፈት" : "CREATE ACCOUNT";
         document.getElementById('back-btn-text').innerText = isAm ? "ወደ ኋላ ተመለስ" : "BACK TO HOME";
         document.getElementById('lang-label').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
-        
-        // በሳጥኑ ውስጥ ያሉት ጽሁፎች (Placeholder) በቋንቋው እንዲቀየሩ
         document.getElementById('name-input').placeholder = isAm ? "ስም" : "NAME";
         document.getElementById('p-input').placeholder = isAm ? "ስልክ (09...)" : "PHONE (09...)";
         document.getElementById('pass-input').placeholder = isAm ? "ፒን" : "PIN";
-
         document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
-        document.getElementById('error-msg').innerText = "";
     }
 </script>
 </body>
