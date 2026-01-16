@@ -14,11 +14,13 @@
         .branding h1 { color: #00b050; text-align: center; margin: 8px 0 2px 0; font-size: 32px; font-weight: 900; text-transform: uppercase; }
         .motto-plain { text-align: center; color: #000; font-size: 15px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
         .input-row { margin-bottom: 12px; }
+        
+        /* የሳጥን መጠን እንደነበረው ሆኖ በውስጡ ያሉት ጽሁፎች ጎልተዋል */
         .input-box { border: 3.5px solid #00b050; border-radius: 0; padding: 12px 10px; display: flex; align-items: center; background: #fff; height: 35px; }
         
-        /* እዚህ ጋር ጽሁፎቹ ጎላ እንዲሉ (Bold) ተደርጓል */
         input { border: none; outline: none; width: 100%; font-size: 17px; font-weight: 900; color: #000; background: transparent; }
-        input::placeholder { font-weight: 900; color: #555; }
+        /* Placeholder (በሳጥኑ ውስጥ ያለ ጽሁፍ) ጎልቶ እንዲታይ */
+        input::placeholder { font-weight: 900; color: #000; opacity: 1; text-transform: uppercase; }
 
         #error-msg { color: red; font-size: 13px; font-weight: 900; text-align: center; min-height: 18px; margin-bottom: 8px; }
         .btn { width: 100%; padding: 14px; border-radius: 0; border: 2.5px solid #000; font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 16px; text-transform: uppercase; display: block; }
@@ -40,19 +42,19 @@
 
         <div class="input-row">
             <div class="input-box">
-                <input type="text" id="name-input" placeholder="NAME (3-10 CHARS)" 
+                <input type="text" id="name-input" placeholder="NAME" 
                 maxlength="10" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
             </div>
         </div>
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="p-input" placeholder="09..." 
+                <input type="tel" id="p-input" placeholder="PHONE (09...)" 
                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
             </div>
         </div>
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="pass-input" placeholder="PIN (5 DIGITS)" 
+                <input type="tel" id="pass-input" placeholder="PIN" 
                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
         </div>
@@ -97,7 +99,7 @@
             errorDiv.innerText = (currentLang === 'am') ? "ስም ከ3-10 ፊደል መሆን አለበት" : "NAME MUST BE 3-10 CHARS"; 
             return; 
         }
-        if (!/^09\d{8}$/.test(phone)) { 
+        if (!phone.startsWith('09') || phone.length !== 10) { 
             errorDiv.innerText = (currentLang === 'am') ? "በ09 ይጀምሩ (10 ቁጥር)" : "START WITH 09 (10 DIGITS)"; 
             return; 
         }
@@ -106,12 +108,10 @@
             return; 
         }
 
-        // ስልኩ መኖሩን ማረጋገጫ (Validation for existing user)
         database.ref('users/' + phone).once('value', (snapshot) => {
             if (snapshot.exists()) {
                 errorDiv.innerText = (currentLang === 'am') ? "ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!" : "THIS PHONE IS ALREADY REGISTERED!";
             } else {
-                // ካልተመዘገበ አዲስ ማስገቢያ
                 database.ref('users/' + phone).set({
                     username: name,
                     password: pass,
@@ -139,9 +139,10 @@
         document.getElementById('back-btn-text').innerText = isAm ? "ወደ ኋላ ተመለስ" : "BACK TO HOME";
         document.getElementById('lang-label').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
         
-        document.getElementById('name-input').placeholder = isAm ? "ስም (3-10 ፊደል)" : "NAME (3-10 CHARS)";
+        // በሳጥኑ ውስጥ ያሉት ጽሁፎች (Placeholder) በቋንቋው እንዲቀየሩ
+        document.getElementById('name-input').placeholder = isAm ? "ስም" : "NAME";
         document.getElementById('p-input').placeholder = isAm ? "ስልክ (09...)" : "PHONE (09...)";
-        document.getElementById('pass-input').placeholder = isAm ? "ፒን (5 ቁጥር)" : "PIN (5 DIGITS)";
+        document.getElementById('pass-input').placeholder = isAm ? "ፒን" : "PIN";
 
         document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
