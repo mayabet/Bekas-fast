@@ -16,9 +16,23 @@
         .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
         .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
         
-        /* ጎላ እንዲሉ የተደረጉ ክፍሎች */
-        .tele-box { background: #fffde7; border: 3px solid #00b050; padding: 10px; text-align: center; margin-bottom: 10px; flex-shrink: 0; }
-        #tele-msg { font-size: 18px; font-weight: 900; color: #000; display: block; }
+        /* እዚህ ጋር የሳጥኑ እና የጽሑፉ መጠን ቀንሷል */
+        .tele-box { 
+            background: #fffde7; 
+            border: 2px solid #00b050; 
+            padding: 5px; 
+            text-align: center; 
+            margin-bottom: 10px; 
+            flex-shrink: 0; 
+            border-radius: 4px;
+        }
+        #tele-msg { 
+            font-size: 14px; 
+            font-weight: 900; 
+            color: #000; 
+            display: block; 
+            text-transform: uppercase;
+        }
         
         .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
         #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
@@ -99,7 +113,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let currentLang = 'en'; // በእንግሊዝኛ እንዲከፈት
+    let currentLang = 'en'; 
     let userPhone = localStorage.getItem('userPhone'); 
     let currentBalance = 0;
 
@@ -154,7 +168,7 @@
         const labels = {
             'am': { 
                 't': 'ገንዘብ ማውጫ', 
-                'tmsg': 'ማውጣት የሚፈልጉትን መጠን ያስገቡ', 
+                'tmsg': 'መጠን ያስገቡ', 
                 'am': 'የገንዘብ መጠን', 
                 'wt': 'ገንዘብ አውጣ', 
                 'if': 'መመሪያ', 
@@ -185,7 +199,7 @@
     }
 
     window.onload = function() {
-        setLang('en'); // መጀመሪያ ሲከፈት በእንግሊዝኛ እንዲሆን
+        setLang('en');
     };
 </script>
 </body>
