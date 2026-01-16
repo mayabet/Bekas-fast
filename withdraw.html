@@ -15,13 +15,18 @@
         .dt-section { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; flex-shrink: 0; }
         .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
         .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
-        .tele-box { background: #f9f9f9; border: 2.5px dashed #00b050; padding: 6px; text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+        
+        /* ጎላ እንዲሉ የተደረጉ ክፍሎች */
+        .tele-box { background: #fffde7; border: 3px solid #00b050; padding: 10px; text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+        #tele-msg { font-size: 18px; font-weight: 900; color: #000; display: block; }
+        
         .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
         #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
         .input-group { margin-bottom: 10px; flex-shrink: 0; }
-        .label-text { color: #000; font-weight: 900; font-size: 13px; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 42px; box-sizing: border-box; }
-        input { border: none; outline: none; width: 100%; font-size: 18px; font-weight: 900; background: transparent; color: #002d4b; }
+        .label-text { color: #000; font-weight: 900; font-size: 14px; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 45px; box-sizing: border-box; }
+        input { border: none; outline: none; width: 100%; font-size: 20px; font-weight: 900; background: transparent; color: #002d4b; }
+        
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
         .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .with-btn { background: #c00000; }
@@ -30,12 +35,12 @@
         
         .notice-box {
             background: #fff8e1;
-            border: 2px solid #ffcc00;
-            padding: 8px;
+            border: 2.5px solid #ffcc00;
+            padding: 10px;
             margin-top: 10px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 900;
-            color: #333;
+            color: #d32f2f;
             text-align: center;
             line-height: 1.4;
         }
@@ -55,7 +60,7 @@
         </div>
         <div class="branding"><h1>BEKAS FAST</h1></div>
         <div class="tele-box">
-            <span style="font-size: 12px; font-weight: 900; color: #000;" id="tele-msg">ENTER WITHDRAWAL AMOUNT</span>
+            <span id="tele-msg">ENTER WITHDRAWAL AMOUNT</span>
         </div>
         <div id="bal-display" class="balance-box">BALANCE: 0.00 ETB</div>
         <div id="msg-display"></div>
@@ -72,7 +77,7 @@
         </div>
 
         <div class="notice-box" id="bottom-notice">
-            Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with us!
+            Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with Bekas Fast!
         </div>
     </div>
     <div class="footer">
@@ -94,8 +99,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Default language is English
-    let currentLang = 'en';
+    let currentLang = 'en'; // በእንግሊዝኛ እንዲከፈት
     let userPhone = localStorage.getItem('userPhone'); 
     let currentBalance = 0;
 
@@ -155,7 +159,7 @@
                 'wt': 'ገንዘብ አውጣ', 
                 'if': 'መመሪያ', 
                 'bk': 'ተመለስ',
-                'nt': 'በተመዘገቡበት የቴሌብር ቁጥር ከ 10 ደቂቃ ባልበለጠ ጊዜ ውስጥ ይገባላችኋል። በቤታችን ስለተጫወቱ እናመሰግናለን!'
+                'nt': 'በተመዘገቡበት የቴሌብር ቁጥር ከ 10 ደቂቃ ባልበለጠ ጊዜ ውስጥ ይገባላችኋል። በ Bekas Fast ስለተጫወቱ እናመሰግናለን!'
             },
             'en': { 
                 't': 'WITHDRAW', 
@@ -164,7 +168,7 @@
                 'wt': 'WITHDRAW', 
                 'if': 'INFO', 
                 'bk': 'BACK TO HOME',
-                'nt': 'Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with us!'
+                'nt': 'Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with Bekas Fast!'
             }
         };
         const s = labels[l];
@@ -180,9 +184,8 @@
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
     }
 
-    // Initialize with English when page loads
     window.onload = function() {
-        setLang('en');
+        setLang('en'); // መጀመሪያ ሲከፈት በእንግሊዝኛ እንዲሆን
     };
 </script>
 </body>
