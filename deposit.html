@@ -3,51 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bekas Fast - Deposit</title>
+    <title>Mita Betting - Deposit</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
         .card { width: 95%; max-width: 360px; height: 96vh; background: white; border: 3px solid #000; display: flex; flex-direction: column; box-sizing: border-box; }
-        .yellow-bar { background: #ffcc00; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; border-bottom: 3px solid #000; flex-shrink: 0; }
-        .plus18 { color: red; font-size: 24px; font-weight: 900; }
-        .content { padding: 10px 15px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .dt-section { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; flex-shrink: 0; }
-        .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
-        .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
+        .yellow-bar { background: #ffcc00; padding: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 18px; border-bottom: 3px solid #000; flex-shrink: 0; }
+        .plus18 { color: red; font-size: 20px; font-weight: 900; }
+        .content { padding: 8px 15px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .dt-section { border-bottom: 2px solid #000; padding-bottom: 3px; margin-bottom: 5px; flex-shrink: 0; }
+        .dt-row { font-weight: 900; font-size: 13px; color: #002d4b; margin: 1px 0; text-transform: uppercase; }
+        .branding h1 { color: #00b050; text-align: center; margin: 3px 0; font-size: 24px; font-weight: 900; text-transform: uppercase; }
         
-        .instruction-box {
-            background: #e8f5e9;
-            border: 2px solid #00b050;
-            padding: 8px;
-            text-align: center;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            font-weight: 900;
-            font-size: 13px;
-            color: #000;
-            line-height: 1.4;
-        }
-        .tele-highlight { color: #c00000; font-size: 17px; display: block; margin-top: 3px; }
+        .instruction-box { background: transparent; padding: 5px; text-align: center; margin-bottom: 8px; font-weight: 900; font-size: 15px; color: #000; line-height: 1.3; }
+        .tele-highlight { color: #c00000; font-size: 20px; display: block; margin: 2px 0; }
 
-        .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
-        #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
+        .balance-box { background: #002d4b; color: #ffcc00; padding: 6px; text-align: center; font-weight: 900; font-size: 16px; border: 2.5px solid #000; margin-bottom: 8px; flex-shrink: 0; }
+        #msg-display { font-weight: 900; font-size: 13px; text-align: center; height: 18px; margin-bottom: 3px; text-transform: uppercase; }
         
-        .input-group { margin-bottom: 8px; flex-shrink: 0; }
-        .label-text { color: #000; font-weight: 900; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 40px; box-sizing: border-box; }
-        input { border: none; outline: none; width: 100%; font-size: 16px; font-weight: 900; background: transparent; color: #002d4b; }
+        .input-group { margin-bottom: 10px; flex-shrink: 0; }
+        .label-text { color: #000; font-weight: 900; font-size: 14px; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .input-box { border: 3px solid #00b050; padding: 0 12px; display: flex; align-items: center; background: #fff; height: 45px; box-sizing: border-box; }
+        input { border: none; outline: none; width: 100%; font-size: 18px; font-weight: 900; background: transparent; color: #002d4b; text-transform: uppercase; }
         
-        /* Button Styles */
-        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
-        .row-btns { display: flex; gap: 6px; }
-        .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 14px; cursor: pointer; text-transform: uppercase; height: 40px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
-        .dep-btn { background: #ffcc00; color: #000; }
+        .btn-group { display: flex; flex-direction: column; gap: 5px; margin-top: auto; padding-bottom: 8px; }
+        .row-btns { display: flex; gap: 5px; }
+        .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 14px; cursor: pointer; text-transform: uppercase; height: 38px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .dep-btn { background: #ffcc00; color: #000; height: 42px; font-size: 16px; }
         .info-btn { background: #00b050; flex: 1; }
         .back-btn { background: #002d4b; flex: 1; }
         
-        .footer { border-top: 3px solid #000; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; font-size: 14px; font-weight: 900; color: #002d4b; }
+        .footer { border-top: 3px solid #000; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
+        .lang-btn { cursor: pointer; font-size: 13px; font-weight: 900; color: #002d4b; }
         .active { color: #00b050 !important; }
     </style>
 </head>
@@ -59,10 +47,10 @@
             <div id="date-label" class="dt-row">DATE: ...</div>
             <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
-        <div class="branding"><h1>BEKAS FAST</h1></div>
+        <div class="branding"><h1>MITA BETTING</h1></div>
 
         <div class="instruction-box" id="instruction-text">
-            በቴሌብር <span class="tele-highlight">0978272061</span> ያስገቡና የትራንዛክሽን ኮዱንና ያስገቡትን ገንዘብ ሞልተው DEPOSIT ያድርጉ።
+            Send via Telebirr to <span class="tele-highlight">0978272061</span> then enter code and amount to DEPOSIT.
         </div>
 
         <div id="bal-display" class="balance-box">BALANCE: 0.00 ETB</div>
@@ -71,17 +59,18 @@
         <div class="input-group">
             <span class="label-text" id="tr-label">TRANSACTION CODE</span>
             <div class="input-box">
-                <input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10">
+                <input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,10)">
             </div>
         </div>
         <div class="input-group">
             <span class="label-text" id="am-label">AMOUNT</span>
-            <div class="input-box"><input type="number" id="am-input" placeholder="00000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)"></div>
+            <div class="input-box">
+                <input type="number" id="am-input" placeholder="00000" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5)">
+            </div>
         </div>
 
         <div class="btn-group">
             <button class="btn dep-btn" id="dep-btn" onclick="handleDeposit()">DEPOSIT</button>
-            
             <div class="row-btns">
                 <a href="info.html" class="btn info-btn" id="info-btn">INFO</a>
                 <a href="home.html" class="btn back-btn" id="back-btn">HOME</a>
@@ -89,7 +78,7 @@
         </div>
     </div>
     <div class="footer">
-        <span id="l-text" style="font-weight: 900; font-size: 14px;">LANG:</span>
+        <span id="l-text" style="font-weight: 900; font-size: 13px;">LANG:</span>
         <div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div>
     </div>
 </div>
@@ -144,7 +133,13 @@
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
         
-        if (code.length === 10 && numAmount > 0 && numAmount % 10 === 0) {
+        if (code.length !== 10) {
+            const err = currentLang==='am' ? "ኮዱ 10 ዲጂት መሆን አለበት" : "CODE MUST BE 10 DIGITS";
+            showMsg(err, "red");
+            return;
+        }
+
+        if (numAmount > 0 && numAmount % 10 === 0) {
             database.ref('deposit_requests').push({ 
                 phone: userPhone, 
                 transactionCode: code, 
@@ -158,7 +153,7 @@
                 document.getElementById('am-input').value=""; 
             });
         } else { 
-            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም መረጃው ስህተት ነው" : "ENTER MULTIPLES OF 10 OR WRONG CODE";
+            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ" : "ENTER MULTIPLES OF 10";
             showMsg(errorMsg, "red"); 
         }
     }
@@ -177,7 +172,7 @@
             },
             'en': { 
                 't': 'DEPOSIT', 
-                'ins': 'Send via Telebirr to <span class="tele-highlight">0978272061</span> then enter the transaction code and amount to DEPOSIT.',
+                'ins': 'Send via Telebirr to <span class="tele-highlight">0978272061</span> then enter code and amount to DEPOSIT.',
                 'tr': 'TRANSACTION CODE', 
                 'am': 'AMOUNT', 
                 'dp': 'DEPOSIT',
@@ -197,6 +192,7 @@
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
     }
+    setLang('en');
 </script>
 </body>
 </html>
