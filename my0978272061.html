@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - ADMIN PANEL</title>
+    <title>MITA BETTING - ADMIN PANEL</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -20,14 +20,16 @@
         .btn-green { background: #28a745; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
         .btn-red { background: #dc3545; color: white; border: 1px solid #000; padding: 6px 12px; font-weight: 900; font-size: 12px; border-radius: 4px; cursor: pointer; }
         .pass-text { font-size: 14px; color: #ffffff; font-weight: 900; background: #dc3545; padding: 2px 6px; border-radius: 4px; }
-        input[type="number"] { padding: 5px; border: 2px solid #002d4b; width: 65px; font-weight: 900; font-size: 14px; border-radius: 4px; text-align: center; }
+        input[type="number"] { padding: 5px; border: 2px solid #002d4b; width: 80px; font-weight: 900; font-size: 14px; border-radius: 4px; text-align: center; }
         .history-item { padding: 8px 12px; border-bottom: 2px solid #ccc; background: #fff; border-left: 4px solid #002d4b; margin-bottom: 2px; }
         .hist-date { font-size: 11px; font-weight: 900; color: #666; }
+        .stat-table { width: 100%; border-collapse: collapse; text-align: center; font-weight: 900; margin-top: 5px; }
+        .stat-table td, .stat-table th { border: 1px solid #ddd; padding: 10px; }
     </style>
 </head>
 <body>
 
-<div class="header">BEKAS FAST - ADMIN PANEL</div>
+<div class="header">MITA BETTING - ADMIN PANEL</div>
 
 <div class="section">
     <div class="section-title" style="background: #d00000; display: flex; justify-content: space-between; padding: 8px 15px;">
@@ -38,7 +40,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposits (ማስገቢያ) - Auto Sync Active</div>
+    <div class="section-title">Deposits (ማስገቢያ)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -52,12 +54,36 @@
     <div id="user-list"></div>
 </div>
 
+<div class="section" style="text-align: center; padding: 15px; background: #fff0f0;">
+    <button onclick="clearAllDataExceptUsers()" style="background: #000; color: #fff; padding: 12px 20px; font-weight: 900; border-radius: 5px; cursor: pointer; border: 2px solid red; width: 95%; font-size: 14px;">
+        DELETE ALL DATA (EXCEPT USERS)
+    </button>
+</div>
+
 <div class="section">
     <div class="section-title" style="display:flex; justify-content: space-around; align-items: center;">
         Transaction History 
         <button onclick="if(confirm('Clear All?')) database.ref('transaction_history').remove();" style="font-size:10px;">CLEAR</button>
     </div>
     <div id="history-list" style="max-height: 400px; overflow-y: auto;"></div>
+</div>
+
+<div class="section">
+    <div class="section-title">24H Game Stats</div>
+    <table class="stat-table">
+        <tr style="background: #eee; font-size: 12px;">
+            <th>Play 1</th>
+            <th>Play 2</th>
+            <th>Play 3</th>
+            <th>Play 4</th>
+        </tr>
+        <tr>
+            <td id="stat-play1">0</td>
+            <td id="stat-play2">0</td>
+            <td id="stat-play3">0</td>
+            <td id="stat-play4">0</td>
+        </tr>
+    </table>
 </div>
 
 <script>
@@ -73,114 +99,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- የረሱ ሰዎችን ጥያቄ ከዳታቤዝ አምጥቶ ማሳያ ---
-    database.ref('password_requests').on('value', snap => {
-        const cont = document.getElementById('lost-pw-list'); 
-        cont.innerHTML = "";
-        snap.forEach(child => {
-            const r = child.val();
-            cont.innerHTML += `
-                <div class="card" style="border-left: 5px solid #d00000;">
-                    <div class="row">
-                        <span class="phone-text">${r.phone}</span>
-                        <span class="user-name">${r.username || 'User'}</span>
-                    </div>
-                    <div class="row" style="margin-top:5px;">
-                        <span style="font-size:11px; color:#666; font-weight:900;">${r.time}</span>
-                        <button class="btn-red" style="padding: 4px 10px;" onclick="database.ref('password_requests/${child.key}').remove()">DONE</button>
-                    </div>
-                </div>`;
-        });
-    });
-
-    // (ሌላው ቀድሞ የነበረው ኮድ ይቀጥላል...)
-    database.ref('incoming_sms').on('child_added', snap => {
-        const sms = snap.val();
-        const message = sms.msg || sms.message || ""; 
-        const transIdMatch = message.match(/transaction number is ([A-Z0-9]{10})/i); 
-        const amountMatch = message.match(/received ETB\s*(\d+(\.\d{1,2})?)/i);
-
-        if (transIdMatch && amountMatch) {
-            const detectedCode = transIdMatch[1];
-            const detectedAmount = parseFloat(amountMatch[1]);
-
-            database.ref('used_transactions/' + detectedCode).once('value', usedSnap => {
-                if (usedSnap.exists()) {
-                    database.ref('incoming_sms/' + snap.key).remove(); 
-                    return;
-                }
-                database.ref('deposit_requests').once('value', dSnap => {
-                    dSnap.forEach(child => {
-                        const req = child.val();
-                        if (req.transactionCode === detectedCode && parseFloat(req.amount) === detectedAmount) {
-                            autoApprove(child.key, req.phone, detectedAmount, detectedCode);
-                            database.ref('incoming_sms/' + snap.key).remove(); 
-                        }
-                    });
-                });
-            });
-        }
-    });
-
-    function autoApprove(reqId, phone, amt, code) {
-        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
-            logTransaction(phone, 'Auto-Deposit', amt);
-            database.ref('used_transactions/' + code).set({
-                usedAt: firebase.database.ServerValue.TIMESTAMP,
-                phone: phone,
-                amount: amt
-            });
-            if(reqId) database.ref('deposit_requests/' + reqId).remove();
-        });
-    }
-
-    database.ref('deposit_requests').on('value', snap => {
-        const cont = document.getElementById('dep-list'); cont.innerHTML = "";
-        snap.forEach(child => {
-            const r = child.val();
-            cont.innerHTML += `<div class="card">
-                <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold">${r.amount} ETB</span></div>
-                <div class="row" style="margin-top:5px;">
-                    <span class="trans-no-box">ID: ${r.transactionCode || 'N/A'}</span>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn-green" onclick="manualApprove('${child.key}', '${r.phone}', ${r.amount}, '${r.transactionCode}')">YES</button>
-                        <button class="btn-red" onclick="rejectDeposit('${child.key}')">NO</button>
-                    </div>
-                </div>
-            </div>`;
-        });
-    });
-
-    function manualApprove(reqId, phone, amt, code) {
-        if(confirm("Approve " + amt + " ETB for " + phone + "?")) autoApprove(reqId, phone, amt, code);
-    }
-
-    function rejectDeposit(reqId) {
-        if(confirm("ይህ የዲፖዚት ጥያቄ ይሰረዝ?")) {
-            database.ref('deposit_requests/' + reqId).remove();
-        }
-    }
-
-    database.ref('withdraw_requests').on('value', snap => {
-        const cont = document.getElementById('with-list'); cont.innerHTML = "";
-        snap.forEach(child => {
-            const r = child.val();
-            cont.innerHTML += `<div class="card">
-                <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold" style="color:#dc3545; background:#fff5f5;">${r.amount} ETB</span></div>
-                <div style="text-align:right; margin-top:5px;"><button class="btn-red" onclick="approveWithdraw('${child.key}', '${r.phone}', ${r.amount})">PAID</button></div>
-            </div>`;
-        });
-    });
-
-    function approveWithdraw(reqId, phone, amt) {
-        if(confirm("Mark as Paid?")) {
-            database.ref('users/' + phone + '/balance').transaction(c => (c >= amt ? c - amt : c)).then(() => {
-                logTransaction(phone, 'Withdraw', amt);
-                database.ref('withdraw_requests/' + reqId).remove();
-            });
-        }
-    }
-
+    // User List (5-digit limit)
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -190,15 +109,26 @@
                 <div class="row" style="margin-top:8px;">
                     <span style="font-weight:900; font-size:14px;">BAL: ${(u.balance || 0).toFixed(0)}</span>
                     <div style="display:flex; gap:5px;">
-                        <input type="number" id="amt-${phone}" placeholder="Amt">
+                        <input type="number" id="amt-${phone}" placeholder="Amt" oninput="if(this.value.length > 5) this.value = this.value.slice(0,5);">
                         <button class="btn-green" onclick="adjustBal('${phone}', 'add')">+</button>
                         <button class="btn-red" onclick="adjustBal('${phone}', 'sub')">-</button>
-                        <button class="btn-red" style="background:#000; margin-left:10px;" onclick="deleteAccount('${phone}')">DELETE</button>
+                        <button class="btn-red" style="background:#000; margin-left:10px;" onclick="deleteAccount('${phone}')">DEL</button>
                     </div>
                 </div>
             </div>`;
         });
     });
+
+    function clearAllDataExceptUsers() {
+        if(confirm("Are you sure you want to delete all transaction data? (User accounts will not be deleted)")) {
+            database.ref('deposit_requests').remove();
+            database.ref('withdraw_requests').remove();
+            database.ref('transaction_history').remove();
+            database.ref('password_requests').remove();
+            database.ref('used_transactions').remove();
+            alert("All transaction data has been cleared.");
+        }
+    }
 
     function adjustBal(phone, type) {
         const el = document.getElementById('amt-' + phone); const v = parseFloat(el.value); if(!v) return;
@@ -207,28 +137,48 @@
         });
     }
 
-    function deleteAccount(phone) {
-        if(confirm(phone + " ቁጥር ያለው አካውንት ለዘላለም ይጥፋ?")) {
-            database.ref('users/' + phone).remove();
-        }
-    }
-
-    database.ref('transaction_history').limitToLast(20).on('value', snap => {
-        const cont = document.getElementById('history-list'); cont.innerHTML = "";
-        let items = [];
-        snap.forEach(child => {
-            const h = child.val(); const isPos = (h.type.includes('Deposit') || h.type.includes('Add'));
-            items.unshift(`<div class="history-item">
-                <div class="row"><span style="font-size:13px; font-weight:800;">${h.phone}</span><span style="color:${isPos?'#28a745':'#dc3545'}; font-weight:900;">${h.amount} ETB</span></div>
-                <div class="row"><span style="font-size:11px; font-weight:700;">${h.type.toUpperCase()}</span><span class="hist-date">${h.time || ''}</span></div>
-            </div>`);
+    function updateGameStats() {
+        const now = Date.now();
+        const oneDayAgo = now - (24 * 60 * 60 * 1000);
+        ['play1', 'play2', 'play3', 'play4'].forEach(type => {
+            database.ref('games/' + type).orderByChild('timestamp').startAt(oneDayAgo).on('value', snap => {
+                document.getElementById('stat-' + type).innerText = snap.numChildren();
+            });
         });
-        cont.innerHTML = items.join("");
+    }
+    updateGameStats();
+
+    // Firebase Listeners (Existing)
+    database.ref('password_requests').on('value', snap => {
+        const cont = document.getElementById('lost-pw-list'); cont.innerHTML = "";
+        snap.forEach(child => {
+            const r = child.val();
+            cont.innerHTML += `<div class="card" style="border-left: 5px solid #d00000;">
+                <div class="row"><span class="phone-text">${r.phone}</span><span class="user-name">${r.username || ''}</span></div>
+                <div class="row" style="margin-top:5px;"><span>${r.time}</span><button class="btn-red" onclick="database.ref('password_requests/${child.key}').remove()">DONE</button></div>
+            </div>`;
+        });
+    });
+
+    database.ref('deposit_requests').on('value', snap => {
+        const cont = document.getElementById('dep-list'); cont.innerHTML = "";
+        snap.forEach(child => {
+            const r = child.val();
+            cont.innerHTML += `<div class="card">
+                <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold">${r.amount} ETB</span></div>
+                <div class="row" style="margin-top:5px;"><span class="trans-no-box">ID: ${r.transactionCode || 'N/A'}</span>
+                <button class="btn-green" onclick="manualApprove('${child.key}', '${r.phone}', ${r.amount}, '${r.transactionCode}')">YES</button></div>
+            </div>`;
+        });
     });
 
     function logTransaction(phone, type, amount) {
         const now = new Date(); const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + now.toLocaleDateString();
         database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
+    }
+
+    function deleteAccount(phone) {
+        if(confirm("Delete account " + phone + "?")) database.ref('users/' + phone).remove();
     }
 </script>
 </body>
