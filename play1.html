@@ -52,9 +52,7 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav">
-        <a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a>
-    </div>
+    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -74,8 +72,7 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "";
-    let balance = 0;
+    let userName = "", balance = 0;
 
     if (!userPhone) {
         window.location.replace("index.html");
@@ -104,7 +101,6 @@
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
-        // 10ቱም ቁጥር ሲመረጥ እና ጨዋታው ገና ካልጀመረ ብቻ
         if (Object.keys(selections).length === 10 && !isPlaying) {
             prepareGame();
         }
@@ -113,9 +109,11 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
+        const cellRef = gameRef.child(n);
+
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
-            gameRef.child(n).remove();
+            cellRef.remove();
             msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
             msg.style.color = "orange";
             return;
@@ -127,7 +125,11 @@
             return; 
         }
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        gameRef.child(n).set(userName);
+        
+        // አዲሱ ማስተካከያ: set() ከተደረገ በኋላ onDisconnect() መጨመር
+        cellRef.set(userName);
+        cellRef.onDisconnect().remove(); 
+        
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
@@ -135,20 +137,14 @@
     function prepareGame() {
         isPlaying = true;
         const firstPlayerKey = Object.keys(selections).sort()[0];
-
-        // ውጤቱን የሚመርጠው የመጀመሪያው ተጫዋች ብቻ ነው
         if (selections[firstPlayerKey] === userName) {
-            resultRef.remove().then(() => {
-                let win = Math.floor(Math.random() * 10) + 1;
-                resultRef.set({ winningNum: win, timestamp: Date.now() });
-            });
+            let win = Math.floor(Math.random() * 10) + 1;
+            resultRef.set({ winningNum: win, timestamp: Date.now() });
         }
-
-        // ሁሉም ተጫዋቾች አዲሱ ውጤት እስኪመጣ ይጠብቃሉ
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
             if (data && data.winningNum) {
-                resultRef.off('value', listenForResult); // ደጋግሞ እንዳይጠራ
+                resultRef.off('value', listenForResult);
                 runAnimation(data.winningNum);
             }
         });
@@ -158,17 +154,16 @@
         const msg = document.getElementById('msg-box');
         msg.innerHTML = trans[currentLang].luck;
         msg.style.color = "#002d4b";
-
-        let counter = 0, speed = 80; 
+        let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 10) + 1;
-            document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
-
+            const el = document.getElementById(`c-${tempIdx}`);
+            if(el) el.classList.add('anim-active');
             counter += speed;
             if (counter >= 3000) { 
                 clearInterval(animationInterval);
-                finishGame(win); // የመጣውን ትክክለኛ ቁጥር እንልካለን
+                finishGame(win);
             }
         }, speed);
     }
@@ -177,10 +172,8 @@
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-        
         const winCell = document.getElementById(`c-${win}`);
-        winCell.classList.add('winner-cell');
-
+        if(winCell) winCell.classList.add('winner-cell');
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 90 });
@@ -190,18 +183,17 @@
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
         }
-
         setTimeout(() => {
             const firstPlayerKey = Object.keys(selections).sort()[0];
             if (selections[firstPlayerKey] === userName) {
                 gameRef.remove();
-                resultRef.remove(); // ውጤቱን እና ጨዋታውን እናጠፋለን
+                resultRef.remove();
             }
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
             msg.innerText = "";
-            winCell.classList.remove('winner-cell');
+            if(winCell) winCell.classList.remove('winner-cell');
         }, 5000);
     }
 
