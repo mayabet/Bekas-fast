@@ -83,6 +83,9 @@
                 userName = data.username;
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
+            } else {
+                localStorage.removeItem('userPhone');
+                window.location.replace("index.html");
             }
         });
     }
@@ -168,6 +171,13 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
         winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // ለ Admin Panel ታሪክ መመዝገቢያ
+        database.ref('games/play4').push({
+            number: win,
+            timestamp: Date.now()
+        });
+        
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 900 });
@@ -199,15 +209,12 @@
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
-            
-            // የተሻሻለ ክፍል: በዳታቤዝ ውስጥ ያሉትን ብቻ ዝርዝር ውስጥ ያሳያል
             if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
     }
 
-    window.onbeforeunload = null;
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     setInterval(updateClock, 1000); updateClock();
