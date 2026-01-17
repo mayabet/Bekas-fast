@@ -83,6 +83,13 @@
                 userName = data.username;
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
+            } else {
+                // አካውንቱ ከተሰረዘ የተያዙ ቁጥሮችን ያጠፋል
+                for(let i=1; i<=50; i++) {
+                    if(selections[i] === userName) gameRef.child(i).remove();
+                }
+                localStorage.clear();
+                window.location.replace("index.html");
             }
         });
     }
