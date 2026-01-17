@@ -74,7 +74,6 @@
     const userPhone = localStorage.getItem('userPhone');
     let userName = "", balance = 0;
 
-    // 1. የተጠቃሚ ማረጋገጫ (Security Check)
     if (!userPhone) {
         window.location.replace("index.html");
     } else {
@@ -85,7 +84,6 @@
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
             } else {
-                // ዳታቤዝ ውስጥ የሌለ ተጠቃሚ (test2) ከሆነ ያስወጣው
                 localStorage.removeItem('userPhone');
                 window.location.replace("index.html");
             }
@@ -166,6 +164,12 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
         
+        // ለ Admin Panel መረጃ መመዝገቢያ (የጨመረ ኮድ)
+        database.ref('games/play1').push({
+            number: win,
+            timestamp: Date.now()
+        });
+
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         
         if(selections[win] === userName) {
