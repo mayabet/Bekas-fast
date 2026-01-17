@@ -109,11 +109,9 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        const cellRef = gameRef.child(n);
-
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
-            cellRef.remove();
+            gameRef.child(n).remove();
             msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
             msg.style.color = "orange";
             return;
@@ -124,13 +122,8 @@
             msg.style.color = "red"; 
             return; 
         }
-
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
-        
-        // ቁጥሩን መመዝገብ እና onDisconnect መጨመር
-        cellRef.set(userName);
-        cellRef.onDisconnect().remove(); 
-        
+        gameRef.child(n).set(userName);
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
@@ -159,8 +152,7 @@
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 50) + 1;
-            const el = document.getElementById(`c-${tempIdx}`);
-            if(el) el.classList.add('anim-active');
+            document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
             if (counter >= 4000) { 
                 clearInterval(animationInterval);
@@ -174,10 +166,8 @@
         document.getElementById('last-val').innerText = win;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         const winCell = document.getElementById(`c-${win}`);
-        if(winCell) {
-            winCell.classList.add('winner-cell');
-            winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        winCell.classList.add('winner-cell');
+        winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 900 });
@@ -197,19 +187,26 @@
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
             msg.innerText = "";
-            if(winCell) winCell.classList.remove('winner-cell');
+            winCell.classList.remove('winner-cell');
         }, 5000);
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table'); table.innerHTML = "";
+        const table = document.getElementById('sel-table'); 
+        table.innerHTML = "";
         for(let i=1; i<=50; i++) {
             const cell = document.getElementById(`c-${i}`);
-            let occupant = selections[i] || "";
-            if (occupant === userName) cell.className = "num-cell user-selected";
-            else if (occupant !== "") cell.className = "num-cell taken-cell";
-            else cell.className = "num-cell";
-            if (occupant !== "") {
+            let occupant = selections[i];
+
+            if (!occupant) {
+                cell.className = "num-cell";
+            } else if (occupant === userName) {
+                cell.className = "num-cell user-selected";
+            } else {
+                cell.className = "num-cell taken-cell";
+            }
+
+            if (occupant) {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
