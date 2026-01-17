@@ -72,33 +72,25 @@
     const resultRef = database.ref('live_game/play4_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0, userExists = false;
+    let userName = "", balance = 0;
 
     if (!userPhone) {
         window.location.replace("index.html");
     } else {
-        // ተጠቃሚው መኖሩን በቋሚነት እንከታተላለን
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data && data.username) {
+            if (data) {
                 userName = data.username;
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
-                userExists = true;
-            } else {
-                // ተጠቃሚው ከሌለ ወይም ስም ከሌለው እንዲጫወት አንፈቅድም
-                userExists = false;
-                userName = "";
-                // አማራጭ፡ ተጠቃሚው በዳታቤዝ ከሌለ ወደ index.html እንዲመለስ ማድረግ ትችላለህ
-                // window.location.replace("index.html");
             }
         });
     }
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', invalid: 'ተጠቃሚው አልተመዘገበም!'},
-        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', invalid: 'USER NOT REGISTERED!'}
+        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
+        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -117,14 +109,6 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-
-        // *** ዋናው ማስተካከያ፡ ተጠቃሚው ዳታቤዝ ውስጥ ከሌለ ቁጥር እንዳይይዝ ይከለክላል ***
-        if (!userExists || userName === "") {
-            msg.innerHTML = trans[currentLang].invalid;
-            msg.style.color = "red";
-            return;
-        }
-
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
@@ -212,9 +196,11 @@
         for(let i=1; i<=50; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            if (occupant === userName && userName !== "") cell.className = "num-cell user-selected";
+            if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
+            
+            // የተሻሻለ ክፍል: በዳታቤዝ ውስጥ ያሉትን ብቻ ዝርዝር ውስጥ ያሳያል
             if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
