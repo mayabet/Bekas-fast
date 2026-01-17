@@ -74,7 +74,6 @@
     const userPhone = localStorage.getItem('userPhone');
     let userName = "", balance = 0;
 
-    // 1. የተጠቃሚ ማረጋገጫ (Security Check)
     if (!userPhone) {
         window.location.replace("index.html");
     } else {
@@ -85,7 +84,6 @@
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
             } else {
-                // ዳታቤዝ ውስጥ የሌለ ተጠቃሚ ከሆነ አስወጣው
                 localStorage.removeItem('userPhone');
                 window.location.replace("index.html");
             }
@@ -103,7 +101,6 @@
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    // 2. ዳታቤዝ ክትትል
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
@@ -115,8 +112,6 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        
-        // የራስን ምርጫ መሰረዝ
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
             gameRef.child(n).remove();
@@ -124,15 +119,12 @@
             msg.style.color = "orange";
             return;
         }
-        
         if (selections[n]) return;
-        
         if (balance < 10) { 
             msg.innerHTML = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
-
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
@@ -142,13 +134,10 @@
     function prepareGame() {
         isPlaying = true;
         const playerKeys = Object.keys(selections).sort();
-        const firstPlayerKey = playerKeys[0];
-        
-        if (selections[firstPlayerKey] === userName) {
+        if (selections[playerKeys[0]] === userName) {
             let win = Math.floor(Math.random() * 20) + 1;
             resultRef.set({ winningNum: win, timestamp: Date.now() });
         }
-        
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
             if (data && data.winningNum) {
@@ -161,7 +150,6 @@
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
         msg.innerHTML = trans[currentLang].luck;
-        msg.style.color = "#002d4b";
         let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
@@ -181,9 +169,14 @@
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
+
+        // ለ Admin Panel ታሪክ መመዝገቢያ
+        database.ref('games/play2').push({
+            number: win,
+            timestamp: Date.now()
+        });
         
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
-        
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 180 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
@@ -193,7 +186,6 @@
             msg.style.color = "red";
         }
 
-        // 3. ዳታቤዝን ለቀጣይ ዙር ማጽዳት
         setTimeout(() => {
             const playerKeys = Object.keys(selections).sort();
             if (selections[playerKeys[0]] === userName) {
@@ -216,14 +208,12 @@
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
-            
             if (occupant !== "") {
-                table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+                table.innerHTML += `<tr><td class=\"id-col\">${i}</td><td>${occupant}</td></tr>`;
             }
         }
     }
 
-    window.onbeforeunload = null;
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     setInterval(updateClock, 1000); updateClock();
