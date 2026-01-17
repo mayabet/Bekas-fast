@@ -74,6 +74,7 @@
     const userPhone = localStorage.getItem('userPhone');
     let userName = "", balance = 0;
 
+    // 1. የተጠቃሚ ማረጋገጫ (Security Check)
     if (!userPhone) {
         window.location.replace("index.html");
     } else {
@@ -83,6 +84,10 @@
                 userName = data.username;
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
+            } else {
+                // ዳታቤዝ ውስጥ የሌለ ተጠቃሚ ከሆነ አስወጣው
+                localStorage.removeItem('userPhone');
+                window.location.replace("index.html");
             }
         });
     }
@@ -98,6 +103,7 @@
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
+    // 2. ዳታቤዝ ክትትል
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
@@ -109,6 +115,8 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
+        
+        // የራስን ምርጫ መሰረዝ
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
             gameRef.child(n).remove();
@@ -116,12 +124,15 @@
             msg.style.color = "orange";
             return;
         }
+        
         if (selections[n]) return;
+        
         if (balance < 10) { 
             msg.innerHTML = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
+
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
@@ -130,11 +141,14 @@
 
     function prepareGame() {
         isPlaying = true;
-        const firstPlayerKey = Object.keys(selections).sort()[0];
+        const playerKeys = Object.keys(selections).sort();
+        const firstPlayerKey = playerKeys[0];
+        
         if (selections[firstPlayerKey] === userName) {
             let win = Math.floor(Math.random() * 20) + 1;
             resultRef.set({ winningNum: win, timestamp: Date.now() });
         }
+        
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
             if (data && data.winningNum) {
@@ -167,7 +181,9 @@
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
+        
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
+        
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 180 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
@@ -176,11 +192,13 @@
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
         }
+
+        // 3. ዳታቤዝን ለቀጣይ ዙር ማጽዳት
         setTimeout(() => {
-            const firstPlayerKey = Object.keys(selections).sort()[0];
-            if (selections[firstPlayerKey] === userName) {
-                gameRef.remove();
-                resultRef.remove();
+            const playerKeys = Object.keys(selections).sort();
+            if (selections[playerKeys[0]] === userName) {
+                gameRef.set(null); 
+                resultRef.set(null);
             }
             round++;
             document.getElementById('round-val').innerText = round;
@@ -191,21 +209,15 @@
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table'); 
-        table.innerHTML = "";
+        const table = document.getElementById('sel-table'); table.innerHTML = "";
         for(let i=1; i<=20; i++) {
             const cell = document.getElementById(`c-${i}`);
-            let occupant = selections[i];
-
-            if (!occupant) {
-                cell.className = "num-cell";
-            } else if (occupant === userName) {
-                cell.className = "num-cell user-selected";
-            } else {
-                cell.className = "num-cell taken-cell";
-            }
-
-            if (occupant) {
+            let occupant = selections[i] || "";
+            if (occupant === userName) cell.className = "num-cell user-selected";
+            else if (occupant !== "") cell.className = "num-cell taken-cell";
+            else cell.className = "num-cell";
+            
+            if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
