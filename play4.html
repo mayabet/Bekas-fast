@@ -72,9 +72,8 @@
     const resultRef = database.ref('live_game/play4_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0;
+    let userName = "", balance = 0, userExists = false; // userExists አዲስ ተጨምሯል
 
-    // 1. የተጠቃሚ ማረጋገጫ (Security Check)
     if (!userPhone) {
         window.location.replace("index.html");
     } else {
@@ -84,18 +83,18 @@
                 userName = data.username;
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
+                userExists = true; // ተጠቃሚው ካለ true ይሆናል
             } else {
-                // ተጠቃሚው ዳታቤዝ ውስጥ ከሌለ አስወጣው (ለምሳሌ test2)
-                localStorage.removeItem('userPhone');
-                window.location.replace("index.html");
+                userExists = false; // ተጠቃሚው በዳታቤዝ ከሌለ
+                userName = "";
             }
         });
     }
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
-        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
+        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', error: 'ተጠቃሚው አልተገኘም!'},
+        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', error: 'USER NOT REGISTERED!'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -103,7 +102,6 @@
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    // 2. ዳታቤዝ ክትትል
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
@@ -115,8 +113,14 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        
-        // የራስን ምርጫ መሰረዝ
+
+        // ተጠቃሚው በዳታቤዝ ውስጥ መኖሩን እና ስም እንዳለው ማረጋገጫ
+        if (!userExists || !userName || userName === "") {
+            msg.innerHTML = trans[currentLang].error;
+            msg.style.color = "red";
+            return;
+        }
+
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
@@ -124,16 +128,15 @@
             msg.style.color = "orange";
             return;
         }
-        
-        if (selections[n]) return; // በሌላ ሰው የተያዘ
-        
+
+        if (selections[n]) return;
+
         if (balance < 20) { 
             msg.innerHTML = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
-        // ቁጥር መመዝገብ
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
@@ -142,14 +145,11 @@
 
     function prepareGame() {
         isPlaying = true;
-        const playerKeys = Object.keys(selections).sort();
-        const firstPlayerKey = playerKeys[0];
-        
+        const firstPlayerKey = Object.keys(selections).sort()[0];
         if (selections[firstPlayerKey] === userName) {
             let win = Math.floor(Math.random() * 50) + 1;
             resultRef.set({ winningNum: win, timestamp: Date.now() });
         }
-
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
             if (data && data.winningNum) {
@@ -183,9 +183,7 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
         winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
-        
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 900 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
@@ -194,13 +192,11 @@
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
         }
-
-        // 3. ዳታቤዝን የማጽዳት ሂደት (ለቀጣይ ዙር)
         setTimeout(() => {
-            const playerKeys = Object.keys(selections).sort();
-            if (selections[playerKeys[0]] === userName) {
-                gameRef.set(null); // ዳታቤዙን ባዶ ያደርገዋል
-                resultRef.set(null);
+            const firstPlayerKey = Object.keys(selections).sort()[0];
+            if (selections[firstPlayerKey] === userName) {
+                gameRef.remove();
+                resultRef.remove();
             }
             round++;
             document.getElementById('round-val').innerText = round;
@@ -215,16 +211,16 @@
         for(let i=1; i<=50; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            if (occupant === userName) cell.className = "num-cell user-selected";
+            if (occupant === userName && userName !== "") cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
-            
             if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
     }
 
+    window.onbeforeunload = null;
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     setInterval(updateClock, 1000); updateClock();
