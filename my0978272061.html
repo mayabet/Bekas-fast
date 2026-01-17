@@ -99,7 +99,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // User List (5-digit limit)
+    // User List (5-digit limit & multiples of 10)
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -109,7 +109,7 @@
                 <div class="row" style="margin-top:8px;">
                     <span style="font-weight:900; font-size:14px;">BAL: ${(u.balance || 0).toFixed(0)}</span>
                     <div style="display:flex; gap:5px;">
-                        <input type="number" id="amt-${phone}" placeholder="Amt" oninput="if(this.value.length > 5) this.value = this.value.slice(0,5);">
+                        <input type="number" id="amt-${phone}" placeholder="10,20.." step="10" oninput="if(this.value.length > 5) this.value = this.value.slice(0,5);">
                         <button class="btn-green" onclick="adjustBal('${phone}', 'add')">+</button>
                         <button class="btn-red" onclick="adjustBal('${phone}', 'sub')">-</button>
                         <button class="btn-red" style="background:#000; margin-left:10px;" onclick="deleteAccount('${phone}')">DEL</button>
@@ -118,6 +118,22 @@
             </div>`;
         });
     });
+
+    function adjustBal(phone, type) {
+        const el = document.getElementById('amt-' + phone); 
+        const v = parseInt(el.value); 
+        
+        // 10 ena be 10 betochen bcha masegebiya check
+        if (!v || v < 10 || v % 10 !== 0) {
+            alert("Error: Please enter 10 or multiples of 10 (e.g. 10, 20, 100)!");
+            return;
+        }
+
+        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
+            logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v); 
+            el.value = "";
+        });
+    }
 
     function clearAllDataExceptUsers() {
         if(confirm("Are you sure you want to delete all transaction data? (User accounts will not be deleted)")) {
@@ -128,13 +144,6 @@
             database.ref('used_transactions').remove();
             alert("All transaction data has been cleared.");
         }
-    }
-
-    function adjustBal(phone, type) {
-        const el = document.getElementById('amt-' + phone); const v = parseFloat(el.value); if(!v) return;
-        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
-            logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v); el.value = "";
-        });
     }
 
     function updateGameStats() {
@@ -148,7 +157,7 @@
     }
     updateGameStats();
 
-    // Firebase Listeners (Existing)
+    // Firebase Listeners
     database.ref('password_requests').on('value', snap => {
         const cont = document.getElementById('lost-pw-list'); cont.innerHTML = "";
         snap.forEach(child => {
