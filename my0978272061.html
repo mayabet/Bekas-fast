@@ -108,7 +108,7 @@
                 <div class="row" style="margin-top:8px;">
                     <span style="font-weight:900; font-size:14px;">BAL: ${(u.balance || 0).toFixed(2)} ETB</span>
                     <div style="display:flex; gap:5px;">
-                        <input type="number" id="amt-${phone}" placeholder="Amount">
+                        <input type="number" id="amt-${phone}" placeholder="Amount" oninput="if(this.value.length > 5) this.value = this.value.slice(0,5);">
                         <button class="btn-green" onclick="adjustBal('${phone}', 'add')">+</button>
                         <button class="btn-red" onclick="adjustBal('${phone}', 'sub')">-</button>
                         <button class="btn-red" style="background:#000; margin-left:10px;" onclick="deleteAccount('${phone}')">DEL</button>
@@ -120,11 +120,20 @@
 
     function adjustBal(phone, type) {
         const el = document.getElementById('amt-' + phone);
-        const v = parseInt(el.value);
-        if(!v || v < 1) return;
+        const valStr = el.value;
+        const v = parseInt(valStr);
+        
+        // ማስተካከያ፡ 5 ዲጂት ብቻ መሆኑን እና የ10 ብዜት መሆኑን ማረጋገጫ
+        if (!v || v < 10 || v % 10 !== 0 || valStr.length > 5) {
+            alert("ስህተት፡ እስከ 5 ዲጂት እና የ10 ብዜት የሆነ ቁጥር ብቻ ያስገቡ (ለምሳሌ፦ 10, 100, 50000)!");
+            el.value = "";
+            return;
+        }
+
         database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
             logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v);
             el.value = "";
+            alert("ተሳክቷል!");
         });
     }
 
@@ -189,7 +198,7 @@
     });
 
     function logTransaction(phone, type, amount) {
-        const now = new Date(); const timeStr = now.toLocaleTimeString() + " | " + now.toLocaleDateString();
+        const now = new Date(); const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + now.toLocaleDateString();
         database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
     }
 
