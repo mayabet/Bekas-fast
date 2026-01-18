@@ -112,6 +112,8 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
+        
+        // የራሱን ቁጥር ለመሰረዝ
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
@@ -119,12 +121,18 @@
             msg.style.color = "orange";
             return;
         }
+
+        // ቁጥሩ በሌላ ሰው ተይዞ ከሆነ ዝም ይበል
         if (selections[n]) return;
+
+        // ሂሳብ ከሌለው
         if (balance < 20) { 
             msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
+
+        // አዲስ ቁጥር መምረጥ
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
@@ -133,8 +141,8 @@
 
     function prepareGame() {
         isPlaying = true;
-        const playerKeys = Object.keys(selections).sort();
-        if (selections[playerKeys[0]] === userName) {
+        const keys = Object.keys(selections).sort((a,b) => a-b);
+        if (selections[keys[0]] === userName) {
             let win = Math.floor(Math.random() * 20) + 1;
             resultRef.set({ winningNum: win, timestamp: Date.now() });
         }
@@ -150,6 +158,7 @@
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
         msg.innerText = trans[currentLang].luck;
+        msg.style.color = "#002d4b";
         let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
@@ -170,7 +179,6 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
 
-        // ለ Admin Panel መረጃ መመዝገቢያ
         database.ref('games/play3').push({
             number: win,
             timestamp: Date.now()
@@ -187,8 +195,8 @@
         }
 
         setTimeout(() => {
-            const playerKeys = Object.keys(selections).sort();
-            if (selections[playerKeys[0]] === userName) {
+            const keys = Object.keys(selections).sort((a,b) => a-b);
+            if (selections[keys[0]] === userName) {
                 gameRef.set(null); 
                 resultRef.set(null);
             }
@@ -201,13 +209,16 @@
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table'); table.innerHTML = "";
+        const table = document.getElementById('sel-table'); 
+        table.innerHTML = "";
         for(let i=1; i<=20; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
+            
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
+            
             if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
