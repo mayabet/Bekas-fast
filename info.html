@@ -24,8 +24,9 @@
         .btn-container { padding: 10px 20px; background: #fff; }
         .back-btn { width: 100%; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 16px; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; background: #001f3f; color: white; }
         
-        .footer { padding: 8px 15px; display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; background: #fff; }
+        .footer { padding: 8px 15px; display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; background: #fff; align-items: center; }
         .lang-btn { cursor: pointer; color: #002d4b; padding: 0 5px; }
+        .active-lang { color: #00b050 !important; font-size: 16px; }
         
         .content::-webkit-scrollbar { width: 5px; }
         .content::-webkit-scrollbar-thumb { background: #00b050; border-radius: 10px; }
@@ -73,14 +74,15 @@
     <div class="footer">
         <div id="l-text">LANGUAGE</div>
         <div>
-            <span class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
-            <span class="lang-btn" onclick="setLang('en')">ENGLISH</span>
+            <span id="am-btn" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="en-btn" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
         </div>
     </div>
 </div>
 
 <script>
-    let currentLang = 'am';
+    // ሲጀመር English እንዲሆን ተደርጓል
+    let currentLang = 'en';
 
     function getRules(l) {
         if(l === 'am') {
@@ -132,10 +134,24 @@
         document.getElementById('contact-title-text').innerText = l === 'am' ? 'ተጨማሪ መረጃዎች' : 'CONTACT INFORMATION';
         document.getElementById('back-btn-text').innerText = l === 'am' ? 'ተመለስ' : 'BACK';
         document.getElementById('l-text').innerText = l === 'am' ? 'ቋንቋ' : 'LANGUAGE';
+        
+        // አረንጓዴ ቀለምን ለመቀየር
+        const amBtn = document.getElementById('am-btn');
+        const enBtn = document.getElementById('en-btn');
+        
+        if (l === 'am') {
+            amBtn.classList.add('active-lang');
+            enBtn.classList.remove('active-lang');
+        } else {
+            enBtn.classList.add('active-lang');
+            amBtn.classList.remove('active-lang');
+        }
+        
         displayRules();
     }
 
-    displayRules();
+    // ገጹ ሲጀመር እንዲሰራ
+    setLang('en');
 </script>
 
 </body>
