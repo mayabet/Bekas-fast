@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="am">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -33,18 +33,18 @@
 <div class="section">
     <div class="section-title" style="background: #d00000; display: flex; justify-content: space-between; padding: 8px 15px;">
         <span>Lost Password Requests</span>
-        <button onclick="if(confirm('ሁሉንም ጥያቄዎች ላጥፋ?')) database.ref('password_requests').remove();" style="font-size:10px; cursor:pointer;">CLEAR ALL</button>
+        <button onclick="if(confirm('Clear all requests?')) database.ref('password_requests').remove();" style="font-size:10px; cursor:pointer;">CLEAR ALL</button>
     </div>
     <div id="lost-pw-list"></div>
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests (ማስገቢያ)</div>
+    <div class="section-title">Deposit Requests</div>
     <div id="dep-list"></div>
 </div>
 
 <div class="section">
-    <div class="section-title">Withdrawal Requests (ማውጫ)</div>
+    <div class="section-title">Withdrawal Requests</div>
     <div id="with-list"></div>
 </div>
 
@@ -54,7 +54,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">24H Game Stats (የተደረጉ ጨዋታዎች)</div>
+    <div class="section-title">24H Game Stats</div>
     <table class="stat-table">
         <tr style="background: #eee; font-size: 12px;">
             <th>Play 1 (10)</th>
@@ -74,7 +74,7 @@
 <div class="section">
     <div class="section-title" style="display:flex; justify-content: space-around; align-items: center;">
         Transaction History 
-        <button onclick="if(confirm('ታሪኩ ይጥፋ?')) database.ref('transaction_history').remove();" style="font-size:10px;">CLEAR</button>
+        <button onclick="if(confirm('Clear history?')) database.ref('transaction_history').remove();" style="font-size:10px;">CLEAR</button>
     </div>
     <div id="history-list" style="max-height: 400px; overflow-y: auto;"></div>
 </div>
@@ -123,18 +123,18 @@
         const valStr = el.value;
         const v = parseInt(valStr);
         if (!v || v < 10 || v % 10 !== 0 || valStr.length > 5) {
-            alert("ስህተት፡ እስከ 5 ዲጂት እና የ10 ብዜት የሆነ ቁጥር ብቻ ያስገቡ!");
+            alert("Error: Enter multiple of 10, max 5 digits!");
             el.value = "";
             return;
         }
         database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
             logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v);
             el.value = "";
-            alert("ተሳክቷል!");
+            alert("Success!");
         });
     }
 
-    // --- 2. Deposit Approval ---
+    // --- 2. Deposit Approval (English Buttons) ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -142,17 +142,31 @@
             cont.innerHTML += `<div class="card">
                 <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold">${r.amount} ETB</span></div>
                 <div class="row" style="margin-top:5px;"><span class="trans-no-box">ID: ${r.transactionCode}</span>
-                <button class="btn-green" onclick="approveDep('${child.key}', '${r.phone}', ${r.amount})">APPROVE</button></div>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-green" onclick="approveDep('${child.key}', '${r.phone}', ${r.amount})">APPROVE</button>
+                    <button class="btn-red" onclick="declineDep('${child.key}', '${r.phone}', ${r.amount})">DECLINE</button>
+                </div>
+                </div>
             </div>`;
         });
     });
 
     function approveDep(key, phone, amt) {
-        database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
+        if(confirm("Approve " + amt + " ETB for " + phone + "?")) {
+            database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
+                database.ref('deposit_requests/' + key).remove();
+                logTransaction(phone, 'Deposit Approved', amt);
+                alert("Deposit Approved!");
+            });
+        }
+    }
+
+    function declineDep(key, phone, amt) {
+        if(confirm("Decline this request?")) {
             database.ref('deposit_requests/' + key).remove();
-            logTransaction(phone, 'Deposit Approved', amt);
-            alert("Approved!");
-        });
+            logTransaction(phone, 'Deposit Declined', amt);
+            alert("Request Deleted!");
+        }
     }
 
     // --- 3. Withdrawal Handling ---
@@ -211,22 +225,19 @@
     updateGameStats();
 
     function deleteAccount(phone) {
-        if(confirm("መለያውን ለመሰረዝ እርግጠኛ ነዎት?")) database.ref('users/' + phone).remove();
+        if(confirm("Delete this account permanently?")) database.ref('users/' + phone).remove();
     }
 
-    // --- 7. Clear All Logic (Including Stats) ---
+    // --- 7. Clear All Logic ---
     function clearAllDataExceptUsers() {
-        if(confirm("ተጠንቀቅ! ሁሉንም ታሪክ እና የጨዋታ ስታቲስቲክስ ያጠፋል። እርግጠኛ ነህ?")) {
+        if(confirm("Warning! This will clear all history and stats. Continue?")) {
             database.ref('deposit_requests').remove();
             database.ref('withdraw_requests').remove();
             database.ref('transaction_history').remove();
             database.ref('password_requests').remove();
             database.ref('used_transactions').remove();
-            
-            // የጨዋታውን ስታቲስቲክስ 0 ለማድረግ ዳታውን ማጥፋት
             database.ref('games').remove(); 
-            
-            alert("ሁሉም መረጃዎች ተሰርዘዋል! ስታቲስቲክስ ከ 0 ይጀምራል።");
+            alert("All data cleared!");
         }
     }
 </script>
