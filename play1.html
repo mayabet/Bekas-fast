@@ -112,6 +112,7 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
+        
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
@@ -120,7 +121,11 @@
             return;
         }
         if (selections[n]) return;
-        if (balance < 20) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
+        if (balance < 20) { 
+            msg.innerText = trans[currentLang].low; 
+            msg.style.color = "red"; 
+            return; 
+        }
 
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
@@ -130,8 +135,8 @@
 
     function prepareGame() {
         isPlaying = true;
-        const playerKeys = Object.keys(selections).sort();
-        if (selections[playerKeys[0]] === userName) {
+        const keys = Object.keys(selections).sort((a,b) => a-b);
+        if (selections[keys[0]] === userName) {
             let win = Math.floor(Math.random() * 10) + 1;
             resultRef.set({ winningNum: win, timestamp: Date.now() });
         }
@@ -147,13 +152,17 @@
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
         msg.innerText = trans[currentLang].luck;
+        msg.style.color = "#002d4b";
         let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 10) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
-            if (counter >= 3000) { clearInterval(animationInterval); finishGame(win); }
+            if (counter >= 3000) { 
+                clearInterval(animationInterval); 
+                finishGame(win); 
+            }
         }, speed);
     }
 
@@ -164,7 +173,6 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
         
-        // ለ Admin Panel መረጃ መመዝገቢያ (የጨመረ ኮድ)
         database.ref('games/play1').push({
             number: win,
             timestamp: Date.now()
@@ -182,8 +190,8 @@
         }
 
         setTimeout(() => {
-            const playerKeys = Object.keys(selections).sort();
-            if (selections[playerKeys[0]] === userName) {
+            const keys = Object.keys(selections).sort((a,b) => a-b);
+            if (selections[keys[0]] === userName) {
                 gameRef.set(null); 
                 resultRef.set(null);
             }
@@ -196,20 +204,22 @@
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table'); table.innerHTML = "";
+        const table = document.getElementById('sel-table'); 
+        table.innerHTML = "";
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
+            
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
+            
             if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
     }
 
-    window.onbeforeunload = null;
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     setInterval(updateClock, 1000); updateClock();
