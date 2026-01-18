@@ -112,6 +112,8 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
+        
+        // 1. ተጠቃሚው የራሱን ቁጥር ለመሰረዝ ከነካው ብቻ
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
@@ -119,12 +121,18 @@
             msg.style.color = "orange";
             return;
         }
+
+        // 2. ቁጥሩ በሌላ ሰው ተይዞ ከሆነ ዝም ይበል (አይካሄድም)
         if (selections[n]) return;
+
+        // 3. አዲስ ቁጥር ለመምረጥ
         if (balance < 20) { 
             msg.innerHTML = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
+
+        // ሂሳብ ቀንሰህ መዝግብ
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName);
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
@@ -133,7 +141,9 @@
 
     function prepareGame() {
         isPlaying = true;
-        const firstPlayerKey = Object.keys(selections).sort()[0];
+        const keys = Object.keys(selections).sort((a,b) => a-b);
+        const firstPlayerKey = keys[0];
+        
         if (selections[firstPlayerKey] === userName) {
             let win = Math.floor(Math.random() * 50) + 1;
             resultRef.set({ winningNum: win, timestamp: Date.now() });
@@ -172,7 +182,6 @@
         winCell.classList.add('winner-cell');
         winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-        // ለ Admin Panel ታሪክ መመዝገቢያ
         database.ref('games/play4').push({
             number: win,
             timestamp: Date.now()
@@ -188,7 +197,8 @@
             msg.style.color = "red";
         }
         setTimeout(() => {
-            const firstPlayerKey = Object.keys(selections).sort()[0];
+            const keys = Object.keys(selections).sort((a,b) => a-b);
+            const firstPlayerKey = keys[0];
             if (selections[firstPlayerKey] === userName) {
                 gameRef.remove();
                 resultRef.remove();
@@ -202,13 +212,17 @@
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table'); table.innerHTML = "";
+        const table = document.getElementById('sel-table'); 
+        table.innerHTML = "";
         for(let i=1; i<=50; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
+            
+            // የ CSS ክላስን ብቻ ቀይር፣ መልዕክት (msg-box) እዚህ ውስጥ እንዳይቀየር ተደርጓል
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
+            
             if (occupant !== "") {
                 table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
