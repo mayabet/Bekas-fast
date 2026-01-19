@@ -98,11 +98,18 @@
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
+    // ዳታቤዝ መከታተል
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
-        if (Object.keys(selections).length === 50 && !isPlaying) {
-            prepareGame();
+    });
+
+    // ውጤት መከታተል (ለሁሉም ተጫዋች እኩል ይጀምራል)
+    resultRef.on('value', (snap) => {
+        const data = snap.val();
+        if (data && data.status === "START_ANIMATION" && !isPlaying) {
+            isPlaying = true;
+            runAnimation(data.winningNum);
         }
     });
 
@@ -119,28 +126,26 @@
         if (balance < 20) { msg.innerHTML = trans[currentLang].low; msg.style.color = "red"; return; }
 
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
+        
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const currentData = snap.val() || {};
-                if (Object.keys(currentData).length === 50 && !isPlaying) {
+                const count = Object.keys(currentData).length;
+                
+                // 50ኛው ቁጥር ሲሞላ ብቻ እጣውን ያውጣል
+                if (count === 50 && !isPlaying) {
                     let win = Math.floor(Math.random() * 50) + 1;
-                    resultRef.set({ winningNum: win, timestamp: Date.now() });
+                    resultRef.set({ 
+                        winningNum: win, 
+                        timestamp: Date.now(),
+                        status: "START_ANIMATION"
+                    });
                 }
             });
         });
+
         msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
-    }
-
-    function prepareGame() {
-        isPlaying = true;
-        resultRef.on('value', function listenForResult(snap) {
-            const data = snap.val();
-            if (data && data.winningNum) {
-                resultRef.off('value', listenForResult);
-                runAnimation(data.winningNum);
-            }
-        });
     }
 
     function runAnimation(win) {
@@ -152,7 +157,10 @@
             let tempIdx = Math.floor(Math.random() * 50) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
-            if (counter >= 4000) { clearInterval(animationInterval); finishGame(win); }
+            if (counter >= 4000) { 
+                clearInterval(animationInterval); 
+                finishGame(win); 
+            }
         }, speed);
     }
 
@@ -178,6 +186,8 @@
         setTimeout(() => {
             const keys = Object.keys(selections).sort((a,b) => a-b);
             const firstPlayerKey = keys[0];
+            
+            // የጸዳበት ሁኔታ፡ የመጀመሪያው ተጫዋች ብቻ ዳታቤዙን ያጸዳል
             if (selections[firstPlayerKey] === userName) {
                 gameRef.set(null); 
                 resultRef.set(null);
@@ -203,7 +213,7 @@
         }
     }
 
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } }
+    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     setInterval(updateClock, 1000); updateClock();
 </script>
