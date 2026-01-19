@@ -16,7 +16,7 @@
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
-        .num-cell { border: 1px solid #002d4b; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
+        .num-cell { border: 1px solid #002d4b; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         .anim-active { background-color: #ff0000 !important; color: white !important; box-shadow: 0 0 15px #ff0000; z-index: 10; border: 2px solid #fff !important; }
@@ -39,10 +39,10 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">10 BIRR IN TO 180 BIRR</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title" id="gt">20 BIRR IN TO 180 BIRR</span><span class="plus18">18+</span></div>
     <div class="info-section"><div>DATE: <span id="date-label"></span></div><div>TIME: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
-    <div class="instruction" id="ins">SELECT NUMBER 1 UP 20</div>
+    <div class="instruction" id="ins">SELECT NUMBER 1 UP 10</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
         <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box" style="font-weight: 900;"></td></tr>
@@ -83,28 +83,25 @@
                 userName = data.username;
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
-            } else {
-                localStorage.removeItem('userPhone');
-                window.location.replace("index.html");
             }
         });
     }
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
-        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
+        'am': {gt:'20 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
+        'en': {gt:'20 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
     };
 
     const grid = document.getElementById('grid-container');
-    for(let i=1; i<=20; i++) {
+    for(let i=1; i<=10; i++) {
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
-        if (Object.keys(selections).length === 20 && !isPlaying) {
+        if (Object.keys(selections).length === 10 && !isPlaying) {
             prepareGame();
         }
     });
@@ -112,34 +109,31 @@
     function pick(n) {
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
-        
         if (selections[n] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 10 });
+            database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
-            msg.innerText = trans[currentLang].removed.replace('{n}', n);
-            msg.style.color = "orange";
+            msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
             return;
         }
         if (selections[n]) return;
-        if (balance < 10) { 
-            msg.innerText = trans[currentLang].low; 
-            msg.style.color = "red"; 
-            return; 
-        }
+        if (balance < 20) { msg.innerHTML = trans[currentLang].low; msg.style.color = "red"; return; }
 
-        database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        gameRef.child(n).set(userName);
-        msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        database.ref('users/' + userPhone).update({ balance: balance - 20 });
+        gameRef.child(n).set(userName).then(() => {
+            gameRef.once('value', (snap) => {
+                const currentData = snap.val() || {};
+                if (Object.keys(currentData).length === 10 && !isPlaying) {
+                    let win = Math.floor(Math.random() * 10) + 1;
+                    resultRef.set({ winningNum: win, timestamp: Date.now() });
+                }
+            });
+        });
+        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
 
     function prepareGame() {
         isPlaying = true;
-        const keys = Object.keys(selections).sort((a,b) => a-b);
-        if (selections[keys[0]] === userName) {
-            let win = Math.floor(Math.random() * 20) + 1;
-            resultRef.set({ winningNum: win, timestamp: Date.now() });
-        }
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
             if (data && data.winningNum) {
@@ -151,18 +145,14 @@
 
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
-        msg.innerText = trans[currentLang].luck;
-        msg.style.color = "#002d4b";
-        let counter = 0, speed = 80;
+        msg.innerHTML = trans[currentLang].luck;
+        let counter = 0, speed = 60;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-            let tempIdx = Math.floor(Math.random() * 20) + 1;
+            let tempIdx = Math.floor(Math.random() * 10) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
-            if (counter >= 3000) { 
-                clearInterval(animationInterval);
-                finishGame(win);
-            }
+            if (counter >= 4000) { clearInterval(animationInterval); finishGame(win); }
         }, speed);
     }
 
@@ -173,11 +163,7 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
 
-        database.ref('games/play2').push({
-            number: win,
-            timestamp: Date.now()
-        });
-        
+        database.ref('games/play2').push({ number: win, timestamp: Date.now() });
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 180 });
@@ -187,10 +173,11 @@
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
         }
-
+        
         setTimeout(() => {
             const keys = Object.keys(selections).sort((a,b) => a-b);
-            if (selections[keys[0]] === userName) {
+            const firstPlayerKey = keys[0];
+            if (selections[firstPlayerKey] === userName) {
                 gameRef.set(null); 
                 resultRef.set(null);
             }
@@ -205,21 +192,17 @@
     function updateUI() {
         const table = document.getElementById('sel-table'); 
         table.innerHTML = "";
-        for(let i=1; i<=20; i++) {
+        for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
-            
-            if (occupant !== "") {
-                table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
-            }
+            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
 
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } document.getElementById('l-am').classList.toggle('active', l==='am'); document.getElementById('l-en').classList.toggle('active', l==='en'); }
+    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } }
     function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     setInterval(updateClock, 1000); updateClock();
 </script>
