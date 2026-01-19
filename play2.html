@@ -31,7 +31,7 @@
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; }
+        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -113,29 +113,23 @@
         if(isPlaying) return;
         const msg = document.getElementById('msg-box');
         
-        // የራሱን ቁጥር ለመሰረዝ
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
             gameRef.child(n).remove();
-            msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
+            msg.innerText = trans[currentLang].removed.replace('{n}', n);
             msg.style.color = "orange";
             return;
         }
-
-        // ቁጥሩ በሌላ ሰው ተይዞ ከሆነ ዝም ይበል
         if (selections[n]) return;
-
-        // ሂሳብ ከሌለው
         if (balance < 10) { 
-            msg.innerHTML = trans[currentLang].low; 
+            msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
-        // አዲስ ቁጥር መምረጥ
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
-        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
+        msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
 
@@ -157,7 +151,7 @@
 
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
-        msg.innerHTML = trans[currentLang].luck;
+        msg.innerText = trans[currentLang].luck;
         msg.style.color = "#002d4b";
         let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
