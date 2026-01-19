@@ -16,7 +16,7 @@
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
-        .num-cell { border: 1px solid #002d4b; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
+        .num-cell { border: 1px solid #002d4b; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         .anim-active { background-color: #ff0000 !important; color: white !important; box-shadow: 0 0 15px #ff0000; z-index: 10; border: 2px solid #fff !important; }
@@ -30,8 +30,8 @@
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
-        .footer-nav { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
-        .nav-btn { padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 13px; border-radius: 4px; }
+        .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
+        .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
@@ -52,7 +52,7 @@
         <div class="selected-header" id="sh">SELECTED NUMBERS</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" style="background:#002d4b;" id="bb">BACK</a></div>
+    <div class="footer-nav"><a href="home.html" class="nav-btn" id="bb">BACK</a></div>
     <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
@@ -98,13 +98,11 @@
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    // ዳታቤዝ መከታተል
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
     });
 
-    // ውጤት መከታተል
     resultRef.on('value', (snap) => {
         const data = snap.val();
         if (data && data.status === "START_ANIMATION" && !isPlaying) {
@@ -119,11 +117,11 @@
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
-            msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
+            msg.innerText = trans[currentLang].removed.replace('{n}', n);
             return;
         }
         if (selections[n]) return;
-        if (balance < 20) { msg.innerHTML = trans[currentLang].low; msg.style.color = "red"; return; }
+        if (balance < 20) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
 
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         gameRef.child(n).set(userName).then(() => {
@@ -132,28 +130,24 @@
                 const count = Object.keys(currentData).length;
                 if (count === 10 && !isPlaying) {
                     let win = Math.floor(Math.random() * 10) + 1;
-                    resultRef.set({ 
-                        winningNum: win, 
-                        timestamp: Date.now(),
-                        status: "START_ANIMATION"
-                    });
+                    resultRef.set({ winningNum: win, timestamp: Date.now(), status: "START_ANIMATION" });
                 }
             });
         });
-        msg.innerHTML = trans[currentLang].pick.replace('{n}', n);
+        msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
 
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
-        msg.innerHTML = trans[currentLang].luck;
-        let counter = 0, speed = 60;
+        msg.innerText = trans[currentLang].luck;
+        let counter = 0, speed = 70;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 10) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
-            if (counter >= 4000) { clearInterval(animationInterval); finishGame(win); }
+            if (counter >= 3000) { clearInterval(animationInterval); finishGame(win); }
         }, speed);
     }
 
@@ -166,28 +160,29 @@
 
         database.ref('games/play2').push({ number: win, timestamp: Date.now() });
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
+
         if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 180 });
+            database.ref('users/' + userPhone).update({ balance: balance + 180 }).then(() => {
+                setTimeout(() => { gameRef.set(null); resultRef.set(null); }, 3000);
+            });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
             msg.style.color = "green";
         } else {
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
+            setTimeout(() => {
+                const keys = Object.keys(selections).sort((a,b) => a-b);
+                if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
+            }, 4000);
         }
         
         setTimeout(() => {
-            const keys = Object.keys(selections).sort((a,b) => a-b);
-            const firstPlayerKey = keys[0];
-            if (selections[firstPlayerKey] === userName) {
-                gameRef.set(null); 
-                resultRef.set(null);
-            }
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
             msg.innerText = "";
             winCell.classList.remove('winner-cell');
-        }, 5000);
+        }, 3500);
     }
 
     function updateUI() {
