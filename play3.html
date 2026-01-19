@@ -83,9 +83,6 @@
                 userName = data.username;
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
-            } else {
-                localStorage.removeItem('userPhone');
-                window.location.replace("index.html");
             }
         });
     }
@@ -104,8 +101,13 @@
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         updateUI();
-        if (Object.keys(selections).length === 20 && !isPlaying) {
-            prepareGame();
+    });
+
+    resultRef.on('value', (snap) => {
+        const data = snap.val();
+        if (data && data.status === "START_ANIMATION" && !isPlaying) {
+            isPlaying = true;
+            runAnimation(data.winningNum);
         }
     });
 
@@ -117,7 +119,6 @@
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
             msg.innerHTML = trans[currentLang].removed.replace('{n}', n);
-            msg.style.color = "orange";
             return;
         }
 
@@ -126,13 +127,17 @@
 
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         
-        // ቁጥሩን መዝግብና የመጨረሻው ከሆነ እጣ አውጣ
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const currentData = snap.val() || {};
-                if (Object.keys(currentData).length === 20 && !isPlaying) {
+                const count = Object.keys(currentData).length;
+                if (count === 20 && !isPlaying) {
                     let win = Math.floor(Math.random() * 20) + 1;
-                    resultRef.set({ winningNum: win, timestamp: Date.now() });
+                    resultRef.set({ 
+                        winningNum: win, 
+                        timestamp: Date.now(),
+                        status: "START_ANIMATION"
+                    });
                 }
             });
         });
@@ -141,21 +146,9 @@
         msg.style.color = "#002d4b";
     }
 
-    function prepareGame() {
-        isPlaying = true;
-        resultRef.on('value', function listenForResult(snap) {
-            const data = snap.val();
-            if (data && data.winningNum) {
-                resultRef.off('value', listenForResult);
-                runAnimation(data.winningNum);
-            }
-        });
-    }
-
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
         msg.innerHTML = trans[currentLang].luck;
-        msg.style.color = "#002d4b";
         let counter = 0, speed = 60;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
@@ -191,13 +184,10 @@
         setTimeout(() => {
             const keys = Object.keys(selections).sort((a,b) => a-b);
             const firstPlayerKey = keys[0];
-            
-            // የጸዳበት ሁኔታ፡ የመጀመሪያው ተጫዋች ዳታቤዙን ያጸዳል
             if (selections[firstPlayerKey] === userName) {
                 gameRef.set(null); 
                 resultRef.set(null);
             }
-            
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
