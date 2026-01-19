@@ -39,7 +39,7 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">20 BIRR IN TO 180 BIRR</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title" id="gt">10 BIRR IN TO 90 BIRR</span><span class="plus18">18+</span></div>
     <div class="info-section"><div>DATE: <span id="date-label"></span></div><div>TIME: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">SELECT NUMBER 1 UP 10</div>
@@ -92,8 +92,8 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'20 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
-        'en': {gt:'20 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
+        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
+        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -114,20 +114,20 @@
         const msg = document.getElementById('msg-box');
         
         if (selections[n] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 20 });
+            database.ref('users/' + userPhone).update({ balance: balance + 10 });
             gameRef.child(n).remove();
             msg.innerText = trans[currentLang].removed.replace('{n}', n);
             msg.style.color = "orange";
             return;
         }
         if (selections[n]) return;
-        if (balance < 20) { 
+        if (balance < 10) { 
             msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
-        database.ref('users/' + userPhone).update({ balance: balance - 20 });
+        database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName);
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
@@ -136,7 +136,6 @@
     function prepareGame() {
         isPlaying = true;
         const keys = Object.keys(selections).sort((a,b) => a-b);
-        // የመጀመሪያው ተጫዋች አሸናፊ ቁጥር እንዲመርጥ
         if (selections[keys[0]] === userName) {
             let win = Math.floor(Math.random() * 10) + 1;
             resultRef.set({ winningNum: win, timestamp: Date.now() });
@@ -182,7 +181,7 @@
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         
         if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 180 });
+            database.ref('users/' + userPhone).update({ balance: balance + 90 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
             msg.style.color = "green";
         } else {
@@ -190,7 +189,6 @@
             msg.style.color = "red";
         }
 
-        // ማሻሻያ፡ ጨዋታው ሲያልቅ ዳታቤዝ ላይ ያሉትን ቁጥሮች ያጠፋል
         setTimeout(() => {
             const keys = Object.keys(selections).sort((a,b) => a-b);
             if (selections[keys[0]] === userName) {
