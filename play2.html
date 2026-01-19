@@ -159,7 +159,7 @@
         winCell.classList.add('winner-cell');
         winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-        database.ref('games/play3').push({ number: win, timestamp: Date.now() });
+        database.ref('games/play2').push({ number: win, timestamp: Date.now() });
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
