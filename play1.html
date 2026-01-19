@@ -83,9 +83,6 @@
                 userName = data.username;
                 balance = parseFloat(data.balance || 0);
                 document.getElementById('cash').innerText = balance.toFixed(2);
-            } else {
-                localStorage.removeItem('userPhone');
-                window.location.replace("index.html");
             }
         });
     }
@@ -121,25 +118,27 @@
             return;
         }
         if (selections[n]) return;
-        if (balance < 10) { 
-            msg.innerText = trans[currentLang].low; 
-            msg.style.color = "red"; 
-            return; 
-        }
+        if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
 
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        gameRef.child(n).set(userName);
+        
+        // ቁጥሩን መዝግብና የመጨረሻው ከሆነ እጣ አውጣ
+        gameRef.child(n).set(userName).then(() => {
+            gameRef.once('value', (snap) => {
+                const currentData = snap.val() || {};
+                if (Object.keys(currentData).length === 10 && !isPlaying) {
+                    let win = Math.floor(Math.random() * 10) + 1;
+                    resultRef.set({ winningNum: win, timestamp: Date.now() });
+                }
+            });
+        });
+
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
     }
 
     function prepareGame() {
         isPlaying = true;
-        const keys = Object.keys(selections).sort((a,b) => a-b);
-        if (selections[keys[0]] === userName) {
-            let win = Math.floor(Math.random() * 10) + 1;
-            resultRef.set({ winningNum: win, timestamp: Date.now() });
-        }
         resultRef.on('value', function listenForResult(snap) {
             const data = snap.val();
             if (data && data.winningNum) {
@@ -173,11 +172,7 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
         
-        database.ref('games/play1').push({
-            number: win,
-            timestamp: Date.now()
-        });
-
+        database.ref('games/play1').push({ number: win, timestamp: Date.now() });
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         
         if(selections[win] === userName) {
@@ -191,7 +186,10 @@
 
         setTimeout(() => {
             const keys = Object.keys(selections).sort((a,b) => a-b);
-            if (selections[keys[0]] === userName) {
+            const firstPlayerKey = keys[0];
+            
+            // የጸዳበት ሁኔታ፡ የመጀመሪያው ተጫዋች ዳታቤዙን ያጸዳል
+            if (selections[firstPlayerKey] === userName) {
                 gameRef.set(null); 
                 resultRef.set(null);
             }
@@ -209,14 +207,10 @@
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
-            
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
-            
-            if (occupant !== "") {
-                table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
-            }
+            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
         }
     }
 
