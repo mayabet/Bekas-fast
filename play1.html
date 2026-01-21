@@ -33,8 +33,6 @@
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; color: #002d4b; }
-        .lang-btn.active { color: #00b050; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -72,22 +70,16 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0;
+    let userName = "", balance = 0, currentLang = 'en', round = 1, selections = {}, isPlaying = false;
 
-    if (!userPhone) {
-        window.location.replace("index.html");
-    } else {
+    if (!userPhone) window.location.replace("index.html");
+    else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                userName = data.username;
-                balance = parseFloat(data.balance || 0);
-                document.getElementById('cash').innerText = balance.toFixed(2);
-            }
+            if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
         });
     }
 
-    let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
         'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
         'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
@@ -98,17 +90,10 @@
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    gameRef.on('value', (snapshot) => {
-        selections = snapshot.val() || {};
-        updateUI();
-    });
-
-    resultRef.on('value', (snap) => {
-        const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) {
-            isPlaying = true;
-            runAnimation(data.winningNum);
-        }
+    gameRef.on('value', (snapshot) => { 
+        selections = snapshot.val() || {}; 
+        updateUI(); 
+        if (Object.keys(selections).length === 10 && !isPlaying) { prepareGame(); }
     });
 
     function pick(n) {
@@ -124,24 +109,28 @@
         if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
 
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        gameRef.child(n).set(userName).then(() => {
-            gameRef.once('value', (snap) => {
-                const currentData = snap.val() || {};
-                const count = Object.keys(currentData).length;
-                if (count === 10 && !isPlaying) {
-                    let win = Math.floor(Math.random() * 10) + 1;
-                    resultRef.set({ winningNum: win, timestamp: Date.now(), status: "START_ANIMATION" });
-                }
-            });
-        });
+        gameRef.child(n).set(userName);
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
+    }
+
+    function prepareGame() {
+        isPlaying = true;
+        const keys = Object.keys(selections).sort((a,b) => a-b);
+        if (selections[keys[0]] === userName) {
+            let win = Math.floor(Math.random() * 10) + 1;
+            resultRef.set({ winningNum: win, status: "START_ANIMATION" });
+        }
+        resultRef.on('value', function listen(snap) {
+            const data = snap.val();
+            if (data && data.status === "START_ANIMATION") { resultRef.off('value', listen); runAnimation(data.winningNum); }
+        });
     }
 
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
         msg.innerText = trans[currentLang].luck;
-        let counter = 0, speed = 70;
+        let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 10) + 1;
@@ -162,32 +151,24 @@
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 90 }).then(() => {
-                setTimeout(() => { gameRef.set(null); resultRef.set(null); }, 3000);
-            });
+            database.ref('users/' + userPhone).update({ balance: balance + 90 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
             msg.style.color = "green";
         } else {
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
-            setTimeout(() => {
-                const keys = Object.keys(selections).sort((a,b) => a-b);
-                if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
-            }, 4000);
         }
         
         setTimeout(() => {
-            round++;
-            document.getElementById('round-val').innerText = round;
-            isPlaying = false;
-            msg.innerText = "";
-            winCell.classList.remove('winner-cell');
-        }, 3500);
+            const keys = Object.keys(selections).sort((a,b) => a-b);
+            if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
+            document.getElementById('round-val').innerText = ++round;
+            isPlaying = false; msg.innerText = ""; winCell.classList.remove('winner-cell');
+        }, 4000);
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table'); 
-        table.innerHTML = "";
+        const table = document.getElementById('sel-table'); table.innerHTML = "";
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
@@ -199,8 +180,7 @@
     }
 
     function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } }
-    function updateClock() { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
-    setInterval(updateClock, 1000); updateClock();
+    setInterval(() => { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }, 1000);
 </script>
 </body>
 </html>
