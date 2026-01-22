@@ -72,11 +72,10 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0;
+    let userName = "", balance = 0, currentLang = 'en', round = 1, selections = {}, isPlaying = false;
 
-    if (!userPhone) {
-        window.location.replace("index.html");
-    } else {
+    if (!userPhone) window.location.replace("index.html");
+    else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -87,7 +86,6 @@
         });
     }
 
-    let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
         'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች'},
         'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY'}
@@ -175,7 +173,6 @@
             }, 4000);
         }
         
-        // ጨዋታው እንዳለቀ Winner History አሳይ
         setTimeout(() => { showWinnerHistory(); }, 2500);
 
         setTimeout(() => {
@@ -183,7 +180,8 @@
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
             winCell.classList.remove('winner-cell');
-        }, 5000);
+            msg.innerText = "";
+        }, 6000);
     }
 
     function showWinnerHistory() {
@@ -208,7 +206,7 @@
         const table = document.getElementById('sel-table'); 
         const header = document.getElementById('sh');
         
-        // አዲስ ቁጥር መመረጥ ሲጀምር ሰንጠረዡን ወደ መደበኛው መልስ
+        // አንተ የጠየቅኸው ማስተካከያ - ቁጥር ሲመረጥ ታሪኩ ወዲያው ይጠፋል
         if (Object.keys(selections).length > 0) {
             header.innerText = trans[currentLang].sh;
             header.style.background = "#ffcc00";
@@ -222,7 +220,10 @@
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else cell.className = "num-cell";
-            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+            
+            if (occupant !== "") {
+                table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+            }
         }
     }
 
