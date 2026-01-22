@@ -25,7 +25,7 @@
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
+        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; transition: background 0.3s; }
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
@@ -33,6 +33,8 @@
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
+        .lang-btn { cursor: pointer; color: #002d4b; }
+        .lang-btn.active { color: #00b050; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -70,19 +72,25 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0, currentLang = 'en', round = 1, selections = {}, isPlaying = false;
+    let userName = "", balance = 0;
 
-    if (!userPhone) window.location.replace("index.html");
-    else {
+    if (!userPhone) {
+        window.location.replace("index.html");
+    } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
+            if (data) {
+                userName = data.username;
+                balance = parseFloat(data.balance || 0);
+                document.getElementById('cash').innerText = balance.toFixed(2);
+            }
         });
     }
 
+    let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
-        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
+        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች'},
+        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -90,10 +98,17 @@
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    gameRef.on('value', (snapshot) => { 
-        selections = snapshot.val() || {}; 
-        updateUI(); 
-        if (Object.keys(selections).length === 10 && !isPlaying) { prepareGame(); }
+    gameRef.on('value', (snapshot) => {
+        selections = snapshot.val() || {};
+        updateUI();
+    });
+
+    resultRef.on('value', (snap) => {
+        const data = snap.val();
+        if (data && data.status === "START_ANIMATION" && !isPlaying) {
+            isPlaying = true;
+            runAnimation(data.winningNum);
+        }
     });
 
     function pick(n) {
@@ -109,28 +124,23 @@
         if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
 
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        gameRef.child(n).set(userName);
+        gameRef.child(n).set(userName).then(() => {
+            gameRef.once('value', (snap) => {
+                const count = Object.keys(snap.val() || {}).length;
+                if (count === 10 && !isPlaying) {
+                    let win = Math.floor(Math.random() * 10) + 1;
+                    resultRef.set({ winningNum: win, timestamp: Date.now(), status: "START_ANIMATION" });
+                }
+            });
+        });
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
         msg.style.color = "#002d4b";
-    }
-
-    function prepareGame() {
-        isPlaying = true;
-        const keys = Object.keys(selections).sort((a,b) => a-b);
-        if (selections[keys[0]] === userName) {
-            let win = Math.floor(Math.random() * 10) + 1;
-            resultRef.set({ winningNum: win, status: "START_ANIMATION" });
-        }
-        resultRef.on('value', function listen(snap) {
-            const data = snap.val();
-            if (data && data.status === "START_ANIMATION") { resultRef.off('value', listen); runAnimation(data.winningNum); }
-        });
     }
 
     function runAnimation(win) {
         const msg = document.getElementById('msg-box');
         msg.innerText = trans[currentLang].luck;
-        let counter = 0, speed = 80;
+        let counter = 0, speed = 70;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 10) + 1;
@@ -148,27 +158,64 @@
         winCell.classList.add('winner-cell');
 
         database.ref('games/play1').push({ number: win, timestamp: Date.now() });
+
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 90 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
             msg.style.color = "green";
+            setTimeout(() => { gameRef.set(null); resultRef.set(null); }, 3000);
         } else {
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
+            setTimeout(() => {
+                const keys = Object.keys(selections).sort((a,b) => a-b);
+                if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
+            }, 4000);
         }
         
+        // ጨዋታው እንዳለቀ Winner History አሳይ
+        setTimeout(() => { showWinnerHistory(); }, 2500);
+
         setTimeout(() => {
-            const keys = Object.keys(selections).sort((a,b) => a-b);
-            if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
-            document.getElementById('round-val').innerText = ++round;
-            isPlaying = false; msg.innerText = ""; winCell.classList.remove('winner-cell');
-        }, 4000);
+            round++;
+            document.getElementById('round-val').innerText = round;
+            isPlaying = false;
+            winCell.classList.remove('winner-cell');
+        }, 5000);
+    }
+
+    function showWinnerHistory() {
+        const table = document.getElementById('sel-table');
+        const header = document.getElementById('sh');
+        header.innerText = trans[currentLang].hist;
+        header.style.background = "#00b050";
+        header.style.color = "white";
+
+        database.ref('games/play1').limitToLast(5).once('value', (snapshot) => {
+            table.innerHTML = "";
+            let history = [];
+            snapshot.forEach(child => { history.unshift(child.val()); });
+            history.forEach(item => {
+                let time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>WINNER NUMBER - ${time}</td></tr>`;
+            });
+        });
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table'); table.innerHTML = "";
+        const table = document.getElementById('sel-table'); 
+        const header = document.getElementById('sh');
+        
+        // አዲስ ቁጥር መመረጥ ሲጀምር ሰንጠረዡን ወደ መደበኛው መልስ
+        if (Object.keys(selections).length > 0) {
+            header.innerText = trans[currentLang].sh;
+            header.style.background = "#ffcc00";
+            header.style.color = "#000";
+        }
+
+        table.innerHTML = "";
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
@@ -179,8 +226,16 @@
         }
     }
 
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } }
-    setInterval(() => { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }, 1000);
+    function setLang(l) { 
+        currentLang = l; 
+        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } 
+    }
+    
+    setInterval(() => { 
+        const now = new Date(); 
+        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
+        document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
+    }, 1000);
 </script>
 </body>
 </html>
