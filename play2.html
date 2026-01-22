@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bekas fast Betting - Play 2</title>
+    <title>Mita Betting - Play 2</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -25,7 +25,7 @@
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
+        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; transition: background 0.3s; }
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
@@ -69,7 +69,6 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
-    // የተስተካከለ አድራሻ (Path) - አሁን ከ play3 ጋር አይቀላቀልም
     const gameRef = database.ref('live_game/play2'); 
     const resultRef = database.ref('live_game/play2_result');
 
@@ -91,8 +90,8 @@
 
     let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
-        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል'},
-        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED'}
+        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች'},
+        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -128,8 +127,7 @@
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
-                const currentData = snap.val() || {};
-                const count = Object.keys(currentData).length;
+                const count = Object.keys(snap.val() || {}).length;
                 if (count === 20 && !isPlaying) {
                     let win = Math.floor(Math.random() * 20) + 1;
                     resultRef.set({ winningNum: win, timestamp: Date.now(), status: "START_ANIMATION" });
@@ -162,14 +160,14 @@
         winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         database.ref('games/play2').push({ number: win, timestamp: Date.now() });
+
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 180 }).then(() => {
-                setTimeout(() => { gameRef.set(null); resultRef.set(null); }, 3000);
-            });
+            database.ref('users/' + userPhone).update({ balance: balance + 180 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
             msg.style.color = "green";
+            setTimeout(() => { gameRef.set(null); resultRef.set(null); }, 3000);
         } else {
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
@@ -179,18 +177,47 @@
             }, 4000);
         }
         
+        // አሸናፊውን ለማሳየት የዝርዝር ሰንጠረዡን ቀይር
+        setTimeout(() => { showWinnerHistory(); }, 2500);
+
         setTimeout(() => {
             round++;
             document.getElementById('round-val').innerText = round;
             isPlaying = false;
-            msg.innerText = "";
             winCell.classList.remove('winner-cell');
             document.getElementById('grid-container').scrollTo({top: 0, behavior: 'smooth'});
-        }, 3500);
+        }, 5000);
+    }
+
+    function showWinnerHistory() {
+        const table = document.getElementById('sel-table');
+        const header = document.getElementById('sh');
+        header.innerText = trans[currentLang].hist;
+        header.style.background = "#00b050";
+        header.style.color = "white";
+
+        database.ref('games/play2').limitToLast(5).once('value', (snapshot) => {
+            table.innerHTML = "";
+            let history = [];
+            snapshot.forEach(child => { history.unshift(child.val()); });
+            history.forEach(item => {
+                let time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>WINNER NUMBER - ${time}</td></tr>`;
+            });
+        });
     }
 
     function updateUI() {
         const table = document.getElementById('sel-table'); 
+        const header = document.getElementById('sh');
+        
+        // አዲስ ቁጥር መመረጥ ሲጀምር ሰንጠረዡን ወደ መደበኛው መልስ
+        if (Object.keys(selections).length > 0) {
+            header.innerText = trans[currentLang].sh;
+            header.style.background = "#ffcc00";
+            header.style.color = "#000";
+        }
+
         table.innerHTML = "";
         for(let i=1; i<=20; i++) {
             const cell = document.getElementById(`c-${i}`);
