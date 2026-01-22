@@ -164,7 +164,10 @@
         winCell.classList.add('winner-cell');
         winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-        database.ref('games/play4').push({ number: win, timestamp: Date.now() });
+        // አሸናፊውን ስም ለታሪክ መመዝገብ
+        let winName = selections[win] || "No Winner";
+        database.ref('games/play4').push({ number: win, winner: winName, timestamp: Date.now() });
+
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
@@ -204,7 +207,8 @@
             snapshot.forEach(child => { history.unshift(child.val()); });
             history.forEach(item => {
                 let time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>WINNER NUMBER - ${time}</td></tr>`;
+                // WINNER NUMBER ፋንታ የአሸናፊውን ስም ያሳያል
+                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>${item.winner} - ${time}</td></tr>`;
             });
         });
     }
