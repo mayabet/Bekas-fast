@@ -79,11 +79,7 @@
     else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                userName = data.username;
-                balance = parseFloat(data.balance || 0);
-                document.getElementById('cash').innerText = balance.toFixed(2);
-            }
+            if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
         });
     }
 
@@ -99,27 +95,21 @@
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) { isResetting = false; }
+        if (Object.keys(selections).length === 0) {
+            isResetting = false;
+            resetGridColors();
+        }
         updateUI();
     });
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) {
-            isPlaying = true;
-            runAnimation(data.winningNum);
-        }
+        if (data && data.status === "START_ANIMATION" && !isPlaying) { isPlaying = true; runAnimation(data.winningNum); }
     });
 
     function pick(n) {
         const msg = document.getElementById('msg-box');
-        
-        if(isPlaying || isResetting) {
-            msg.innerText = trans[currentLang].wait;
-            msg.style.color = "orange";
-            return;
-        }
-
+        if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; msg.style.color = "orange"; return; }
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
@@ -135,7 +125,7 @@
                 const count = Object.keys(snap.val() || {}).length;
                 if (count === 20 && !isPlaying) {
                     let win = Math.floor(Math.random() * 20) + 1;
-                    resultRef.set({ winningNum: win, timestamp: Date.now(), status: "START_ANIMATION" });
+                    resultRef.set({ winningNum: win, status: "START_ANIMATION" });
                 }
             });
         });
@@ -180,24 +170,28 @@
         setTimeout(() => {
             isResetting = true;
             const keys = Object.keys(selections).sort((a,b) => a-b);
-            if (selections[keys[0]] === userName) { 
-                gameRef.set(null); 
-                resultRef.set(null); 
-            }
+            if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false; 
             winCell.classList.remove('winner-cell');
             msg.innerText = "";
-            document.getElementById('grid-container').scrollTo({top: 0, behavior: 'smooth'});
+            resetGridColors();
         }, 5000);
+    }
+
+    function resetGridColors() {
+        for(let i=1; i<=20; i++) {
+            const cell = document.getElementById(`c-${i}`);
+            if(cell) cell.className = "num-cell";
+        }
+        document.getElementById('sel-table').innerHTML = "";
     }
 
     function showWinnerHistory() {
         const table = document.getElementById('sel-table');
         const header = document.getElementById('sh');
         header.innerText = trans[currentLang].hist;
-        header.style.background = "#00b050";
-        header.style.color = "white";
+        header.style.background = "#00b050"; header.style.color = "white";
 
         database.ref('games/play3').limitToLast(5).once('value', (snapshot) => {
             table.innerHTML = "";
@@ -213,16 +207,9 @@
     function updateUI() {
         const table = document.getElementById('sel-table'); 
         const header = document.getElementById('sh');
-        
         if (Object.keys(selections).length > 0) {
             header.innerText = trans[currentLang].sh;
-            header.style.background = "#ffcc00";
-            header.style.color = "#000";
-        } else if (!isPlaying) {
-            table.innerHTML = "";
-        }
-
-        if (Object.keys(selections).length > 0) {
+            header.style.background = "#ffcc00"; header.style.color = "#000";
             table.innerHTML = "";
             for(let i=1; i<=20; i++) {
                 const cell = document.getElementById(`c-${i}`);
