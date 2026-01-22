@@ -197,20 +197,25 @@
         const table = document.getElementById('sel-table'); 
         const header = document.getElementById('sh');
         
+        // ማስተካከያ፦ ቁጥር ሲመረጥ ታሪኩ እንዲጠፋ
         if (Object.keys(selections).length > 0) {
             header.innerText = trans[currentLang].sh;
             header.style.background = "#ffcc00";
             header.style.color = "#000";
+        } else if (!isPlaying) {
+            table.innerHTML = "";
         }
 
-        table.innerHTML = "";
-        for(let i=1; i<=50; i++) {
-            const cell = document.getElementById(`c-${i}`);
-            let occupant = selections[i] || "";
-            if (occupant === userName) cell.className = "num-cell user-selected";
-            else if (occupant !== "") cell.className = "num-cell taken-cell";
-            else cell.className = "num-cell";
-            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+        if (Object.keys(selections).length > 0) {
+            table.innerHTML = "";
+            for(let i=1; i<=50; i++) {
+                const cell = document.getElementById(`c-${i}`);
+                let occupant = selections[i] || "";
+                if (occupant === userName) cell.className = "num-cell user-selected";
+                else if (occupant !== "") cell.className = "num-cell taken-cell";
+                else cell.className = "num-cell";
+                if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+            }
         }
     }
 
