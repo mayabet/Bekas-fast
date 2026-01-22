@@ -95,10 +95,7 @@
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) {
-            isResetting = false;
-            resetGridColors();
-        }
+        if (Object.keys(selections).length === 0) { isResetting = false; resetGridColors(); }
         updateUI();
     });
 
@@ -153,7 +150,10 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
 
-        database.ref('games/play3').push({ number: win, timestamp: Date.now() });
+        // አሸናፊውን ስም ለታሪክ መመዝገብ
+        let winName = selections[win] || "No Winner";
+        database.ref('games/play3').push({ number: win, winner: winName, timestamp: Date.now() });
+
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
@@ -199,7 +199,8 @@
             snapshot.forEach(child => { history.unshift(child.val()); });
             history.forEach(item => {
                 let time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>WINNER NUMBER - ${time}</td></tr>`;
+                // Winner Name እዚህ ጋር ይገባል
+                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>${item.winner} - ${time}</td></tr>`;
             });
         });
     }
