@@ -92,13 +92,9 @@
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
-    // ዳታቤዙ ባዶ ሲሆን UIውን ወዲያውኑ የማጽዳት ስራ እዚህ ይከናወናል
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) {
-            isResetting = false;
-            resetGridColors(); // የድሮ ቀለሞች እንዲጠፉ
-        }
+        if (Object.keys(selections).length === 0) { isResetting = false; resetGridColors(); }
         updateUI();
     });
 
@@ -153,9 +149,11 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
 
-        database.ref('games/play2').push({ number: win, timestamp: Date.now() });
-        let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
+        // አሸናፊውን ስም ለታሪክ መመዝገብ
+        let winnerName = selections[win] || "No Winner";
+        database.ref('games/play2').push({ number: win, winner: winnerName, timestamp: Date.now() });
 
+        let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 180 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
@@ -170,10 +168,7 @@
         setTimeout(() => {
             isResetting = true;
             const keys = Object.keys(selections).sort((a,b) => a-b);
-            if (selections[keys[0]] === userName) { 
-                gameRef.set(null); 
-                resultRef.set(null); 
-            }
+            if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false; 
             winCell.classList.remove('winner-cell');
@@ -194,8 +189,7 @@
         const table = document.getElementById('sel-table');
         const header = document.getElementById('sh');
         header.innerText = trans[currentLang].hist;
-        header.style.background = "#00b050";
-        header.style.color = "white";
+        header.style.background = "#00b050"; header.style.color = "white";
 
         database.ref('games/play2').limitToLast(5).once('value', (snapshot) => {
             table.innerHTML = "";
@@ -203,7 +197,8 @@
             snapshot.forEach(child => { history.unshift(child.val()); });
             history.forEach(item => {
                 let time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>WINNER NUMBER - ${time}</td></tr>`;
+                // WINNER NUMBER ፋንታ ስሙ ይገባል
+                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>${item.winner} - ${time}</td></tr>`;
             });
         });
     }
@@ -213,8 +208,7 @@
         const header = document.getElementById('sh');
         if (Object.keys(selections).length > 0) {
             header.innerText = trans[currentLang].sh;
-            header.style.background = "#ffcc00";
-            header.style.color = "#000";
+            header.style.background = "#ffcc00"; header.style.color = "#000";
             table.innerHTML = "";
             for(let i=1; i<=20; i++) {
                 const cell = document.getElementById(`c-${i}`);
