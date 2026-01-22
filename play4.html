@@ -94,20 +94,25 @@
 
     gameRef.on('value', (snapshot) => { 
         selections = snapshot.val() || {}; 
-        if (Object.keys(selections).length === 0) { isResetting = false; }
+        if (Object.keys(selections).length === 0) { 
+            isResetting = false; 
+            resetGridColors();
+        }
         updateUI(); 
         if (Object.keys(selections).length === 50 && !isPlaying) { prepareGame(); }
     });
 
+    function resetGridColors() {
+        for(let i=1; i<=50; i++) {
+            const cell = document.getElementById(`c-${i}`);
+            if(cell) cell.className = "num-cell";
+        }
+        document.getElementById('sel-table').innerHTML = "";
+    }
+
     function pick(n) {
         const msg = document.getElementById('msg-box');
-        
-        if(isPlaying || isResetting) {
-            msg.innerText = trans[currentLang].wait;
-            msg.style.color = "orange";
-            return;
-        }
-
+        if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; msg.style.color = "orange"; return; }
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
@@ -181,6 +186,7 @@
             isPlaying = false; 
             winCell.classList.remove('winner-cell');
             msg.innerText = "";
+            resetGridColors();
             document.getElementById('grid-container').scrollTo({top: 0, behavior: 'smooth'});
         }, 5000);
     }
@@ -206,16 +212,9 @@
     function updateUI() {
         const table = document.getElementById('sel-table'); 
         const header = document.getElementById('sh');
-        
         if (Object.keys(selections).length > 0) {
             header.innerText = trans[currentLang].sh;
-            header.style.background = "#ffcc00";
-            header.style.color = "#000";
-        } else if (!isPlaying) {
-            table.innerHTML = "";
-        }
-
-        if (Object.keys(selections).length > 0) {
+            header.style.background = "#ffcc00"; header.style.color = "#000";
             table.innerHTML = "";
             for(let i=1; i<=50; i++) {
                 const cell = document.getElementById(`c-${i}`);
