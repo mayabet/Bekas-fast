@@ -73,11 +73,10 @@
     const resultRef = database.ref('live_game/play2_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0;
+    let userName = "", balance = 0, currentLang = 'en', round = 1, selections = {}, isPlaying = false;
 
-    if (!userPhone) {
-        window.location.replace("index.html");
-    } else {
+    if (!userPhone) window.location.replace("index.html");
+    else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -88,7 +87,6 @@
         });
     }
 
-    let currentLang = 'en', round = 1, selections = {}, isPlaying = false;
     const trans = {
         'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች'},
         'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY'}
@@ -157,36 +155,28 @@
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
-        winCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         database.ref('games/play2').push({ number: win, timestamp: Date.now() });
-
         let winDisplay = `<strong style="color: #00b050; font-size: 18px;">[${win}]</strong>`;
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 180 });
             msg.innerHTML = trans[currentLang].win.replace('{n}', winDisplay);
             msg.style.color = "green";
-            setTimeout(() => { gameRef.set(null); resultRef.set(null); }, 3000);
         } else {
             msg.innerHTML = trans[currentLang].lost.replace('{n}', winDisplay);
             msg.style.color = "red";
-            setTimeout(() => {
-                const keys = Object.keys(selections).sort((a,b) => a-b);
-                if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
-            }, 4000);
         }
         
-        // አሸናፊውን ለማሳየት የዝርዝር ሰንጠረዡን ቀይር
         setTimeout(() => { showWinnerHistory(); }, 2500);
 
         setTimeout(() => {
-            round++;
-            document.getElementById('round-val').innerText = round;
-            isPlaying = false;
-            winCell.classList.remove('winner-cell');
+            const keys = Object.keys(selections).sort((a,b) => a-b);
+            if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
+            document.getElementById('round-val').innerText = ++round;
+            isPlaying = false; msg.innerText = ""; winCell.classList.remove('winner-cell');
             document.getElementById('grid-container').scrollTo({top: 0, behavior: 'smooth'});
-        }, 5000);
+        }, 6000);
     }
 
     function showWinnerHistory() {
@@ -211,21 +201,26 @@
         const table = document.getElementById('sel-table'); 
         const header = document.getElementById('sh');
         
-        // አዲስ ቁጥር መመረጥ ሲጀምር ሰንጠረዡን ወደ መደበኛው መልስ
+        // ማስተካከያ፦ አንድም ቁጥር ከተመረጠ ወዲያውኑ ታሪኩን አጥፍቶ ወደ ምርጫ ዝርዝር ይቀየራል
         if (Object.keys(selections).length > 0) {
             header.innerText = trans[currentLang].sh;
             header.style.background = "#ffcc00";
             header.style.color = "#000";
+        } else if (!isPlaying) {
+            // ገና ጨዋታ ሳይጀመር ሰንጠረዡን ባዶ ያደርጋል
+            table.innerHTML = "";
         }
 
-        table.innerHTML = "";
-        for(let i=1; i<=20; i++) {
-            const cell = document.getElementById(`c-${i}`);
-            let occupant = selections[i] || "";
-            if (occupant === userName) cell.className = "num-cell user-selected";
-            else if (occupant !== "") cell.className = "num-cell taken-cell";
-            else cell.className = "num-cell";
-            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+        if (Object.keys(selections).length > 0) {
+            table.innerHTML = "";
+            for(let i=1; i<=20; i++) {
+                const cell = document.getElementById(`c-${i}`);
+                let occupant = selections[i] || "";
+                if (occupant === userName) cell.className = "num-cell user-selected";
+                else if (occupant !== "") cell.className = "num-cell taken-cell";
+                else cell.className = "num-cell";
+                if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+            }
         }
     }
 
