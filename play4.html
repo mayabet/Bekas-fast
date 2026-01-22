@@ -72,7 +72,7 @@
     const resultRef = database.ref('live_game/play4_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0, currentLang = 'en', round = 1, selections = {}, isPlaying = false;
+    let userName = "", balance = 0, currentLang = 'en', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
     if (!userPhone) window.location.replace("index.html");
     else {
@@ -83,8 +83,8 @@
     }
 
     const trans = {
-        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች'},
-        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY'}
+        'am': {gt:'20 ብር ወደ 900 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...'},
+        'en': {gt:'20 BIRR IN TO 900 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -94,13 +94,20 @@
 
     gameRef.on('value', (snapshot) => { 
         selections = snapshot.val() || {}; 
+        if (Object.keys(selections).length === 0) { isResetting = false; }
         updateUI(); 
         if (Object.keys(selections).length === 50 && !isPlaying) { prepareGame(); }
     });
 
     function pick(n) {
-        if(isPlaying) return;
         const msg = document.getElementById('msg-box');
+        
+        if(isPlaying || isResetting) {
+            msg.innerText = trans[currentLang].wait;
+            msg.style.color = "orange";
+            return;
+        }
+
         if (selections[n] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
             gameRef.child(n).remove();
@@ -167,12 +174,15 @@
         setTimeout(() => { showWinnerHistory(); }, 2500);
 
         setTimeout(() => {
+            isResetting = true;
             const keys = Object.keys(selections).sort((a,b) => a-b);
             if (selections[keys[0]] === userName) { gameRef.set(null); resultRef.set(null); }
             document.getElementById('round-val').innerText = ++round;
-            isPlaying = false; msg.innerText = ""; winCell.classList.remove('winner-cell');
+            isPlaying = false; 
+            winCell.classList.remove('winner-cell');
+            msg.innerText = "";
             document.getElementById('grid-container').scrollTo({top: 0, behavior: 'smooth'});
-        }, 6000);
+        }, 5000);
     }
 
     function showWinnerHistory() {
@@ -197,7 +207,6 @@
         const table = document.getElementById('sel-table'); 
         const header = document.getElementById('sh');
         
-        // ማስተካከያ፦ ቁጥር ሲመረጥ ታሪኩ እንዲጠፋ
         if (Object.keys(selections).length > 0) {
             header.innerText = trans[currentLang].sh;
             header.style.background = "#ffcc00";
