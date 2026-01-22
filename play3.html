@@ -68,6 +68,8 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    
+    // Play 3 ልዩ አድራሻዎች
     const gameRef = database.ref('live_game/play3');
     const resultRef = database.ref('live_game/play3_result');
 
