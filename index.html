@@ -6,6 +6,7 @@
     <title>BEKAS FAST - Login</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
         .card { width: 92%; max-width: 360px; background: white; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); overflow: hidden; border: 1px solid #ddd; display: flex; flex-direction: column; }
@@ -18,7 +19,8 @@
         .motto { text-align: center; color: #002d4b; font-size: 16px; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; line-height: 1.2; }
         .input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
         .input-box { border: 2.5px solid #00b050; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; flex-grow: 1; background: #fff; height: 32px; }
-        input { border: none; outline: none; width: 100%; font-size: 22px; font-weight: 900; color: #333; }
+        .input-box i { color: #00b050; font-size: 20px; margin-right: 10px; }
+        input { border: none; outline: none; width: 100%; font-size: 22px; font-weight: 900; color: #333; background: transparent; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         #error-msg { color: red; font-size: 14px; font-weight: 900; text-align: center; margin-bottom: 10px; min-height: 18px; text-transform: uppercase; }
         .lost-link { color: #d00000; font-size: 13px; font-weight: 900; text-decoration: none; border: 1px solid #ccc; padding: 6px 8px; border-radius: 4px; background-color: #fdfdfd; white-space: nowrap; }
@@ -36,24 +38,23 @@
 <body>
 
 <div class="card">
-    <div class="yellow-bar"><span id="new-tag">NEW</span><span style="color:red; font-size:26px">18+</span></div>
+    <div class="yellow-bar"><span id="new-tag">አዲስ</span><span style="color:red; font-size:26px">18+</span></div>
     <div class="header-line"></div>
     <div class="content">
         <div class="online-now" id="online-area">
-            <span class="live-dot"></span> <span id="online-count">0</span> PEOPLE ARE PLAYING NOW
+            <span class="live-dot"></span> <span id="online-count">0</span> ሰዎች አሁን እየተጫወቱ ነው
         </div>
         <div class="dt-section">
-            <div class="dt-row" id="date-label">DATE: LOADING...</div>
-            <div class="dt-row" id="time-label">TIME: 00:00:00</div>
+            <div class="dt-row" id="date-label">ቀን: LOADING...</div>
+            <div class="dt-row" id="time-label">ሰዓት: 00:00:00</div>
         </div>
-        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
-        <div class="motto" id="motto">WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!</div>
+        <div class="branding"><h1 id="brand-name">ቤካስ ፈጣን</h1></div>
+        <div class="motto" id="motto">ሁልጊዜ የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!</div>
         <div id="error-msg"></div>
         
         <div class="input-row">
             <div class="input-box">
-                <img src="https://flagcdn.com/w40/et.png" width="25">
-                <b style="font-size: 20px; margin-left: 8px; margin-right: 8px;">+251</b>
+                <i class="fas fa-phone"></i>
                 <input type="tel" id="p-input" placeholder="09..." inputmode="numeric" 
                        maxlength="10" 
                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
@@ -62,21 +63,22 @@
         
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="pass-input" placeholder="PIN" inputmode="numeric" 
+                <i class="fas fa-lock"></i>
+                <input type="tel" id="pass-input" placeholder="ሚስጥር ቁጥር" inputmode="numeric" 
                        maxlength="5"
                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
-            <a href="lost_password.html" class="lost-link" id="lost-btn">LOST</a>
+            <a href="lost_password.html" class="lost-link" id="lost-btn">ረስተዋል?</a>
         </div>
 
-        <button class="btn login-btn" id="l-btn" onclick="handleLogin()">LOG IN</button>
-        <button class="btn register-btn" id="r-btn" onclick="window.location.href='register.html'">REGISTER</button>
+        <button class="btn login-btn" id="l-btn" onclick="handleLogin()">ግባ</button>
+        <button class="btn register-btn" id="r-btn" onclick="window.location.href='register.html'">ተመዝገብ</button>
     </div>
     <div class="footer">
-        <div id="l-text">LANGUAGE</div>
+        <div id="l-text">ቋንቋ</div>
         <div class="lang-options">
-            <span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
-            <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span>
+            <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
         </div>
     </div>
 </div>
@@ -96,7 +98,7 @@
     const database = firebase.database();
     const onlineRef = database.ref('online_users_count');
 
-    let currentLang = 'en';
+    let currentLang = 'am';
 
     function updateClock() {
         const n = new Date();
@@ -125,7 +127,7 @@
         document.getElementById('l-btn').innerText = (l === 'am') ? "ግባ" : "LOG IN";
         document.getElementById('r-btn').innerText = (l === 'am') ? "ተመዝገብ" : "REGISTER";
         document.getElementById('l-text').innerText = (l === 'am') ? "ቋንቋ" : "LANGUAGE";
-        document.getElementById('pass-input').placeholder = (l === 'am') ? "ፒን (PIN)" : "PIN";
+        document.getElementById('pass-input').placeholder = (l === 'am') ? "ሚስጥር ቁጥር" : "PASSWORD";
         document.getElementById('lost-btn').innerText = (l === 'am') ? "ረስተዋል?" : "LOST";
         document.getElementById('new-tag').innerText = (l === 'am') ? "አዲስ" : "NEW";
         document.getElementById('motto').innerText = (l === 'am') ? "ሁልጊዜ የእርስዎን የጨዋታ ፍላጎት ለማርካት ዝግጁ ነን!" : "WE ARE ALWAYS READY TO SATISFY YOUR GAMING NEEDS!";
@@ -139,7 +141,7 @@
     }
 
     window.onload = function() {
-        setLang('en');
+        setLang('am');
     };
 
     function handleLogin() {
@@ -152,7 +154,6 @@
             return;
         }
 
-        // በ 09 እንዲጀምር እና 10 አሃዝ እንዲሆን ተደርጓል
         if (!phone.startsWith('09') || phone.length !== 10) {
             errorDiv.innerText = currentLang === 'am' ? "ቁጥሩ በ 09 መጀመር አለበት (10 አሃዝ)" : "MUST START WITH 09 (10 DIGITS)";
             return;
@@ -167,7 +168,7 @@
                 localStorage.setItem('userPhone', phone);
                 window.location.replace("home.html");
             } else {
-                errorDiv.innerText = currentLang === 'am' ? "የስልክ ቁጥር ወይም ፒን ተሳስቷል" : "WRONG PHONE OR PIN";
+                errorDiv.innerText = currentLang === 'am' ? "የስልክ ቁጥር ወይም ሚስጥር ቁጥር ተሳስቷል" : "WRONG PHONE OR PASSWORD";
                 setTimeout(() => { errorDiv.innerText = ""; }, 3000);
             }
         }).catch((err) => {
