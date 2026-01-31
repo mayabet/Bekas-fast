@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Withdraw</title>
+    <title>Mita Betting - Withdraw</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -15,50 +15,20 @@
         .dt-section { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; flex-shrink: 0; }
         .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
         .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
-        
-        /* እዚህ ጋር የሳጥኑ እና የጽሑፉ መጠን ቀንሷል */
-        .tele-box { 
-            background: #fffde7; 
-            border: 2px solid #00b050; 
-            padding: 5px; 
-            text-align: center; 
-            margin-bottom: 10px; 
-            flex-shrink: 0; 
-            border-radius: 4px;
-        }
-        #tele-msg { 
-            font-size: 14px; 
-            font-weight: 900; 
-            color: #000; 
-            display: block; 
-            text-transform: uppercase;
-        }
-        
+        .tele-box { background: #fffde7; border: 2px solid #00b050; padding: 5px; text-align: center; margin-bottom: 10px; flex-shrink: 0; border-radius: 4px; }
+        #tele-msg { font-size: 14px; font-weight: 900; color: #000; display: block; text-transform: uppercase; }
         .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
         #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
         .input-group { margin-bottom: 10px; flex-shrink: 0; }
         .label-text { color: #000; font-weight: 900; font-size: 14px; text-transform: uppercase; margin-bottom: 4px; display: block; }
         .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 45px; box-sizing: border-box; }
         input { border: none; outline: none; width: 100%; font-size: 20px; font-weight: 900; background: transparent; color: #002d4b; }
-        
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
         .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
         .with-btn { background: #c00000; }
         .info-btn { background: #00b050; }
         .back-btn { background: #002d4b; }
-        
-        .notice-box {
-            background: #fff8e1;
-            border: 2.5px solid #ffcc00;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 14px;
-            font-weight: 900;
-            color: #d32f2f;
-            text-align: center;
-            line-height: 1.4;
-        }
-
+        .notice-box { background: #fff8e1; border: 2.5px solid #ffcc00; padding: 10px; margin-top: 10px; font-size: 14px; font-weight: 900; color: #d32f2f; text-align: center; line-height: 1.4; }
         .footer { border-top: 3px solid #000; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
         .lang-btn { cursor: pointer; font-size: 15px; font-weight: 900; color: #002d4b; }
         .active { color: #00b050 !important; }
@@ -66,37 +36,32 @@
 </head>
 <body>
 <div class="card">
-    <div class="yellow-bar"><span id="top-title">WITHDRAW</span><span class="plus18">18+</span></div>
+    <div class="yellow-bar"><span id="top-title">ገንዘብ ማውጫ</span><span class="plus18">18+</span></div>
     <div class="content">
         <div class="dt-section">
-            <div id="date-label" class="dt-row">DATE: ...</div>
-            <div id="time-label" class="dt-row">TIME: ...</div>
+            <div id="date-label" class="dt-row">ቀን: ...</div>
+            <div id="time-label" class="dt-row">ሰዓት: ...</div>
         </div>
-        <div class="branding"><h1>BEKAS FAST</h1></div>
-        <div class="tele-box">
-            <span id="tele-msg">ENTER WITHDRAWAL AMOUNT</span>
-        </div>
-        <div id="bal-display" class="balance-box">BALANCE: 0.00 ETB</div>
+        <div class="branding"><h1>MITA BETTING</h1></div>
+        <div class="tele-box"><span id="tele-msg">የሚያወጡትን የገንዘብ መጠን ያስገቡ</span></div>
+        <div id="bal-display" class="balance-box">ቀሪ ሂሳብ: 0.00 ETB</div>
         <div id="msg-display"></div>
-        
         <div class="input-group">
-            <span class="label-text" id="am-label">AMOUNT (MAX 5 DIGITS)</span>
-            <div class="input-box"><input type="number" id="am-input" placeholder="00000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)"></div>
+            <span class="label-text" id="am-label">የገንዘብ መጠን</span>
+            <div class="input-box"><input type="number" id="am-input" placeholder="000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)"></div>
         </div>
-
         <div class="btn-group">
-            <button class="btn with-btn" id="with-btn" onclick="handleWithdraw()">WITHDRAW</button>
-            <a href="info.html" class="btn info-btn" id="info-btn">INFO</a>
-            <a href="home.html" class="btn back-btn" id="back-btn">BACK TO HOME</a>
+            <button class="btn with-btn" id="with-btn" onclick="handleWithdraw()">ገንዘብ አውጣ</button>
+            <a href="info.html" class="btn info-btn" id="info-btn">መመሪያ</a>
+            <a href="home.html" class="btn back-btn" id="back-btn">ወደ ዋና ገጽ</a>
         </div>
-
         <div class="notice-box" id="bottom-notice">
-            Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with Bekas Fast!
+            የማውጫ ጥያቄዎ በተመዘገቡበት የቴሌብር ቁጥር ከ 10 ደቂቃ ባልበለጠ ጊዜ ውስጥ ይገባላችኋል። በ Mita Betting ስለተጫወቱ እናመሰግናለን!
         </div>
     </div>
     <div class="footer">
-        <span id="l-text" style="font-weight: 900; font-size: 14px;">LANG:</span>
-        <div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div>
+        <span id="l-text" style="font-weight: 900; font-size: 14px;">ቋንቋ:</span>
+        <div><span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span></div>
     </div>
 </div>
 
@@ -112,95 +77,50 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    let currentLang = 'am', userPhone = localStorage.getItem('userPhone'), currentBalance = 0;
 
-    let currentLang = 'en'; 
-    let userPhone = localStorage.getItem('userPhone'); 
-    let currentBalance = 0;
-
-    if (!userPhone) {
-        window.location.replace("Index.html"); 
-    }
+    if (!userPhone) window.location.replace("index.html");
 
     function updateClock() {
         const n = new Date();
+        const monthsAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
         const monthsEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        document.getElementById('date-label').innerText = "DATE: " + monthsEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
-        document.getElementById('time-label').innerText = "TIME: " + n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
+        const dateStr = currentLang === 'am' ? monthsAM[n.getMonth()] + " " + n.getDate() + "፣ " + n.getFullYear() : monthsEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
+        document.getElementById('date-label').innerText = (currentLang==='am'?"ቀን: ":"DATE: ") + dateStr;
+        document.getElementById('time-label').innerText = (currentLang==='am'?"ሰዓት: ":"TIME: ") + n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
     }
     setInterval(updateClock, 1000); updateClock();
 
     database.ref('users/' + userPhone).on('value', (snap) => {
         const userData = snap.val();
-        if (userData) {
-            currentBalance = parseFloat(userData.balance || 0);
-            updateBalanceDisplay();
-        }
+        if (userData) { currentBalance = parseFloat(userData.balance || 0); updateBalanceDisplay(); }
     });
 
-    function updateBalanceDisplay() {
-        document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
-    }
+    function updateBalanceDisplay() { document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB"; }
 
-    function showMsg(txt, color) {
-        const d = document.getElementById('msg-display');
-        d.innerText = txt; d.style.color = color;
-        setTimeout(() => d.innerText = "", 3000);
-    }
+    function showMsg(txt, color) { const d = document.getElementById('msg-display'); d.innerText = txt; d.style.color = color; setTimeout(() => d.innerText = "", 3000); }
 
     function handleWithdraw() {
         const amount = document.getElementById('am-input').value;
         const numAmount = parseFloat(amount);
-        
-        if (numAmount > 0 && numAmount <= currentBalance && numAmount % 10 === 0) {
-            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString() })
-            .then(() => { 
-                showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); 
-                document.getElementById('am-input').value=""; 
-            });
-        } else { 
-            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም በቂ ሂሳብ የለም" : "ENTER MULTIPLES OF 10 OR LOW BALANCE";
-            showMsg(errorMsg, "red"); 
-        }
+        if (numAmount >= 10 && numAmount <= currentBalance && numAmount % 10 === 0) {
+            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString(), site: "Mita Betting" })
+            .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
+        } else { showMsg(currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም በቂ ሂሳብ የለም" : "MULTIPLE OF 10 OR LOW BALANCE", "red"); }
     }
 
     function setLang(l) {
         currentLang = l;
         const labels = {
-            'am': { 
-                't': 'ገንዘብ ማውጫ', 
-                'tmsg': 'መጠን ያስገቡ', 
-                'am': 'የገንዘብ መጠን', 
-                'wt': 'ገንዘብ አውጣ', 
-                'if': 'መመሪያ', 
-                'bk': 'ተመለስ',
-                'nt': 'በተመዘገቡበት የቴሌብር ቁጥር ከ 10 ደቂቃ ባልበለጠ ጊዜ ውስጥ ይገባላችኋል። በ Bekas Fast ስለተጫወቱ እናመሰግናለን!'
-            },
-            'en': { 
-                't': 'WITHDRAW', 
-                'tmsg': 'ENTER WITHDRAWAL AMOUNT', 
-                'am': 'AMOUNT (MAX 5 DIGITS)', 
-                'wt': 'WITHDRAW', 
-                'if': 'INFO', 
-                'bk': 'BACK TO HOME',
-                'nt': 'Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with Bekas Fast!'
-            }
+            'am': { 't': 'ገንዘብ ማውጫ', 'tmsg': 'የሚያወጡትን የገንዘብ መጠን ያስገቡ', 'am': 'የገንዘብ መጠን', 'wt': 'ገንዘብ አውጣ', 'if': 'መመሪያ', 'bk': 'ወደ ዋና ገጽ', 'nt': 'የማውጫ ጥያቄዎ በተመዘገቡበት የቴሌብር ቁጥር ከ 10 ደቂቃ ባልበለጠ ጊዜ ውስጥ ይገባላችኋል። በ Mita Betting ስለተጫወቱ እናመሰግናለን!' },
+            'en': { 't': 'WITHDRAW', 'tmsg': 'ENTER WITHDRAWAL AMOUNT', 'am': 'AMOUNT (MAX 5 DIGITS)', 'wt': 'WITHDRAW', 'if': 'INFO', 'bk': 'BACK TO HOME', 'nt': 'Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with Mita Betting!' }
         };
         const s = labels[l];
-        document.getElementById('top-title').innerText = s.t;
-        document.getElementById('tele-msg').innerText = s.tmsg;
-        document.getElementById('am-label').innerText = s.am;
-        document.getElementById('with-btn').innerText = s.wt;
-        document.getElementById('info-btn').innerText = s.if;
-        document.getElementById('back-btn').innerText = s.bk;
-        document.getElementById('bottom-notice').innerText = s.nt;
-        updateBalanceDisplay();
-        document.getElementById('lang-am').classList.toggle('active', l === 'am');
-        document.getElementById('lang-en').classList.toggle('active', l === 'en');
+        document.getElementById('top-title').innerText = s.t; document.getElementById('tele-msg').innerText = s.tmsg; document.getElementById('am-label').innerText = s.am;
+        document.getElementById('with-btn').innerText = s.wt; document.getElementById('info-btn').innerText = s.if; document.getElementById('back-btn').innerText = s.bk; document.getElementById('bottom-notice').innerText = s.nt;
+        updateBalanceDisplay(); updateClock(); document.getElementById('lang-am').classList.toggle('active', l === 'am'); document.getElementById('lang-en').classList.toggle('active', l === 'en');
     }
-
-    window.onload = function() {
-        setLang('en');
-    };
+    setLang('am');
 </script>
 </body>
 </html>
