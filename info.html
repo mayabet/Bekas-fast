@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -36,7 +36,7 @@
 
 <div class="card">
     <div class="yellow-bar">
-        <span id="top-title">RULES & INFO</span>
+        <span id="top-title">ህጎች እና መመሪያዎች</span>
         <span class="plus18">18+</span>
     </div>
     <div class="header-line"></div>
@@ -44,7 +44,7 @@
     <div class="content" id="rules-container"></div>
 
     <div class="contact-section">
-        <div class="contact-header" id="contact-title-text">CONTACT INFORMATION</div>
+        <div class="contact-header" id="contact-title-text">ተጨማሪ መረጃዎች</div>
         
         <div class="contact-detail">
             <span>TELEBIRR:</span>
@@ -68,21 +68,21 @@
     </div>
 
     <div class="btn-container">
-        <button class="back-btn" id="back-btn-text" onclick="window.history.back()">BACK</button>
+        <button class="back-btn" id="back-btn-text" onclick="window.history.back()">ተመለስ</button>
     </div>
 
     <div class="footer">
-        <div id="l-text">LANGUAGE</div>
+        <div id="l-text">ቋንቋ</div>
         <div>
-            <span id="am-btn" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="am-btn" class="lang-btn active-lang" onclick="setLang('am')">አማርኛ</span> | 
             <span id="en-btn" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
         </div>
     </div>
 </div>
 
 <script>
-    // ሲጀመር English እንዲሆን ተደርጓል
-    let currentLang = 'en';
+    // ሲጀመር አማርኛ እንዲሆን ተቀይሯል
+    let currentLang = 'am';
 
     function getRules(l) {
         if(l === 'am') {
@@ -135,7 +135,6 @@
         document.getElementById('back-btn-text').innerText = l === 'am' ? 'ተመለስ' : 'BACK';
         document.getElementById('l-text').innerText = l === 'am' ? 'ቋንቋ' : 'LANGUAGE';
         
-        // አረንጓዴ ቀለምን ለመቀየር
         const amBtn = document.getElementById('am-btn');
         const enBtn = document.getElementById('en-btn');
         
@@ -150,8 +149,8 @@
         displayRules();
     }
 
-    // ገጹ ሲጀመር እንዲሰራ
-    setLang('en');
+    // ገጹ ሲጀመር በአማርኛ እንዲጀምር ተደርጓል
+    setLang('am');
 </script>
 
 </body>
