@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -29,37 +29,37 @@
 <body>
 
 <div class="card">
-    <div class="yellow-bar"><span>NEW</span><span style="color:red; font-size:26px">18+</span></div>
+    <div class="yellow-bar"><span id="new-label">አዲስ</span><span style="color:red; font-size:26px">18+</span></div>
     <div class="content">
-        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
-        <div id="play-resp" class="motto-plain">PLAY RESPONSIBLY!</div>
+        <div class="branding"><h1 id="brand-name">MITA BETTING</h1></div>
+        <div id="play-resp" class="motto-plain">በኃላፊነት ይጫወቱ!</div>
         <div id="error-msg"></div>
 
         <div class="input-row">
             <div class="input-box">
-                <input type="text" id="name-input" placeholder="NAME" maxlength="10">
+                <input type="text" id="name-input" placeholder="ስም" maxlength="10">
             </div>
         </div>
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="p-input" placeholder="PHONE (09...)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                <input type="tel" id="p-input" placeholder="ስልክ (09...)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
             </div>
         </div>
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="pass-input" placeholder="PIN" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
+                <input type="tel" id="pass-input" placeholder="ፒን (5 ድጅት)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
         </div>
 
-        <button class="btn register-btn" id="reg-btn-text" onclick="handleRegister()">CREATE ACCOUNT</button>
-        <button class="btn back-btn" id="back-btn-text" onclick="goBack()">BACK TO HOME</button>
+        <button class="btn register-btn" id="reg-btn-text" onclick="handleRegister()">አካውንት ክፈት</button>
+        <button class="btn back-btn" id="back-btn-text" onclick="goBack()">ወደ ኋላ ተመለስ</button>
     </div>
 
     <div class="footer">
-        <div id="lang-label" style="font-weight:900;">LANGUAGE</div>
+        <div id="lang-label" style="font-weight:900;">ቋንቋ</div>
         <div class="lang-options">
-            <span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | 
-            <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span>
+            <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
         </div>
     </div>
 </div>
@@ -79,7 +79,6 @@
 
     function goBack() { window.location.replace("index.html"); }
 
-    // ስህተትን አሳይቶ ከ 2 ሰከንድ በኋላ የሚያጠፋ ፈንክሽን
     function showError(msg) {
         const errorDiv = document.getElementById('error-msg');
         errorDiv.innerText = msg;
@@ -92,7 +91,7 @@
         const pass = document.getElementById('pass-input').value.trim();
         
         if (name.length < 3) { 
-            showError(currentLang === 'am' ? "ስም ከ3 ፊደል መሆን አለበት" : "NAME MUST BE 3 CHARS"); 
+            showError(currentLang === 'am' ? "ስም ከ3 ፊደል ማነስ የለበትም" : "NAME MUST BE AT LEAST 3 CHARS"); 
             return; 
         }
         if (!phone.startsWith('09') || phone.length !== 10) { 
@@ -106,7 +105,7 @@
 
         database.ref('users/' + phone).once('value', (snapshot) => {
             if (snapshot.exists()) {
-                showError(currentLang === 'am' ? "ይህ ስልክ ቁጥር ቀድሞ ተመዝግቧል!" : "THIS PHONE IS ALREADY REGISTERED!");
+                showError(currentLang === 'am' ? "ይህ ስልክ ቁጥር ተመዝግቧል!" : "PHONE ALREADY REGISTERED!");
             } else {
                 database.ref('users/' + phone).set({
                     username: name, password: pass, balance: 0, status: "active"
@@ -122,21 +121,26 @@
         });
     }
 
-    let currentLang = 'en';
+    let currentLang = 'am';
     function setLang(l) {
         currentLang = l;
         const isAm = (l === 'am');
-        document.getElementById('brand-name').innerText = isAm ? "ቤካስ ፈጣን" : "BEKAS FAST";
+        document.getElementById('brand-name').innerText = "MITA BETTING"; // ብራንድ ስም አይቀየርም
         document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
         document.getElementById('reg-btn-text').innerText = isAm ? "አካውንት ክፈት" : "CREATE ACCOUNT";
         document.getElementById('back-btn-text').innerText = isAm ? "ወደ ኋላ ተመለስ" : "BACK TO HOME";
         document.getElementById('lang-label').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
+        document.getElementById('new-label').innerText = isAm ? "አዲስ" : "NEW";
         document.getElementById('name-input').placeholder = isAm ? "ስም" : "NAME";
         document.getElementById('p-input').placeholder = isAm ? "ስልክ (09...)" : "PHONE (09...)";
-        document.getElementById('pass-input').placeholder = isAm ? "ፒን" : "PIN";
-        document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
-        document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
+        document.getElementById('pass-input').placeholder = isAm ? "ፒን (5 ድጅት)" : "PIN (5 DIGITS)";
+        
+        document.getElementById('lang-am').classList.toggle('active', isAm);
+        document.getElementById('lang-en').classList.toggle('active', !isAm);
     }
+
+    // ሲጀምር በአማርኛ እንዲሆን
+    setLang('am');
 </script>
 </body>
 </html>
