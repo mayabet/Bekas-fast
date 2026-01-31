@@ -31,13 +31,13 @@
 <div class="card">
     <div class="yellow-bar"><span id="new-label">አዲስ</span><span style="color:red; font-size:26px">18+</span></div>
     <div class="content">
-        <div class="branding"><h1 id="brand-name">MITA BETTING</h1></div>
+        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
         <div id="play-resp" class="motto-plain">በኃላፊነት ይጫወቱ!</div>
         <div id="error-msg"></div>
 
         <div class="input-row">
             <div class="input-box">
-                <input type="text" id="name-input" placeholder="ስም" maxlength="10">
+                <input type="text" id="name-input" placeholder="ስም (3-10)" maxlength="10" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
             </div>
         </div>
         <div class="input-row">
@@ -82,22 +82,26 @@
     function showError(msg) {
         const errorDiv = document.getElementById('error-msg');
         errorDiv.innerText = msg;
-        setTimeout(() => { errorDiv.innerText = ""; }, 2000);
+        setTimeout(() => { errorDiv.innerText = ""; }, 2500);
     }
 
     function handleRegister() {
-        const name = document.getElementById('name-input').value.trim();
+        const nameInput = document.getElementById('name-input');
+        const name = nameInput.value.trim();
         const phone = document.getElementById('p-input').value.trim();
         const pass = document.getElementById('pass-input').value.trim();
         
-        if (name.length < 3) { 
-            showError(currentLang === 'am' ? "ስም ከ3 ፊደል ማነስ የለበትም" : "NAME MUST BE AT LEAST 3 CHARS"); 
-            return; 
+        // ስም ቼክ - ከ3 ያነሰ ወይም ከ10 የሚበልጥ አይቀበልም
+        if (name.length < 3 || name.length > 10) {
+            showError(currentLang === 'am' ? "ስም ከ3-10 ፊደል መሆን አለበት" : "NAME MUST BE 3-10 CHARS");
+            return;
         }
+
         if (!phone.startsWith('09') || phone.length !== 10) { 
             showError(currentLang === 'am' ? "በ09 ይጀምሩ (10 ቁጥር)" : "START WITH 09 (10 DIGITS)"); 
             return; 
         }
+
         if (pass.length !== 5) { 
             showError(currentLang === 'am' ? "ፒን 5 ቁጥር መሆን አለበት" : "PIN MUST BE 5 DIGITS"); 
             return; 
@@ -125,13 +129,13 @@
     function setLang(l) {
         currentLang = l;
         const isAm = (l === 'am');
-        document.getElementById('brand-name').innerText = "MITA BETTING"; // ብራንድ ስም አይቀየርም
+        document.getElementById('brand-name').innerText = "BEKAS FAST"; 
         document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
         document.getElementById('reg-btn-text').innerText = isAm ? "አካውንት ክፈት" : "CREATE ACCOUNT";
         document.getElementById('back-btn-text').innerText = isAm ? "ወደ ኋላ ተመለስ" : "BACK TO HOME";
         document.getElementById('lang-label').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
         document.getElementById('new-label').innerText = isAm ? "አዲስ" : "NEW";
-        document.getElementById('name-input').placeholder = isAm ? "ስም" : "NAME";
+        document.getElementById('name-input').placeholder = isAm ? "ስም (3-10)" : "NAME (3-10)";
         document.getElementById('p-input').placeholder = isAm ? "ስልክ (09...)" : "PHONE (09...)";
         document.getElementById('pass-input').placeholder = isAm ? "ፒን (5 ድጅት)" : "PIN (5 DIGITS)";
         
@@ -139,7 +143,6 @@
         document.getElementById('lang-en').classList.toggle('active', !isAm);
     }
 
-    // ሲጀምር በአማርኛ እንዲሆን
     setLang('am');
 </script>
 </body>
