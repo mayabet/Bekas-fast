@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Deposit</title>
+    <title>ገንዘብ ማስገቢያ</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -20,10 +20,11 @@
         .dt-section { border-bottom: 2px solid #000; padding-bottom: 3px; margin-bottom: 5px; flex-shrink: 0; }
         .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
         
-        .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 28px; font-weight: 900; text-transform: uppercase; }
+        /* Branding placeholder removed */
+        .branding h1 { display: none; }
         
         /* Instruction - Bold */
-        .instruction-box { background: transparent; padding: 5px; text-align: center; margin-bottom: 8px; font-weight: 900; font-size: 16px; color: #000; line-height: 1.4; }
+        .instruction-box { background: transparent; padding: 5px; text-align: center; margin-bottom: 8px; font-weight: 900; font-size: 16px; color: #000; line-height: 1.4; margin-top: 10px; }
         .tele-highlight { color: #c00000; font-size: 22px; display: block; margin: 4px 0; font-weight: 900; }
 
         .balance-box { background: #002d4b; color: #ffcc00; padding: 10px; text-align: center; font-weight: 900; font-size: 19px; border: 2.5px solid #000; margin-bottom: 8px; flex-shrink: 0; }
@@ -50,45 +51,44 @@
 </head>
 <body>
 <div class="card">
-    <div class="yellow-bar"><span id="top-title">DEPOSIT</span><span class="plus18">18+</span></div>
+    <div class="yellow-bar"><span id="top-title">ገንዘብ ማስገቢያ</span><span class="plus18">18+</span></div>
     <div class="content">
         <div class="dt-section">
             <div id="date-label" class="dt-row">DATE: ...</div>
             <div id="time-label" class="dt-row">TIME: ...</div>
         </div>
-        <div class="branding"><h1>BEKAS FAST</h1></div>
 
         <div class="instruction-box" id="instruction-text">
-            <b>SEND VIA TELEBIRR TO</b> <span class="tele-highlight">0978272061</span> <b>THEN ENTER THE TRANSACTION CODE AND AMOUNT.</b>
+            <b>በቴሌብር ወደዚህ ቁጥር ይላኩ:</b> <span class="tele-highlight">0978272061</span> <b>ከዛም የትራንዛክሽን ኮዱንና መጠኑን ያስገቡ።</b>
         </div>
 
-        <div id="bal-display" class="balance-box">BALANCE: 0.00 ETB</div>
+        <div id="bal-display" class="balance-box">ቀሪ ሂሳብ: 0.00 ETB</div>
         <div id="msg-display"></div>
 
         <div class="input-group">
-            <span class="label-text" id="tr-label">TRANSACTION CODE</span>
+            <span class="label-text" id="tr-label">የትራንዛክሽን ኮድ</span>
             <div class="input-box">
-                <input type="text" id="tr-input" placeholder="10 DIGITS" maxlength="10" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,10)">
+                <input type="text" id="tr-input" placeholder="10 ዲጂት" maxlength="10" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,10)">
             </div>
         </div>
         <div class="input-group">
-            <span class="label-text" id="am-label">AMOUNT</span>
+            <span class="label-text" id="am-label">የገንዘብ መጠን</span>
             <div class="input-box">
                 <input type="number" id="am-input" placeholder="0000" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5)">
             </div>
         </div>
 
         <div class="btn-group">
-            <button class="btn dep-btn" id="dep-btn" onclick="handleDeposit()">DEPOSIT</button>
+            <button class="btn dep-btn" id="dep-btn" onclick="handleDeposit()">ገንዘብ አስገባ</button>
             <div class="row-btns">
-                <a href="info.html" class="btn info-btn" id="info-btn">INFO</a>
-                <a href="home.html" class="btn back-btn" id="back-btn">HOME</a>
+                <a href="info.html" class="btn info-btn" id="info-btn">መመሪያ</a>
+                <a href="home.html" class="btn back-btn" id="back-btn">ቤት</a>
             </div>
         </div>
     </div>
     <div class="footer">
-        <span id="l-text" style="font-weight: 900; font-size: 14px;">LANG:</span>
-        <div><span id="lang-am" class="lang-btn" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn active" onclick="setLang('en')">ENGLISH</span></div>
+        <span id="l-text" style="font-weight: 900; font-size: 14px;">ቋንቋ:</span>
+        <div><span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span></div>
     </div>
 </div>
 
@@ -105,7 +105,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    let currentLang = 'en';
+    let currentLang = 'am';
     let userPhone = localStorage.getItem('userPhone'); 
     let currentBalance = 0;
 
@@ -196,7 +196,6 @@
         document.getElementById('tr-label').innerText = s.tr;
         document.getElementById('am-label').innerText = s.am;
         
-        // Buttons language update
         document.getElementById('dep-btn').innerText = s.dp;
         document.getElementById('info-btn').innerText = s.if;
         document.getElementById('back-btn').innerText = s.bk;
@@ -205,7 +204,7 @@
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
     }
-    setLang('en');
+    setLang('am');
 </script>
 </body>
 </html>
