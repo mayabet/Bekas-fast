@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Play 1</title>
+    <title>Mita Betting - Play 1</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -39,21 +39,21 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">10 BIRR IN TO 90 BIRR</span><span class="plus18">18+</span></div>
-    <div class="info-section"><div>DATE: <span id="date-label"></span></div><div>TIME: <span id="time-label"></span></div></div>
-    <div class="balance-bar"><span id="bl">BALANCE</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
-    <div class="instruction" id="ins">SELECT NUMBER 1 UP 10</div>
+    <div class="yellow-banner"><span class="game-title" id="gt">10 ብር ወደ 90 ብር</span><span class="plus18">18+</span></div>
+    <div class="info-section"><div>ቀን: <span id="date-label"></span></div><div>ሰዓት: <span id="time-label"></span></div></div>
+    <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
+    <div class="instruction" id="ins">ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">MESSAGE</td><td colspan="3" id="msg-box" style="font-weight: 900;"></td></tr>
-        <tr><td class="bg-green" id="rn">ROUND</td><td id="round-val">1</td><td class="bg-green" id="ls">LAST</td><td id="last-val">0</td></tr>
+        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900;">እንኳን ደህና መጡ!</td></tr>
+        <tr><td class="bg-green" id="rn">ዙር</td><td id="round-val">1</td><td class="bg-green" id="ls">ያለፈው</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
-        <div class="selected-header" id="sh">SELECTED NUMBERS</div>
+        <div class="selected-header" id="sh">የተመረጡ ቁጥሮች</div>
         <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" id="bb">BACK</a></div>
-    <div class="lang-bar"><span id="ll">LANGUAGE</span><div><span class="lang-btn" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn active" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
+    <div class="footer-nav"><a href="home.html" class="nav-btn" id="bb">ተመለስ</a></div>
+    <div class="lang-bar"><span id="ll">ቋንቋ</span><div><span class="lang-btn active" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
 <script>
@@ -72,7 +72,8 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0, currentLang = 'en', round = 1, selections = {}, isPlaying = false, isResetting = false;
+    // እዚህ ጋር በ 'am' እንዲጀምር ተደርጓል
+    let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
     if (!userPhone) window.location.replace("index.html");
     else {
@@ -156,7 +157,6 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
 
-        // አሸናፊውን ስም ለታሪክ መመዝገብ
         let winName = selections[win] || "No Winner";
         database.ref('games/play1').push({ number: win, winner: winName, timestamp: Date.now() });
 
@@ -197,7 +197,6 @@
             snapshot.forEach(child => { history.unshift(child.val()); });
             history.forEach(item => {
                 let time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                // እዚህ ጋር "WINNER NUMBER" በሚለው ፋንታ የአሸናፊው ስም (item.winner) ይገባል
                 table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>${item.winner} - ${time}</td></tr>`;
             });
         });
@@ -221,8 +220,22 @@
         }
     }
 
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } }
-    setInterval(() => { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }, 1000);
+    function setLang(l) { 
+        currentLang = l; 
+        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; }
+        // ቁልፎቹን ለማድመቅ
+        document.getElementById('l-am').classList.toggle('active', l === 'am');
+        document.getElementById('l-en').classList.toggle('active', l === 'en');
+    }
+
+    setInterval(() => { 
+        const now = new Date(); 
+        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
+        document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
+    }, 1000);
+    
+    // ሲጀምር አማርኛ እንዲሆን መጥራት
+    setLang('am');
 </script>
 </body>
 </html>
