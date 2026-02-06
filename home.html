@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ቡናማዉ ፈጣን - Home</title>
+    <title>ቡናማው ፈጣን እጣ - Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -58,7 +58,7 @@
         </div>
 
         <div class="user-section">
-            <div class="greet" style="font-weight: 900;"><span id="hello-text">ሰላም</span>, <span id="user-nick">...</span></div>
+            <div class="greet" style="font-weight: 900;"><span id="hello-text">Hi</span>, <span id="user-nick">...</span></div>
             <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency" style="color:white; font-weight: 900;">ብር</small></div>
         </div>
 
@@ -124,7 +124,7 @@
 </div>
 
 <script>
-    // --- 1. Firebase Config (የአንተ መረጃ) ---
+    // --- 1. Firebase Config ---
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -134,7 +134,6 @@
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
 
-    // Initialize Firebase
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -145,8 +144,8 @@
     function setLang(l) {
         currentLang = l;
         const s = {
-            'am': { 'brand': 'ሚታ ቤቲንግ (Mita)', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'brand': 'MITA BETTING', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
+            'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'Hi', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'en': { 'brand': 'BUNAMAW FAST', 'hello': 'Hi', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
         }[l];
         
         document.getElementById('brand-name').innerText = s.brand;
@@ -185,18 +184,14 @@
     }
     setInterval(updateDateTime, 1000);
 
-    // --- 4. Firebase Data Fetching (Nickname & Balance) ---
+    // --- 4. Firebase Data Fetching ---
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
             const uid = user.uid;
-
-            // Nickname ማምጫ
             firebase.database().ref('users/' + uid + '/nickname').on('value', (snap) => {
                 const name = snap.val();
                 document.getElementById('user-nick').innerText = name ? name : (user.displayName || "ተጫዋች");
             });
-
-            // Balance ማምጫ
             firebase.database().ref('users/' + uid + '/balance').on('value', (snap) => {
                 const val = snap.val();
                 document.getElementById('user-balance').innerText = (val !== null) ? Number(val).toLocaleString() : "0.00";
