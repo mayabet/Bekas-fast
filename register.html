@@ -3,60 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Register</title>
+    <title>ቡናማው እጣ - Register</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Noto+Sans+Ethiopic:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .card { width: 90%; max-width: 330px; background: white; border-radius: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.2); overflow: hidden; border: 2.5px solid #000; position: relative; z-index: 1; }
-        .yellow-bar { background: #ffcc00; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; border-bottom: 2.5px solid #000; }
-        .content { padding: 12px 18px; }
-        .branding h1 { color: #00b050; text-align: center; margin: 8px 0 2px 0; font-size: 32px; font-weight: 900; text-transform: uppercase; }
-        .motto-plain { text-align: center; color: #000; font-size: 15px; font-weight: 900; margin-bottom: 12px; text-transform: uppercase; }
-        .input-row { margin-bottom: 12px; }
-        .input-box { border: 3.5px solid #00b050; border-radius: 0; padding: 12px 10px; display: flex; align-items: center; background: #fff; height: 35px; }
-        input { border: none; outline: none; width: 100%; font-size: 17px; font-weight: 900; color: #000; background: transparent; }
-        input::placeholder { font-weight: 900; color: #000; opacity: 1; text-transform: uppercase; }
-        #error-msg { color: red; font-size: 13px; font-weight: 900; text-align: center; min-height: 18px; margin-bottom: 8px; }
-        .btn { width: 100%; padding: 14px; border-radius: 0; border: 2.5px solid #000; font-weight: 900; cursor: pointer; margin-bottom: 10px; font-size: 16px; text-transform: uppercase; display: block; }
-        .register-btn { background: #00b050; color: white; }
-        .back-btn { background: #001f3f; color: white; }
-        .footer { border-top: 3px solid #000; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; }
-        .lang-btn { cursor: pointer; color: #001f3f; font-weight: 900; padding: 5px; }
-        .lang-btn.active { color: #00b050; }
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            background: #eef2f7; 
+            font-family: 'Noto Sans Ethiopic', sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .en-mode { font-family: 'Poppins', sans-serif !important; }
+
+        .card { 
+            width: 92%; 
+            max-width: 360px; 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,45,75,0.25); 
+            overflow: hidden; 
+            border: 4px solid #002d4b; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        .yellow-bar { background: #002d4b; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 4px solid #ff8c00; }
+        .header-txt { font-weight: 1000; font-size: 18px; }
+
+        .content { padding: 15px 20px; }
+
+        /* የሲኒ ምልክት (ልክ እንደ index) */
+        .branding { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
+        .branding i { color: #8B4513; font-size: 28px; }
+        .branding h1 { color: #8B4513; text-align: center; margin: 0; font-size: 32px; font-weight: 1000; letter-spacing: -1px; }
+
+        .motto { text-align: center; color: #ff8c00; font-size: 14px; font-weight: 1000; margin-bottom: 18px; text-transform: uppercase; }
+        
+        /* ይበልጥ ጎላ ያሉ መጻፊያ ሳጥኖች */
+        .input-row { margin-bottom: 15px; }
+        .input-box { border: 3px solid #002d4b; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; background: #fff; height: 38px; }
+        .input-box i { color: #002d4b; margin-right: 12px; font-size: 20px; width: 22px; text-align: center; }
+        input { border: none; outline: none; width: 100%; font-size: 19px; font-weight: 1000; color: #002d4b; font-family: inherit; }
+        input::placeholder { font-weight: 1000; opacity: 0.7; }
+
+        #error-msg { color: #d00000; font-size: 14px; font-weight: 1000; text-align: center; margin-bottom: 10px; min-height: 20px; }
+        
+        .btn { width: 100%; height: 48px; border-radius: 12px; border: none; font-weight: 1000; cursor: pointer; margin-bottom: 12px; font-size: 17px; text-transform: uppercase; font-family: inherit; display: flex; align-items: center; justify-content: center; }
+        .register-btn { background: #ff8c00; color: white; }
+        .back-btn { background: #002d4b; color: white; }
+
+        .footer { border-top: 3px solid #002d4b; padding: 15px; display: flex; justify-content: space-between; font-size: 15px; font-weight: 1000; background: #f9f9f9; }
+        .lang-btn { cursor: pointer; color: #002d4b; }
+        .lang-btn.active { color: #ff8c00; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="yellow-bar"><span id="new-label">አዲስ</span><span style="color:red; font-size:26px">18+</span></div>
+    <div class="yellow-bar">
+        <span id="reg-title" class="header-txt">አዲስ አካውንት</span>
+        <span style="color:#ff8c00; font-size:26px; font-weight: 1000;">18+</span>
+    </div>
+    
     <div class="content">
-        <div class="branding"><h1 id="brand-name">BEKAS FAST</h1></div>
-        <div id="play-resp" class="motto-plain">በኃላፊነት ይጫወቱ!</div>
+        <div class="branding">
+            <i class="fas fa-coffee"></i> 
+            <h1 id="brand-name">ቡናማው እጣ</h1>
+        </div>
+        <div class="motto" id="play-resp">በኃላፊነት ይጫወቱ!</div>
         <div id="error-msg"></div>
 
         <div class="input-row">
             <div class="input-box">
-                <input type="text" id="name-input" placeholder="ስም (3-10)" maxlength="10" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
+                <i class="fas fa-user"></i>
+                <input type="text" id="name-input" placeholder="ስም" maxlength="10" oninput="this.value = this.value.slice(0, 10);">
             </div>
         </div>
+
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="p-input" placeholder="ስልክ (09...)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                <i class="fas fa-phone"></i>
+                <input type="tel" id="p-input" placeholder="ስልክ (09...)" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
             </div>
         </div>
+
         <div class="input-row">
             <div class="input-box">
-                <input type="tel" id="pass-input" placeholder="ፒን (5 ድጅት)" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
+                <i class="fas fa-key"></i>
+                <input type="tel" id="pass-input" placeholder="ፒን (5 ቁጥር)" maxlength="5" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
         </div>
 
         <button class="btn register-btn" id="reg-btn-text" onclick="handleRegister()">አካውንት ክፈት</button>
-        <button class="btn back-btn" id="back-btn-text" onclick="goBack()">ወደ ኋላ ተመለስ</button>
+        <button class="btn back-btn" id="back-btn-text" onclick="window.location.replace('index.html')">ተመለስ</button>
     </div>
 
     <div class="footer">
-        <div id="lang-label" style="font-weight:900;">ቋንቋ</div>
+        <div id="lang-label">ቋንቋ</div>
         <div class="lang-options">
             <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | 
             <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
@@ -65,43 +116,42 @@
 </div>
 
 <script>
+    // አዲሱ የ Firebase አድራሻ እዚህ ጋር ተተክቷል
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
-        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
         projectId: "bekas-fast-d2a3b",
         storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
         messagingSenderId: "130702344830",
-        appId: "1:130702344830:web:58577289ec2f3208a64e2f"
+        appId: "1:130702344830:web:58577289ec2f3208a64e2f",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com/" // ፕሮጀክትህ ላይ Database ካለህ ይሄን URL እርግጠኛ ሁን
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
 
-    function goBack() { window.location.replace("index.html"); }
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+    let currentLang = 'am';
 
     function showError(msg) {
         const errorDiv = document.getElementById('error-msg');
         errorDiv.innerText = msg;
-        setTimeout(() => { errorDiv.innerText = ""; }, 2500);
+        setTimeout(() => { errorDiv.innerText = ""; }, 2000);
     }
 
     function handleRegister() {
-        const nameInput = document.getElementById('name-input');
-        const name = nameInput.value.trim();
+        const name = document.getElementById('name-input').value.trim();
         const phone = document.getElementById('p-input').value.trim();
         const pass = document.getElementById('pass-input').value.trim();
         
-        // ስም ቼክ - ከ3 ያነሰ ወይም ከ10 የሚበልጥ አይቀበልም
-        if (name.length < 3 || name.length > 10) {
-            showError(currentLang === 'am' ? "ስም ከ3-10 ፊደል መሆን አለበት" : "NAME MUST BE 3-10 CHARS");
-            return;
-        }
-
-        if (!phone.startsWith('09') || phone.length !== 10) { 
-            showError(currentLang === 'am' ? "በ09 ይጀምሩ (10 ቁጥር)" : "START WITH 09 (10 DIGITS)"); 
+        if (name === "" || name.length > 10) { 
+            showError(currentLang === 'am' ? "ስም በትክክል ያስገቡ (ቢበዛ 10)" : "INVALID NAME (MAX 10)"); 
             return; 
         }
-
+        if (phone.length !== 10 || !phone.startsWith('09')) { 
+            showError(currentLang === 'am' ? "ስልክ 10 ቁጥር (09...) መሆን አለበት" : "PHONE MUST BE 10 DIGITS (09...)"); 
+            return; 
+        }
         if (pass.length !== 5) { 
             showError(currentLang === 'am' ? "ፒን 5 ቁጥር መሆን አለበት" : "PIN MUST BE 5 DIGITS"); 
             return; 
@@ -112,38 +162,36 @@
                 showError(currentLang === 'am' ? "ይህ ስልክ ቁጥር ተመዝግቧል!" : "PHONE ALREADY REGISTERED!");
             } else {
                 database.ref('users/' + phone).set({
-                    username: name, password: pass, balance: 0, status: "active"
+                    username: name,
+                    password: pass,
+                    balance: 0,
+                    status: "active"
                 }).then(() => {
-                    database.ref('admin_notifications').push({ 
-                        phone: phone, username: name, password: pass, time: new Date().toLocaleString() 
-                    });
                     localStorage.setItem('userPhone', phone);
-                    alert(currentLang === 'am' ? "በተሳካ ሁኔታ ተመዝግበዋል!" : "Registered Successfully!");
                     window.location.replace("home.html");
+                }).catch((error) => {
+                    showError("Error: " + error.message);
                 });
             }
         });
     }
 
-    let currentLang = 'am';
     function setLang(l) {
         currentLang = l;
         const isAm = (l === 'am');
-        document.getElementById('brand-name').innerText = "BEKAS FAST"; 
+        document.body.classList.toggle('en-mode', !isAm);
+        document.getElementById('brand-name').innerText = isAm ? "ቡናማው እጣ" : "BUNAMAW";
+        document.getElementById('reg-title').innerText = isAm ? "አዲስ አካውንት" : "NEW ACCOUNT";
         document.getElementById('play-resp').innerText = isAm ? "በኃላፊነት ይጫወቱ!" : "PLAY RESPONSIBLY!";
         document.getElementById('reg-btn-text').innerText = isAm ? "አካውንት ክፈት" : "CREATE ACCOUNT";
-        document.getElementById('back-btn-text').innerText = isAm ? "ወደ ኋላ ተመለስ" : "BACK TO HOME";
+        document.getElementById('back-btn-text').innerText = isAm ? "ተመለስ" : "BACK";
         document.getElementById('lang-label').innerText = isAm ? "ቋንቋ" : "LANGUAGE";
-        document.getElementById('new-label').innerText = isAm ? "አዲስ" : "NEW";
-        document.getElementById('name-input').placeholder = isAm ? "ስም (3-10)" : "NAME (3-10)";
+        document.getElementById('name-input').placeholder = isAm ? "ስም" : "NAME";
         document.getElementById('p-input').placeholder = isAm ? "ስልክ (09...)" : "PHONE (09...)";
-        document.getElementById('pass-input').placeholder = isAm ? "ፒን (5 ድጅት)" : "PIN (5 DIGITS)";
-        
-        document.getElementById('lang-am').classList.toggle('active', isAm);
-        document.getElementById('lang-en').classList.toggle('active', !isAm);
+        document.getElementById('pass-input').placeholder = isAm ? "ፒን (5 ቁጥር)" : "PIN (5 DIGITS)";
+        document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
+        document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
     }
-
-    setLang('am');
 </script>
 </body>
 </html>
