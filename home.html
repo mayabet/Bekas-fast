@@ -11,7 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
     <style>
-        body { background: #1a1a1a; font-family: sans-serif; display: flex; justify-content: center; margin: 0; }
+        body { background: #1a1a1a; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; margin: 0; }
         .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; border: 2px solid #002d4b; }
         .top-banner { background: #002d4b; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #ff8c00; }
         .branding-wrapper { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 900; font-size: 19px; }
@@ -31,7 +31,7 @@
         .amt-v { font-size: 22px; font-weight: 900; color: #002d4b; display: block; }
         .sub-v { font-size: 14px; color: #000; font-weight: 900; display: block; margin-top: 2px; }
         .play-now { background: #002d4b; color: white; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 900; font-size: 13px; display: inline-block; box-shadow: 0 4px 8px rgba(0,0,0,0.3); transition: transform 0.2s; }
-        .footer-nav { margin-top: auto; display: grid; gap: 10px; }
+        .footer-nav { margin-top: auto; display: grid; gap: 10px; padding-bottom: 10px; }
         .f-link { padding: 14px; text-align: center; color: white; font-weight: 900; text-decoration: none; border-radius: 8px; font-size: 15px; }
         .l-info { background: #002d4b; }
         .l-out { background: #c00000; border: none; width: 100%; cursor: pointer; }
@@ -171,7 +171,7 @@
         updateDateTime();
     }
 
-    // --- 3. Date & Time ---
+    // --- 3. Date & Time (Ethiopian and Regular) ---
     const amMonths = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
     function updateDateTime() {
         const now = new Date();
@@ -184,23 +184,32 @@
     }
     setInterval(updateDateTime, 1000);
 
-    // --- 4. Firebase Data Fetching ---
+    // --- 4. Firebase Auth & Data ---
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
             const uid = user.uid;
+            // Fetch Nickname
             firebase.database().ref('users/' + uid + '/nickname').on('value', (snap) => {
                 const name = snap.val();
-                document.getElementById('user-nick').innerText = name ? name : (user.displayName || "ተጫዋች");
+                document.getElementById('user-nick').innerText = name ? name : "ተጫዋች";
             });
+            // Fetch Balance
             firebase.database().ref('users/' + uid + '/balance').on('value', (snap) => {
                 const val = snap.val();
                 document.getElementById('user-balance').innerText = (val !== null) ? Number(val).toLocaleString() : "0.00";
             });
+        } else {
+            window.location.href = 'index.html'; // Redirect if not logged in
         }
     });
 
+    // --- 5. Logout Function ---
     function handleLogout() {
-        firebase.auth().signOut().then(() => { window.location.href = 'index.html'; });
+        if(confirm("ለመውጣት እርግጠኛ ነዎት?")) {
+            firebase.auth().signOut().then(() => { 
+                window.location.href = 'index.html'; 
+            });
+        }
     }
 
     updateDateTime();
