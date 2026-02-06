@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ቡናማው ፈጣን እጣ - Home</title>
+    <title>ሚታ ቤቲንግ (Mita) - Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
     <style>
         body { background: #1a1a1a; font-family: sans-serif; display: flex; justify-content: center; margin: 0; }
         .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; border: 2px solid #002d4b; }
@@ -39,6 +41,7 @@
     </style>
 </head>
 <body>
+
 <div class="app-card">
     <div class="top-banner">
         <div class="branding-wrapper">
@@ -121,13 +124,29 @@
 </div>
 
 <script>
+    // --- 1. Firebase Config (የአንተ መረጃ) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
+        authDomain: "bekas-fast-d2a3b.firebaseapp.com",
+        projectId: "bekas-fast-d2a3b",
+        storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
+        messagingSenderId: "130702344830",
+        appId: "1:130702344830:web:58577289ec2f3208a64e2f"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
     let currentLang = 'am';
 
+    // --- 2. Language Setup ---
     function setLang(l) {
         currentLang = l;
         const s = {
-            'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'brand': 'BUNAMAW FAST LOTTO', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
+            'am': { 'brand': 'ሚታ ቤቲንግ (Mita)', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'en': { 'brand': 'MITA BETTING', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
         }[l];
         
         document.getElementById('brand-name').innerText = s.brand;
@@ -153,8 +172,8 @@
         updateDateTime();
     }
 
+    // --- 3. Date & Time ---
     const amMonths = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-
     function updateDateTime() {
         const now = new Date();
         if (currentLang === 'am') {
@@ -164,16 +183,23 @@
         }
         document.getElementById('time-label').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
-
     setInterval(updateDateTime, 1000);
-    updateDateTime();
 
-    // Firebase Integration
+    // --- 4. Firebase Data Fetching (Nickname & Balance) ---
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-            document.getElementById('user-nick').innerText = user.displayName || "ተጫዋች";
-            firebase.database().ref('users/' + user.uid + '/balance').on('value', (snap) => {
-                document.getElementById('user-balance').innerText = (snap.val() || 0).toLocaleString();
+            const uid = user.uid;
+
+            // Nickname ማምጫ
+            firebase.database().ref('users/' + uid + '/nickname').on('value', (snap) => {
+                const name = snap.val();
+                document.getElementById('user-nick').innerText = name ? name : (user.displayName || "ተጫዋች");
+            });
+
+            // Balance ማምጫ
+            firebase.database().ref('users/' + uid + '/balance').on('value', (snap) => {
+                const val = snap.val();
+                document.getElementById('user-balance').innerText = (val !== null) ? Number(val).toLocaleString() : "0.00";
             });
         }
     });
@@ -181,6 +207,8 @@
     function handleLogout() {
         firebase.auth().signOut().then(() => { window.location.href = 'index.html'; });
     }
+
+    updateDateTime();
 </script>
 </body>
 </html>
