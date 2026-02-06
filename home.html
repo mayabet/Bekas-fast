@@ -128,6 +128,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
         projectId: "bekas-fast-d2a3b",
         storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
         messagingSenderId: "130702344830",
@@ -171,7 +172,7 @@
         updateDateTime();
     }
 
-    // --- 3. Date & Time (Ethiopian and Regular) ---
+    // --- 3. Date & Time ---
     const amMonths = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
     function updateDateTime() {
         const now = new Date();
@@ -188,18 +189,19 @@
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
             const uid = user.uid;
-            // Fetch Nickname
+            // Nickname አምጣ
             firebase.database().ref('users/' + uid + '/nickname').on('value', (snap) => {
                 const name = snap.val();
                 document.getElementById('user-nick').innerText = name ? name : "ተጫዋች";
             });
-            // Fetch Balance
+            // Balance አምጣ
             firebase.database().ref('users/' + uid + '/balance').on('value', (snap) => {
                 const val = snap.val();
                 document.getElementById('user-balance').innerText = (val !== null) ? Number(val).toLocaleString() : "0.00";
             });
         } else {
-            window.location.href = 'index.html'; // Redirect if not logged in
+            // Login ካላደረገ ወደ index.html መልሰው
+            window.location.href = 'index.html'; 
         }
     });
 
