@@ -11,61 +11,31 @@
     <style>
         body { background: #1a1a1a; font-family: sans-serif; display: flex; justify-content: center; margin: 0; }
         .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; border: 2px solid #002d4b; }
-        
         .top-banner { background: #002d4b; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #ff8c00; }
-        
         .branding-wrapper { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 900; font-size: 19px; }
-        
-        .brand-icon { 
-            color: #ff8c00 !important; 
-            font-size: 24px !important;
-        } 
-        
+        .brand-icon { color: #ff8c00 !important; font-size: 24px !important; } 
         .plus18 { color: #ff8c00; font-weight: 900; font-size: 24px; }
-        
         .content { padding: 15px; flex-grow: 1; }
         .live-info { background: #f0f4f8; color: #002d4b; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; display: flex; justify-content: space-between; font-weight: bold; border: 1px solid #ddd; }
-        
-        .user-section { 
-            background: linear-gradient(135deg, #002d4b 0%, #004a7c 100%);
-            display: flex; justify-content: space-between; align-items: center; 
-            margin-bottom: 15px; padding: 15px; border-radius: 12px; color: white;
-        }
+        .user-section { background: linear-gradient(135deg, #002d4b 0%, #004a7c 100%); display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 15px; border-radius: 12px; color: white; }
         .bal { font-weight: 900; font-size: 22px; color: #ff8c00; }
-
         .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .q-btn { 
-            padding: 12px; border: none; color: white; font-weight: bold; 
-            border-radius: 8px; text-align: center; text-decoration: none; 
-            font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-        }
+        .q-btn { padding: 12px; border: none; color: white; font-weight: bold; border-radius: 8px; text-align: center; text-decoration: none; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .q-dep { background: #28a745; } 
         .q-with { background: #dc3545; } 
-
         .sport-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
         .sport-table th { background: #002d4b; color: #fff; font-size: 14px; padding: 12px 5px; font-weight: 900; border-bottom: 3px solid #ff8c00; }
         .sport-table td { background: #fff; border-bottom: 3px solid #002d4b; padding: 15px 5px; text-align: center; }
-
         .amt-v { font-size: 22px; font-weight: 900; color: #002d4b; display: block; }
         .sub-v { font-size: 14px; color: #000; font-weight: 900; display: block; margin-top: 2px; }
-        
-        .play-now { 
-            background: #002d4b; color: white; padding: 10px 14px; border-radius: 6px; 
-            text-decoration: none; font-weight: 900; font-size: 13px; display: inline-block;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
-            transition: transform 0.2s;
-        }
-        .play-now:active { transform: scale(0.95); }
-
+        .play-now { background: #002d4b; color: white; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 900; font-size: 13px; display: inline-block; box-shadow: 0 4px 8px rgba(0,0,0,0.3); transition: transform 0.2s; }
         .footer-nav { margin-top: auto; display: grid; gap: 10px; }
         .f-link { padding: 14px; text-align: center; color: white; font-weight: 900; text-decoration: none; border-radius: 8px; font-size: 15px; }
         .l-info { background: #002d4b; }
         .l-out { background: #c00000; border: none; width: 100%; cursor: pointer; }
-
         .lang-bar { background: #f9f9f9; padding: 15px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; border-top: 2px solid #eee; }
-        .lang-btn { cursor: pointer; color: #002d4b; text-decoration: none; transition: color 0.3s ease; }
-        .lang-btn.active { color: #ff8c00 !important; text-decoration: none !important; }
+        .lang-btn { cursor: pointer; color: #002d4b; transition: color 0.3s ease; }
+        .lang-btn.active { color: #ff8c00 !important; }
     </style>
 </head>
 <body>
@@ -151,27 +121,10 @@
 </div>
 
 <script>
-    // --- FIREBASE ስም እና ባላንስ ማምጫ ---
-    firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            // ስም ለማሳየት
-            const nickname = user.displayName || "ተጫዋች";
-            document.getElementById('user-nick').innerText = nickname;
-            
-            // ባላንስ ከዳታቤዝ ለማምጣት
-            firebase.database().ref('users/' + user.uid + '/balance').on('value', (snap) => {
-                const bal = snap.val() || 0;
-                document.getElementById('user-balance').innerText = bal.toLocaleString();
-            });
-        }
-    });
-
     let currentLang = 'am';
-    const amMonths = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
 
     function setLang(l) {
         currentLang = l;
-        const isAm = l === 'am';
         const s = {
             'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
             'en': { 'brand': 'BUNAMAW FAST LOTTO', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
@@ -193,10 +146,14 @@
         document.querySelectorAll('.p-btn').forEach(b => b.innerText = s.play);
         document.querySelectorAll('.p-text').forEach(t => t.innerText = s.people);
         document.querySelectorAll('.birr-text').forEach(t => t.innerText = s.birr);
-        document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
-        document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
+
+        document.getElementById('lang-am').classList.toggle('active', l === 'am');
+        document.getElementById('lang-en').classList.toggle('active', l === 'en');
+        
         updateDateTime();
     }
+
+    const amMonths = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
 
     function updateDateTime() {
         const now = new Date();
@@ -207,14 +164,22 @@
         }
         document.getElementById('time-label').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
-    
+
     setInterval(updateDateTime, 1000);
     updateDateTime();
 
+    // Firebase Integration
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            document.getElementById('user-nick').innerText = user.displayName || "ተጫዋች";
+            firebase.database().ref('users/' + user.uid + '/balance').on('value', (snap) => {
+                document.getElementById('user-balance').innerText = (snap.val() || 0).toLocaleString();
+            });
+        }
+    });
+
     function handleLogout() {
-        firebase.auth().signOut().then(() => {
-            window.location.href = 'index.html';
-        });
+        firebase.auth().signOut().then(() => { window.location.href = 'index.html'; });
     }
 </script>
 </body>
