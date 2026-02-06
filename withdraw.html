@@ -3,65 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Withdraw</title>
+    <title>Bunamaw - Withdraw</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Noto+Sans+Ethiopic:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
-        .card { width: 95%; max-width: 360px; height: 96vh; background: white; border: 3px solid #000; display: flex; flex-direction: column; box-sizing: border-box; }
-        .yellow-bar { background: #ffcc00; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 20px; border-bottom: 3px solid #000; flex-shrink: 0; }
-        .plus18 { color: red; font-size: 24px; font-weight: 900; }
-        .content { padding: 10px 15px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .dt-section { border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; flex-shrink: 0; }
-        .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
-        .branding h1 { color: #00b050; text-align: center; margin: 5px 0; font-size: 26px; font-weight: 900; text-transform: uppercase; }
-        .tele-box { background: #fffde7; border: 2px solid #00b050; padding: 5px; text-align: center; margin-bottom: 10px; flex-shrink: 0; border-radius: 4px; }
-        #tele-msg { font-size: 14px; font-weight: 900; color: #000; display: block; text-transform: uppercase; }
-        .balance-box { background: #002d4b; color: #ffcc00; padding: 8px; text-align: center; font-weight: 900; font-size: 18px; border: 2.5px solid #000; margin-bottom: 10px; flex-shrink: 0; }
-        #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 20px; margin-bottom: 5px; text-transform: uppercase; }
-        .input-group { margin-bottom: 10px; flex-shrink: 0; }
-        .label-text { color: #000; font-weight: 900; font-size: 14px; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .input-box { border: 3px solid #00b050; padding: 0 10px; display: flex; align-items: center; background: #fff; height: 45px; box-sizing: border-box; }
-        input { border: none; outline: none; width: 100%; font-size: 20px; font-weight: 900; background: transparent; color: #002d4b; }
-        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
-        .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 16px; cursor: pointer; text-transform: uppercase; height: 42px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
-        .with-btn { background: #c00000; }
-        .info-btn { background: #00b050; }
-        .back-btn { background: #002d4b; }
-        .notice-box { background: #fff8e1; border: 2.5px solid #ffcc00; padding: 10px; margin-top: 10px; font-size: 14px; font-weight: 900; color: #d32f2f; text-align: center; line-height: 1.4; }
-        .footer { border-top: 3px solid #000; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; font-size: 15px; font-weight: 900; color: #002d4b; }
-        .active { color: #00b050 !important; }
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #eef2f7; font-family: 'Noto Sans Ethiopic', sans-serif; display: flex; justify-content: center; align-items: center; }
+        .en-mode { font-family: 'Poppins', sans-serif !important; }
+        .app-card { width: 92%; max-width: 360px; background: white; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,45,75,0.25); overflow: hidden; border: 4px solid #002d4b; display: flex; flex-direction: column; }
+        .top-bar { background: #002d4b; padding: 15px; display: flex; justify-content: space-between; align-items: center; color: #fff; border-bottom: 4px solid #ff8c00; }
+        .title { font-weight: 1000; font-size: 19px; }
+        .balance-section { background: #002d4b; padding: 20px 15px; text-align: center; color: white; border-bottom: 2px solid #ff8c00; }
+        .bal-label { font-size: 15px; font-weight: 1000; color: #ff8c00; margin-bottom: 8px; text-transform: uppercase; }
+        .bal-amount { font-size: 36px; font-weight: 1000; color: #fff; }
+        .content { padding: 20px; }
+        .instr { font-size: 14px; font-weight: 1000; color: #002d4b; margin-bottom: 15px; line-height: 1.4; text-align: center; }
+        .input-group { margin-bottom: 18px; }
+        label { display: block; font-size: 13px; font-weight: 1000; color: #002d4b; margin-bottom: 8px; text-transform: uppercase; }
+        .input-box { border: 3px solid #002d4b; border-radius: 10px; padding: 10px; display: flex; align-items: center; background: #fff; height: 42px; }
+        .input-box i { color: #002d4b; margin-right: 12px; font-size: 20px; width: 22px; text-align: center; }
+        input { border: none; outline: none; width: 100%; font-size: 20px; font-weight: 1000; color: #002d4b; font-family: inherit; }
+        #msg-box { text-align: center; font-weight: 1000; font-size: 15px; margin-bottom: 12px; min-height: 20px; }
+        .btn { width: 100%; height: 50px; border-radius: 12px; border: none; font-weight: 1000; cursor: pointer; font-size: 17px; text-transform: uppercase; font-family: inherit; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+        .withdraw-btn { background: #ff8c00; color: white; }
+        .back-btn { background: #002d4b; color: white; }
+        .notice { font-size: 13px; font-weight: 1000; color: #d00000; text-align: center; margin-top: 10px; line-height: 1.4; }
+        .footer { border-top: 3px solid #002d4b; padding: 15px; display: flex; justify-content: space-between; font-size: 15px; font-weight: 1000; background: #f9f9f9; }
+        .lang-btn { cursor: pointer; color: #002d4b; }
+        .lang-btn.active { color: #ff8c00; }
     </style>
 </head>
 <body>
-<div class="card">
-    <div class="yellow-bar"><span id="top-title">ገንዘብ ማውጫ</span><span class="plus18">18+</span></div>
-    <div class="content">
-        <div class="dt-section">
-            <div id="date-label" class="dt-row">ቀን: ...</div>
-            <div id="time-label" class="dt-row">ሰዓት: ...</div>
-        </div>
-        <div class="branding"><h1>ቤካስ ፉስት</h1></div>
-        <div class="tele-box"><span id="tele-msg">የሚያወጡትን የገንዘብ መጠን ያስገቡ</span></div>
-        <div id="bal-display" class="balance-box">ቀሪ ሂሳብ: 0.00 ETB</div>
-        <div id="msg-display"></div>
-        <div class="input-group">
-            <span class="label-text" id="am-label">የገንዘብ መጠን</span>
-            <div class="input-box"><input type="number" id="am-input" placeholder="000" oninput="if(this.value.length>5)this.value=this.value.slice(0,5)"></div>
-        </div>
-        <div class="btn-group">
-            <button class="btn with-btn" id="with-btn" onclick="handleWithdraw()">ገንዘብ አውጣ</button>
-            <a href="info.html" class="btn info-btn" id="info-btn">መመሪያ</a>
-            <a href="home.html" class="btn back-btn" id="back-btn">ወደ ዋና ገጽ</a>
-        </div>
-        <div class="notice-box" id="bottom-notice">
-            የማውጫ ጥያቄዎ በተመዘገቡበት የቴሌብር ቁጥር ከ 10 ደቂቃ ባልበለጠ ጊዜ ውስጥ ይገባላችኋል። በ Mita Betting ስለተጫወቱ እናመሰግናለን!
-        </div>
+
+<div class="app-card">
+    <div class="top-bar">
+        <span class="title" id="title-name">ብር ማውጫ</span>
+        <span style="color:#ff8c00; font-size:26px; font-weight:1000;">18+</span>
     </div>
+
+    <div class="balance-section">
+        <div class="bal-label" id="txt-bal-label">ያለዎት ቀሪ ሂሳብ</div>
+        <div class="bal-amount"><span id="user-balance">...</span> <small style="font-size:16px; color:#ff8c00;" id="txt-curr">ብር</small></div>
+    </div>
+
+    <div class="content">
+        <div id="msg-box"></div>
+        <div class="instr" id="txt-instr">ማውጣት የሚፈልጉትን የገንዘብ መጠን ያስገቡ።</div>
+
+        <div class="input-group">
+            <label id="lbl-amt">የገንዘብ መጠን (የ 10 ብዜት ብቻ)</label>
+            <div class="input-box">
+                <i class="fas fa-money-bill-wave"></i>
+                <input type="number" id="withdraw-amount" placeholder="00000" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5);">
+            </div>
+        </div>
+
+        <button class="btn withdraw-btn" onclick="handleWithdraw()" id="btn-submit">ብር አውጣ</button>
+        <a href="home.html" class="btn back-btn" id="btn-home">ተመለስ</a>
+        
+        <div class="notice" id="bottom-notice">የጠየቁት ገንዘብ በተመዘገቡበት የስልክ ቁጥር 10 ደቂቃ ባልሞላ ግዜ ዉስጥ ገቢ ይሆናል</div>
+    </div>
+
     <div class="footer">
-        <span id="l-text" style="font-weight: 900; font-size: 14px;">ቋንቋ:</span>
-        <div><span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span></div>
+        <div id="txt-lang">ቋንቋ</div>
+        <div class="lang-options">
+            <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
+        </div>
     </div>
 </div>
 
@@ -69,58 +80,99 @@
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
-        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com/", 
         projectId: "bekas-fast-d2a3b",
         storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
+
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    let currentLang = 'am', userPhone = localStorage.getItem('userPhone'), currentBalance = 0;
 
-    if (!userPhone) window.location.replace("index.html");
+    const userPhone = localStorage.getItem('userPhone');
+    let currentBalance = 0;
+    let currentLang = 'am';
 
-    function updateClock() {
-        const n = new Date();
-        const monthsAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        const monthsEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        const dateStr = currentLang === 'am' ? monthsAM[n.getMonth()] + " " + n.getDate() + "፣ " + n.getFullYear() : monthsEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
-        document.getElementById('date-label').innerText = (currentLang==='am'?"ቀን: ":"DATE: ") + dateStr;
-        document.getElementById('time-label').innerText = (currentLang==='am'?"ሰዓት: ":"TIME: ") + n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
+    if (!userPhone) { 
+        window.location.replace("index.html"); 
+    } else {
+        database.ref('users/' + userPhone).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                currentBalance = data.balance || 0;
+                document.getElementById('user-balance').innerText = currentBalance.toLocaleString();
+            } else {
+                document.getElementById('user-balance').innerText = "0";
+            }
+        }, (error) => {
+            console.error("Firebase error:", error);
+            document.getElementById('user-balance').innerText = "Error";
+        });
     }
-    setInterval(updateClock, 1000); updateClock();
 
-    database.ref('users/' + userPhone).on('value', (snap) => {
-        const userData = snap.val();
-        if (userData) { currentBalance = parseFloat(userData.balance || 0); updateBalanceDisplay(); }
-    });
-
-    function updateBalanceDisplay() { document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB"; }
-
-    function showMsg(txt, color) { const d = document.getElementById('msg-display'); d.innerText = txt; d.style.color = color; setTimeout(() => d.innerText = "", 3000); }
+    function showMsg(text, color) {
+        const msgBox = document.getElementById('msg-box');
+        msgBox.innerText = text;
+        msgBox.style.color = color;
+        setTimeout(() => { msgBox.innerText = ""; }, 4000);
+    }
 
     function handleWithdraw() {
-        const amount = document.getElementById('am-input').value;
-        const numAmount = parseFloat(amount);
-        if (numAmount >= 10 && numAmount <= currentBalance && numAmount % 10 === 0) {
-            database.ref('withdraw_requests').push({ phone: userPhone, amount: numAmount, status: "pending", time: new Date().toLocaleString(), site: "Mita Betting" })
-            .then(() => { showMsg(currentLang==='am'?"ለአድሚን ተልኳል":"SENT TO ADMIN", "#00b050"); document.getElementById('am-input').value=""; });
-        } else { showMsg(currentLang==='am' ? "የ10 እጥፍ ያስገቡ ወይም በቂ ሂሳብ የለም" : "MULTIPLE OF 10 OR LOW BALANCE", "red"); }
+        const amountInput = document.getElementById('withdraw-amount');
+        const val = amountInput.value.trim();
+        const amount = parseInt(val);
+
+        if (!val || isNaN(amount) || amount <= 0) {
+            showMsg(currentLang === 'am' ? "እባክዎ ትክክለኛ መጠን ያስገቡ" : "ENTER VALID AMOUNT", "red");
+            return;
+        }
+
+        if (val.length > 5) {
+            showMsg(currentLang === 'am' ? "ከ 5 ዲጂት መብለጥ አይችልም" : "MAX 5 DIGITS ONLY", "red");
+            return;
+        }
+
+        if (amount % 10 !== 0) {
+            showMsg(currentLang === 'am' ? "እባክዎ የ 10 ብዜት ያስገቡ (ለምሳሌ 50, 100,)" : "ENTER MULTIPLES OF 10 ONLY", "red");
+            return;
+        }
+
+        if (amount > currentBalance) {
+            showMsg(currentLang === 'am' ? "በቂ ቀሪ ሂሳብ የለዎትም" : "INSUFFICIENT BALANCE", "red");
+            return;
+        }
+
+        database.ref('withdraw_requests').push({
+            phone: userPhone,
+            amount: amount,
+            status: "pending",
+            site: "Mita Betting",
+            time: new Date().toLocaleString()
+        }).then(() => {
+            showMsg(currentLang === 'am' ? "ጥያቄው ተልኳል! በ 10 ደቂቃ ውስጥ ገቢ ይሆናል" : "SENT! RECEIVED WITHIN 10 MINS", "#2e7d32");
+            amountInput.value = "";
+        }).catch((err) => {
+            showMsg("Error! Try again", "red");
+        });
     }
 
     function setLang(l) {
         currentLang = l;
-        const labels = {
-            'am': { 't': 'ገንዘብ ማውጫ', 'tmsg': 'የሚያወጡትን የገንዘብ መጠን ያስገቡ', 'am': 'የገንዘብ መጠን', 'wt': 'ገንዘብ አውጣ', 'if': 'መመሪያ', 'bk': 'ወደ ዋና ገጽ', 'nt': 'የማውጫ ጥያቄዎ በተመዘገቡበት የቴሌብር ቁጥር ከ 10 ደቂቃ ባልበለጠ ጊዜ ውስጥ ይገባላችኋል። በ  ቤካስ ፋስት ስለተጫወቱ እናመሰግናለን!' },
-            'en': { 't': 'WITHDRAW', 'tmsg': 'ENTER WITHDRAWAL AMOUNT', 'am': 'AMOUNT (MAX 5 DIGITS)', 'wt': 'WITHDRAW', 'if': 'INFO', 'bk': 'BACK TO HOME', 'nt': 'Withdrawal will be processed via Telebirr within 10 minutes. Thank you for playing with BEKAS FAST!' }
-        };
-        const s = labels[l];
-        document.getElementById('top-title').innerText = s.t; document.getElementById('tele-msg').innerText = s.tmsg; document.getElementById('am-label').innerText = s.am;
-        document.getElementById('with-btn').innerText = s.wt; document.getElementById('info-btn').innerText = s.if; document.getElementById('back-btn').innerText = s.bk; document.getElementById('bottom-notice').innerText = s.nt;
-        updateBalanceDisplay(); updateClock(); document.getElementById('lang-am').classList.toggle('active', l === 'am'); document.getElementById('lang-en').classList.toggle('active', l === 'en');
+        const isEn = l === 'en';
+        document.body.classList.toggle('en-mode', isEn);
+        document.getElementById('title-name').innerText = isEn ? "WITHDRAW" : "ብር ማውጫ";
+        document.getElementById('txt-bal-label').innerText = isEn ? "YOUR BALANCE" : "ያለዎት ቀሪ ሂሳብ";
+        document.getElementById('txt-curr').innerText = isEn ? "ETB" : "ብር";
+        document.getElementById('lbl-amt').innerText = isEn ? "AMOUNT (MULTIPLES OF 10)" : "የገንዘብ መጠን (የ 10 ብዜት ብቻ)";
+        document.getElementById('btn-submit').innerText = isEn ? "WITHDRAW" : "ብር አውጣ";
+        document.getElementById('btn-home').innerText = isEn ? "BACK" : "ተመለስ";
+        document.getElementById('txt-lang').innerText = isEn ? "LANGUAGE" : "ቋንቋ";
+        document.getElementById('txt-instr').innerText = isEn ? "Enter amount (Multiples of 10)." : "ማውጣት የሚፈልጉትን የገንዘብ መጠን ያስገቡ።";
+        document.getElementById('bottom-notice').innerText = isEn ? "Money will be credited to your registered phone within 10 minutes." : "የጠየቁት ገንዘብ በተመዘገቡበት የስልክ ቁጥር 10 ደቂቃ ባልሞላ ግዜ ዉስጥ ገቢ ይሆናል";
+        document.getElementById('lang-am').className = isEn ? 'lang-btn' : 'lang-btn active';
+        document.getElementById('lang-en').className = isEn ? 'lang-btn active' : 'lang-btn';
     }
-    setLang('am');
 </script>
 </body>
 </html>
