@@ -3,135 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - Home</title>
+    <title>ቡናማው ፈጣን እጣ - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         body { background: #1a1a1a; font-family: sans-serif; display: flex; justify-content: center; margin: 0; }
-        .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; }
-        .top-banner { background: #ffcc00; padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #000; }
-        .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
-        .title { font-weight: 900; font-size: 20px; color: #000; }
-        .content { padding: 12px; flex-grow: 1; }
-        .live-info { background: #002d4b; color: #fff; padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; display: flex; justify-content: space-between; font-weight: bold; }
-        .user-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; border: 2px solid #000; border-radius: 8px; }
-        .greet { color: #00b050; font-weight: 900; font-size: 16px; text-transform: uppercase; }
-        .bal { font-weight: 900; font-size: 18px; color: #002d4b; }
-        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .q-btn { padding: 10px; border: none; color: white; font-weight: bold; border-radius: 4px; text-align: center; text-decoration: none; cursor: pointer; }
-        .q-dep { background: #c00000; }
-        .q-with { background: #00b050; }
+        .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; border: 2px solid #002d4b; }
+        
+        .top-banner { background: #002d4b; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #ff8c00; }
+        
+        .branding-wrapper { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 900; font-size: 19px; }
+        
+        .brand-icon { 
+            color: #ff8c00 !important; 
+            font-size: 24px !important;
+        } 
+        
+        .plus18 { color: #ff8c00; font-weight: 900; font-size: 24px; }
+        
+        .content { padding: 15px; flex-grow: 1; }
+        .live-info { background: #f0f4f8; color: #002d4b; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; display: flex; justify-content: space-between; font-weight: bold; border: 1px solid #ddd; }
+        
+        .user-section { 
+            background: linear-gradient(135deg, #002d4b 0%, #004a7c 100%);
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 15px; padding: 15px; border-radius: 12px; color: white;
+        }
+        .bal { font-weight: 900; font-size: 22px; color: #ff8c00; }
+
+        .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .q-btn { 
+            padding: 12px; border: none; color: white; font-weight: bold; 
+            border-radius: 8px; text-align: center; text-decoration: none; 
+            font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+        }
+        .q-dep { background: #28a745; } 
+        .q-with { background: #dc3545; } 
+
         .sport-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
-        .sport-table th { background: #f0f0f0; color: #333; font-size: 14px; padding: 8px; border: 1px solid #ddd; font-weight: 900; }
-        .sport-table td { border: 1px solid #ddd; padding: 10px 5px; text-align: center; }
-        .amt-v { font-size: 18px; font-weight: 900; color: #002d4b; display: block; }
-        .sub-v { font-size: 13px; color: #000; font-weight: 900; }
-        .play-now { background: #00b050; color: white; padding: 8px 12px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 13px; display: block; }
-        .coming-soon { background: #fffbe6; border-left: 5px solid #ffcc00; padding: 10px; color: #c00000; font-weight: bold; font-size: 13px; margin-bottom: 15px; }
-        .footer-nav { margin-top: auto; display: grid; gap: 8px; }
-        .f-link { padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; border-radius: 4px; cursor: pointer; border: none; font-size: 16px; display: block; }
-        .l-info { background: #00b050; }
-        .l-out { background: #ff0000; width: 100%; }
-        .lang-bar { background: #f9f9f9; padding: 15px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; margin-top: 10px; border-top: 2px solid #000; }
-        .lang-btn { cursor: pointer; color: #002d4b; font-weight: 900; padding: 0 5px; }
-        .lang-btn.active { color: #00b050 !important; text-decoration: underline; }
+        .sport-table th { background: #002d4b; color: #fff; font-size: 14px; padding: 12px 5px; font-weight: 900; border-bottom: 3px solid #ff8c00; }
+        .sport-table td { background: #fff; border-bottom: 3px solid #002d4b; padding: 15px 5px; text-align: center; }
+
+        .amt-v { font-size: 22px; font-weight: 900; color: #002d4b; display: block; }
+        .sub-v { font-size: 14px; color: #000; font-weight: 900; display: block; margin-top: 2px; }
+        
+        /* የተስተካከለው የተጫወት በተን በጥላ (Shadow) */
+        .play-now { 
+            background: #002d4b; color: white; padding: 10px 14px; border-radius: 6px; 
+            text-decoration: none; font-weight: 900; font-size: 13px; display: inline-block;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* ጥላ የተጨመረበት */
+            transition: transform 0.2s;
+        }
+        .play-now:active { transform: scale(0.95); }
+
+        .footer-nav { margin-top: auto; display: grid; gap: 10px; }
+        .f-link { padding: 14px; text-align: center; color: white; font-weight: 900; text-decoration: none; border-radius: 8px; font-size: 15px; }
+        .l-info { background: #002d4b; }
+        .l-out { background: #c00000; border: none; width: 100%; cursor: pointer; }
+
+        .lang-bar { background: #f9f9f9; padding: 15px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 900; border-top: 2px solid #eee; }
+        .lang-btn { cursor: pointer; color: #002d4b; text-decoration: none; transition: color 0.3s ease; }
+        .lang-btn.active { color: #ff8c00 !important; text-decoration: none !important; }
     </style>
 </head>
 <body>
 <div class="app-card">
-    <div class="top-banner"><span class="title" id="title-text">ቤካስ ፈጣን</span><span class="plus18">18+</span></div>
+    <div class="top-banner">
+        <div class="branding-wrapper">
+            <i class="fas fa-coffee brand-icon"></i>
+            <span id="brand-name">ቡናማው ፈጣን እጣ</span>
+        </div>
+        <span class="plus18">18+</span>
+    </div>
+    
     <div class="content">
-        <div class="live-info"><span id="date-label"></span><span id="time-label"></span></div>
+        <div class="live-info">
+            <span id="date-label"></span>
+            <span id="time-label"></span>
+        </div>
+
         <div class="user-section">
-            <div class="greet"><span id="hello-text">ሰላም</span>, <span id="user-nick">...</span></div>
-            <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency">ብር</small></div>
+            <div class="greet" style="font-weight: 900;"><span id="hello-text">ሰላም</span>, <span id="user-nick">...</span></div>
+            <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency" style="color:white; font-weight: 900;">ብር</small></div>
         </div>
+
         <div class="quick-actions">
-            <a href="deposit.html" class="q-btn q-dep" id="dep-btn">ገንዘብ አስገባ</a>
-            <a href="withdraw.html" class="q-btn q-with" id="with-btn">ገንዘብ አውጣ</a>
+            <a href="deposit.html" class="q-btn q-dep" id="dep-btn">
+                <i class="fas fa-wallet"></i> <span id="dep-text">ገንዘብ አስገባ</span>
+            </a>
+            <a href="withdraw.html" class="q-btn q-with" id="with-btn">
+                <i class="fas fa-money-bill-transfer"></i> <span id="with-text">ገንዘብ አውጣ</span>
+            </a>
         </div>
+
         <table class="sport-table">
-            <thead><tr><th id="th-class">ክፍል</th><th id="th-qty">ብዛት</th><th id="th-reach">ደራሽ</th><th id="th-play-head">ተጫወት</th></tr></thead>
+            <thead>
+                <tr>
+                    <th id="th-class">ክፍል</th>
+                    <th id="th-qty">ብዛት</th>
+                    <th id="th-reach">ደራሽ</th>
+                    <th id="th-play-head">ተጫወት</th>
+                </tr>
+            </thead>
             <tbody>
-                <tr><td><span class="amt-v">10</span><span class="sub-v birr-text">ብር</span></td><td><span class="amt-v">10</span><span class="sub-v p-text">ሰው</span></td><td><span class="amt-v">90</span><span class="sub-v birr-text">ብር</span></td><td><a href="play1.html" class="play-now p-btn">ተጫወት</a></td></tr>
-                <tr><td><span class="amt-v">10</span><span class="sub-v birr-text">ብር</span></td><td><span class="amt-v">20</span><span class="sub-v p-text">ሰው</span></td><td><span class="amt-v">180</span><span class="sub-v birr-text">ብር</span></td><td><a href="play2.html" class="play-now p-btn">ተጫወት</a></td></tr>
-                <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">ብር</span></td><td><span class="amt-v">20</span><span class="sub-v p-text">ሰው</span></td><td><span class="amt-v">350</span><span class="sub-v birr-text">ብር</span></td><td><a href="play3.html" class="play-now p-btn">ተጫወት</a></td></tr>
-                <tr><td><span class="amt-v">20</span><span class="sub-v birr-text">ብር</span></td><td><span class="amt-v">50</span><span class="sub-v p-text">ሰው</span></td><td><span class="amt-v">900</span><span class="sub-v birr-text">ብር</span></td><td><a href="play4.html" class="play-now p-btn">ተጫወት</a></td></tr>
+                <tr>
+                    <td><span class="amt-v">10</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><span class="amt-v">10</span><span class="sub-v p-text">ሰው</span></td>
+                    <td><span class="amt-v">90</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><a href="play1.html" class="play-now p-btn">ተጫወት</a></td>
+                </tr>
+                <tr>
+                    <td><span class="amt-v">10</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><span class="amt-v">20</span><span class="sub-v p-text">ሰው</span></td>
+                    <td><span class="amt-v">180</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><a href="play2.html" class="play-now p-btn">ተጫወት</a></td>
+                </tr>
+                <tr>
+                    <td><span class="amt-v">20</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><span class="amt-v">20</span><span class="sub-v p-text">ሰው</span></td>
+                    <td><span class="amt-v">350</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><a href="play3.html" class="play-now p-btn">ተጫወት</a></td>
+                </tr>
+                <tr>
+                    <td><span class="amt-v">20</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><span class="amt-v">50</span><span class="sub-v p-text">ሰው</span></td>
+                    <td><span class="amt-v">900</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><a href="play4.html" class="play-now p-btn">ተጫወት</a></td>
+                </tr>
             </tbody>
         </table>
-        <div class="coming-soon" id="extra-msg">“ተጨማሪ የጨዋታ አማራጮች በቅርቡ ይጠብቁ።”</div>
+
         <div class="footer-nav">
             <a href="info.html" class="f-link l-info" id="info-btn">መረጃ እና መመሪያ</a>
             <button onclick="handleLogout()" class="f-link l-out" id="out-btn">ውጣ</button>
         </div>
     </div>
-    <div class="lang-bar"><span id="lang-label">ቋንቋ</span><div><span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span></div></div>
+
+    <div class="lang-bar">
+        <span id="lang-label">ቋንቋ</span>
+        <div>
+            <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
+        </div>
+    </div>
 </div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
-        authDomain: "bekas-fast-d2a3b.firebaseapp.com",
-        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
-        projectId: "bekas-fast-d2a3b",
-        storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
-        messagingSenderId: "130702344830",
-        appId: "1:130702344830:web:58577289ec2f3208a64e2f"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    let currentLang = 'am';
 
-    const userPhone = localStorage.getItem('userPhone');
-    if (!userPhone) {
-        window.location.replace("index.html");
-    } else {
-        database.ref('users/' + userPhone).on('value', (snapshot) => {
-            const userData = snapshot.val();
-            if (userData) {
-                document.getElementById('user-nick').innerText = userData.username;
-                document.getElementById('user-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
-            }
-        });
-    }
-
-    function handleLogout() {
-        localStorage.removeItem('userPhone');
-        window.location.replace("index.html");
-    }
-
-    let currentLang = 'am'; // Changed default to Amharic
-    function updateClock() {
-        const now = new Date();
-        const monthsEN = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
-        const monthsAM = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
-        const month = currentLang === 'am' ? monthsAM[now.getMonth()] : monthsEN[now.getMonth()];
-        let hours = now.getHours(); const ampm = hours >= 12 ? ' PM' : ' AM'; hours = hours % 12 || 12;
-        const timeStr = hours.toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0') + ampm;
-        document.getElementById('date-label').innerText = month + ", " + now.getDate() + ", " + now.getFullYear();
-        document.getElementById('time-label').innerText = timeStr;
-    }
+    const amMonths = [
+        "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", 
+        "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"
+    ];
 
     function setLang(l) {
         currentLang = l;
+        const isAm = l === 'am';
         const s = {
-            'am': { 'title': 'ቤካስ ፈጣን', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'extra': '“ተጨማሪ የጨዋታ አማራጮች በቅርቡ ይጠብቁ።”', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'title': 'BEKAS FAST', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'extra': '“EXTRA PLAY OPTION ARE COMING SOON.”', 'info': 'INFORMATION AND RULE', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'PEOPLE', 'birr': 'BIRR' }
+            'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'en': { 'brand': 'BUNAMAW FAST LOTTO', 'hello': 'HELLO', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
         }[l];
-        document.getElementById('title-text').innerText = s.title; document.getElementById('hello-text').innerText = s.hello;
-        document.getElementById('dep-btn').innerText = s.dep; document.getElementById('with-btn').innerText = s.with;
-        document.getElementById('th-class').innerText = s.class; document.getElementById('th-qty').innerText = s.qty;
-        document.getElementById('th-reach').innerText = s.reach; document.getElementById('th-play-head').innerText = s.playhead;
-        document.getElementById('extra-msg').innerText = s.extra; document.getElementById('info-btn').innerText = s.info;
-        document.getElementById('out-btn').innerText = s.out; document.getElementById('lang-label').innerText = s.lang;
+        
+        document.getElementById('brand-name').innerText = s.brand;
+        document.getElementById('hello-text').innerText = s.hello;
+        document.getElementById('dep-text').innerText = s.dep;
+        document.getElementById('with-text').innerText = s.with;
+        document.getElementById('th-class').innerText = s.class;
+        document.getElementById('th-qty').innerText = s.qty;
+        document.getElementById('th-reach').innerText = s.reach;
+        document.getElementById('th-play-head').innerText = s.playhead;
+        document.getElementById('info-btn').innerText = s.info;
+        document.getElementById('out-btn').innerText = s.out;
+        document.getElementById('lang-label').innerText = s.lang;
         document.getElementById('bal-currency').innerText = s.birr;
+        
         document.querySelectorAll('.p-btn').forEach(b => b.innerText = s.play);
         document.querySelectorAll('.p-text').forEach(t => t.innerText = s.people);
         document.querySelectorAll('.birr-text').forEach(t => t.innerText = s.birr);
-        document.getElementById('lang-am').classList.toggle('active', l === 'am');
-        document.getElementById('lang-en').classList.toggle('active', l === 'en');
-        updateClock();
+
+        document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
+        document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
+        
+        updateDateTime();
     }
-    setInterval(updateClock, 1000); updateClock();
+
+    function updateDateTime() {
+        const now = new Date();
+        if (currentLang === 'am') {
+            const monthName = amMonths[now.getMonth()];
+            const day = now.getDate();
+            const year = now.getFullYear();
+            document.getElementById('date-label').innerText = `${monthName} ${day} ቀን ${year - 8}`;
+        } else {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', options);
+        }
+        document.getElementById('time-label').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // ጥያቄ ሳይጠይቅ በቀጥታ ወደ index.html እንዲሄድ ተደርጓል
+    function handleLogout() {
+        window.location.href = 'index.html';
+    }
 </script>
 </body>
 </html>
