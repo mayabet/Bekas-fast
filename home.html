@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <style>
         body { background: #1a1a1a; font-family: sans-serif; display: flex; justify-content: center; margin: 0; }
         .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; border: 2px solid #002d4b; }
@@ -49,11 +50,10 @@
         .amt-v { font-size: 22px; font-weight: 900; color: #002d4b; display: block; }
         .sub-v { font-size: 14px; color: #000; font-weight: 900; display: block; margin-top: 2px; }
         
-        /* የተስተካከለው የተጫወት በተን በጥላ (Shadow) */
         .play-now { 
             background: #002d4b; color: white; padding: 10px 14px; border-radius: 6px; 
             text-decoration: none; font-weight: 900; font-size: 13px; display: inline-block;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* ጥላ የተጨመረበት */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
             transition: transform 0.2s;
         }
         .play-now:active { transform: scale(0.95); }
@@ -151,12 +151,23 @@
 </div>
 
 <script>
-    let currentLang = 'am';
+    // --- FIREBASE ስም እና ባላንስ ማምጫ ---
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            // ስም ለማሳየት
+            const nickname = user.displayName || "ተጫዋች";
+            document.getElementById('user-nick').innerText = nickname;
+            
+            // ባላንስ ከዳታቤዝ ለማምጣት
+            firebase.database().ref('users/' + user.uid + '/balance').on('value', (snap) => {
+                const bal = snap.val() || 0;
+                document.getElementById('user-balance').innerText = bal.toLocaleString();
+            });
+        }
+    });
 
-    const amMonths = [
-        "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", 
-        "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"
-    ];
+    let currentLang = 'am';
+    const amMonths = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
 
     function setLang(l) {
         currentLang = l;
@@ -182,23 +193,17 @@
         document.querySelectorAll('.p-btn').forEach(b => b.innerText = s.play);
         document.querySelectorAll('.p-text').forEach(t => t.innerText = s.people);
         document.querySelectorAll('.birr-text').forEach(t => t.innerText = s.birr);
-
         document.getElementById('lang-am').className = isAm ? 'lang-btn active' : 'lang-btn';
         document.getElementById('lang-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
-        
         updateDateTime();
     }
 
     function updateDateTime() {
         const now = new Date();
         if (currentLang === 'am') {
-            const monthName = amMonths[now.getMonth()];
-            const day = now.getDate();
-            const year = now.getFullYear();
-            document.getElementById('date-label').innerText = `${monthName} ${day} ቀን ${year - 8}`;
+            document.getElementById('date-label').innerText = `${amMonths[now.getMonth()]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
         } else {
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
-            document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', options);
+            document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         }
         document.getElementById('time-label').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -206,9 +211,10 @@
     setInterval(updateDateTime, 1000);
     updateDateTime();
 
-    // ጥያቄ ሳይጠይቅ በቀጥታ ወደ index.html እንዲሄድ ተደርጓል
     function handleLogout() {
-        window.location.href = 'index.html';
+        firebase.auth().signOut().then(() => {
+            window.location.href = 'index.html';
+        });
     }
 </script>
 </body>
