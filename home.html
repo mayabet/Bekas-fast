@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ቡናማው ፈጣን እጣ - Home</title>
+    <title>Mita Betting - Home</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
     <style>
         body { background: #1a1a1a; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; margin: 0; }
@@ -45,8 +44,8 @@
 <div class="app-card">
     <div class="top-banner">
         <div class="branding-wrapper">
-            <i class="fas fa-coffee brand-icon"></i>
-            <span id="brand-name">ቡናማው ፈጣን እጣ</span>
+            <i class="fas fa-dice brand-icon"></i>
+            <span id="brand-name">Mita Betting</span>
         </div>
         <span class="plus18">18+</span>
     </div>
@@ -66,7 +65,7 @@
             <a href="deposit.html" class="q-btn q-dep" id="dep-btn">
                 <i class="fas fa-wallet"></i> <span id="dep-text">ገንዘብ አስገባ</span>
             </a>
-            <a href="withdraw.html" class="q-btn q-with" id="with-btn">
+            <a href="withdraw.html" class="q-btn q-with" id="with-text">
                 <i class="fas fa-money-bill-transfer"></i> <span id="with-text">ገንዘብ አውጣ</span>
             </a>
         </div>
@@ -124,7 +123,7 @@
 </div>
 
 <script>
-    // --- 1. Firebase Config ---
+    // --- 1. Firebase Configuration ---
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -138,15 +137,16 @@
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
+    const database = firebase.database();
 
     let currentLang = 'am';
 
-    // --- 2. Language Setup ---
+    // --- 2. Language Switcher ---
     function setLang(l) {
         currentLang = l;
         const s = {
-            'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'brand': 'BUNAMAW FAST', 'hello': 'Hi', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
+            'am': { 'brand': 'Mita Betting', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'en': { 'brand': 'Mita Betting', 'hello': 'Hi', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
         }[l];
         
         document.getElementById('brand-name').innerText = s.brand;
@@ -172,45 +172,34 @@
         updateDateTime();
     }
 
-    // --- 3. Date & Time (ኢትዮጵያ አቆጣጠርን ጨምሮ) ---
-    const amMonths = ["መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜ"];
+    // --- 3. Date & Time ---
     function updateDateTime() {
         const now = new Date();
-        if (currentLang === 'am') {
-            // ቀላል የኢትዮጵያ ቀን ቀመር (በግምት)
-            document.getElementById('date-label').innerText = `${amMonths[(now.getMonth() + 3) % 12]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
-        } else {
-            document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        }
+        document.getElementById('date-label').innerText = now.toLocaleDateString(currentLang === 'am' ? 'am-ET' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         document.getElementById('time-label').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     setInterval(updateDateTime, 1000);
 
-    // --- 4. User Authentication & Real-time Data ---
+    // --- 4. Load User Data ---
     const loggedUserPhone = localStorage.getItem('loggedUser');
 
-    if (loggedUserPhone) {
-        // ተጠቃሚው ገብቶ ከሆነ ዳታውን ከ Firebase አምጣ
-        const userRef = firebase.database().ref('users/' + loggedUserPhone);
-        
+    if (!loggedUserPhone) {
+        window.location.href = 'index.html';
+    } else {
+        const userRef = database.ref('users/' + loggedUserPhone);
         userRef.on('value', (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
                 document.getElementById('user-nick').innerText = userData.nickname || "ተጫዋች";
-                // ባላንሱን በቅርጸት አሳይ
-                const balance = userData.balance || 0;
-                document.getElementById('user-balance').innerText = Number(balance).toFixed(2);
+                document.getElementById('user-balance').innerText = Number(userData.balance || 0).toFixed(2);
             } else {
-                // ዳታቤዝ ላይ ተጠቃሚው ከሌለ ወደ index.html
+                localStorage.removeItem('loggedUser');
                 window.location.href = 'index.html';
             }
         });
-    } else {
-        // Login ካላደረገ በቀጥታ ወደ index.html
-        window.location.href = 'index.html';
     }
 
-    // --- 5. Logout Function ---
+    // --- 5. Logout ---
     function handleLogout() {
         const msg = currentLang === 'am' ? "ለመውጣት እርግጠኛ ነዎት?" : "Are you sure you want to logout?";
         if(confirm(msg)) {
@@ -219,7 +208,6 @@
         }
     }
 
-    // ገጹ ሲከፈት መጀመርያ የሚሰሩ
     window.onload = function() {
         setLang('am');
         updateDateTime();
