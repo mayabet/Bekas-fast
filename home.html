@@ -58,7 +58,7 @@
         </div>
 
         <div class="user-section">
-            <div class="greet" style="font-weight: 900;"><span id="hello-text">Hi</span>, <span id="user-nick">...</span></div>
+            <div class="greet" style="font-weight: 900;"><span id="hello-text">ሰላም</span>, <span id="user-nick">...</span></div>
             <div class="bal"><span id="user-balance">0.00</span> <small id="bal-currency" style="color:white; font-weight: 900;">ብር</small></div>
         </div>
 
@@ -145,7 +145,7 @@
     function setLang(l) {
         currentLang = l;
         const s = {
-            'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'Hi', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
             'en': { 'brand': 'BUNAMAW FAST', 'hello': 'Hi', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
         }[l];
         
@@ -172,12 +172,13 @@
         updateDateTime();
     }
 
-    // --- 3. Date & Time ---
-    const amMonths = ["ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ"];
+    // --- 3. Date & Time (ኢትዮጵያ አቆጣጠርን ጨምሮ) ---
+    const amMonths = ["መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜ"];
     function updateDateTime() {
         const now = new Date();
         if (currentLang === 'am') {
-            document.getElementById('date-label').innerText = `${amMonths[now.getMonth()]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
+            // ቀላል የኢትዮጵያ ቀን ቀመር (በግምት)
+            document.getElementById('date-label').innerText = `${amMonths[(now.getMonth() + 3) % 12]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
         } else {
             document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         }
@@ -185,36 +186,44 @@
     }
     setInterval(updateDateTime, 1000);
 
-    // --- 4. Firebase Auth & Data ---
-    firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            const uid = user.uid;
-            // Nickname አምጣ
-            firebase.database().ref('users/' + uid + '/nickname').on('value', (snap) => {
-                const name = snap.val();
-                document.getElementById('user-nick').innerText = name ? name : "ተጫዋች";
-            });
-            // Balance አምጣ
-            firebase.database().ref('users/' + uid + '/balance').on('value', (snap) => {
-                const val = snap.val();
-                document.getElementById('user-balance').innerText = (val !== null) ? Number(val).toLocaleString() : "0.00";
-            });
-        } else {
-            // Login ካላደረገ ወደ index.html መልሰው
-            window.location.href = 'index.html'; 
-        }
-    });
+    // --- 4. User Authentication & Real-time Data ---
+    const loggedUserPhone = localStorage.getItem('loggedUser');
+
+    if (loggedUserPhone) {
+        // ተጠቃሚው ገብቶ ከሆነ ዳታውን ከ Firebase አምጣ
+        const userRef = firebase.database().ref('users/' + loggedUserPhone);
+        
+        userRef.on('value', (snapshot) => {
+            const userData = snapshot.val();
+            if (userData) {
+                document.getElementById('user-nick').innerText = userData.nickname || "ተጫዋች";
+                // ባላንሱን በቅርጸት አሳይ
+                const balance = userData.balance || 0;
+                document.getElementById('user-balance').innerText = Number(balance).toFixed(2);
+            } else {
+                // ዳታቤዝ ላይ ተጠቃሚው ከሌለ ወደ index.html
+                window.location.href = 'index.html';
+            }
+        });
+    } else {
+        // Login ካላደረገ በቀጥታ ወደ index.html
+        window.location.href = 'index.html';
+    }
 
     // --- 5. Logout Function ---
     function handleLogout() {
-        if(confirm("ለመውጣት እርግጠኛ ነዎት?")) {
-            firebase.auth().signOut().then(() => { 
-                window.location.href = 'index.html'; 
-            });
+        const msg = currentLang === 'am' ? "ለመውጣት እርግጠኛ ነዎት?" : "Are you sure you want to logout?";
+        if(confirm(msg)) {
+            localStorage.removeItem('loggedUser');
+            window.location.href = 'index.html';
         }
     }
 
-    updateDateTime();
+    // ገጹ ሲከፈት መጀመርያ የሚሰሩ
+    window.onload = function() {
+        setLang('am');
+        updateDateTime();
+    };
 </script>
 </body>
 </html>
