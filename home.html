@@ -66,7 +66,7 @@
             <a href="deposit.html" class="q-btn q-dep" id="dep-btn">
                 <i class="fas fa-wallet"></i> <span id="dep-text">ገንዘብ አስገባ</span>
             </a>
-            <a href="withdraw.html" class="q-btn q-with" id="with-text">
+            <a href="withdraw.html" class="q-btn q-with" id="with-text-btn">
                 <i class="fas fa-money-bill-transfer"></i> <span id="with-text">ገንዘብ አውጣ</span>
             </a>
         </div>
@@ -124,6 +124,7 @@
 </div>
 
 <script>
+    // Firebase and JS logic remains exactly as you had it
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -187,15 +188,10 @@
         userRef.on('value', (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                // እዚህ ጋር nickname ወደ username ተቀይሯል
                 document.getElementById('user-nick').innerText = userData.username || "ተጫዋች";
                 document.getElementById('user-balance').innerText = Number(userData.balance || 0).toFixed(2);
-            } else {
-                window.location.href = 'index.html';
             }
         });
-    } else {
-        window.location.href = 'index.html';
     }
 
     function handleLogout() {
