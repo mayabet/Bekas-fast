@@ -70,14 +70,14 @@
         <div class="input-row">
             <div class="input-box">
                 <i class="fas fa-phone"></i>
-                <input type="tel" id="p-input" placeholder="09..." oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                <input type="tel" id="p-input" inputmode="numeric" placeholder="09..." oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
             </div>
         </div>
         
         <div class="input-row">
             <div class="input-box">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="pass-input" placeholder="ሚስጥር ቁጥር" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
+                <input type="password" id="pass-input" inputmode="numeric" placeholder="ሚስጥር ቁጥር" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);">
             </div>
             <a href="lost_password.html" class="lost-link" id="lost-btn">ረስተዋል?</a>
         </div>
