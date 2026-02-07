@@ -190,7 +190,8 @@
         userRef.on('value', (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                document.getElementById('user-nick').innerText = userData.nickname || "ተጫዋች";
+                // እዚህ ጋ nickname የነበረው ወደ username ተቀይሯል
+                document.getElementById('user-nick').innerText = userData.username || "ተጫዋች";
                 document.getElementById('user-balance').innerText = Number(userData.balance || 0).toFixed(2);
             } else {
                 localStorage.removeItem('loggedUser');
