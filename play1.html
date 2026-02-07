@@ -72,7 +72,6 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    // እዚህ ጋር በ 'am' እንዲጀምር ተደርጓል
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
     if (!userPhone) window.location.replace("index.html");
@@ -202,20 +201,36 @@
         });
     }
 
+    // አዲሱ updateUI ፋንክሽን እዚህ ጋር ተተክቷል
     function updateUI() {
         const table = document.getElementById('sel-table'); 
         const header = document.getElementById('sh');
-        if (Object.keys(selections).length > 0) {
-            header.innerText = trans[currentLang].sh;
-            header.style.background = "#ffcc00"; header.style.color = "#000";
-            table.innerHTML = "";
-            for(let i=1; i<=10; i++) {
-                const cell = document.getElementById(`c-${i}`);
-                let occupant = selections[i] || "";
-                if (occupant === userName) cell.className = "num-cell user-selected";
-                else if (occupant !== "") cell.className = "num-cell taken-cell";
-                else cell.className = "num-cell";
-                if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+        
+        // Header እና table መጀመሪያ ይስተካከሉ
+        header.innerText = trans[currentLang].sh;
+        header.style.background = "#ffcc00"; 
+        header.style.color = "#000";
+        table.innerHTML = "";
+
+        // ሁሉንም 10 ቁጥሮች መፈተሽ
+        for(let i=1; i<=10; i++) {
+            const cell = document.getElementById(`c-${i}`);
+            if(!cell) continue; 
+
+            let occupant = selections[i] || "";
+            
+            // የሴሉን ቀለም መቀየር
+            if (occupant === userName) {
+                cell.className = "num-cell user-selected";
+            } else if (occupant !== "") {
+                cell.className = "num-cell taken-cell";
+            } else {
+                cell.className = "num-cell";
+            }
+            
+            // የተመረጡትን ዝርዝር ሰንጠረዥ ውስጥ መጨመር
+            if (occupant !== "") {
+                table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
             }
         }
     }
@@ -223,7 +238,6 @@
     function setLang(l) { 
         currentLang = l; 
         for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; }
-        // ቁልፎቹን ለማድመቅ
         document.getElementById('l-am').classList.toggle('active', l === 'am');
         document.getElementById('l-en').classList.toggle('active', l === 'en');
     }
@@ -234,7 +248,6 @@
         document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); 
     }, 1000);
     
-    // ሲጀምር አማርኛ እንዲሆን መጥራት
     setLang('am');
 </script>
 </body>
