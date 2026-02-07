@@ -124,7 +124,6 @@
 </div>
 
 <script>
-    // Firebase Config ከ A.html
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -188,7 +187,8 @@
         userRef.on('value', (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                document.getElementById('user-nick').innerText = userData.nickname || "ተጫዋች";
+                // እዚህ ጋር nickname ወደ username ተቀይሯል
+                document.getElementById('user-nick').innerText = userData.username || "ተጫዋች";
                 document.getElementById('user-balance').innerText = Number(userData.balance || 0).toFixed(2);
             } else {
                 window.location.href = 'index.html';
