@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BUNAMAW - Withdraw</title>
+    <title>Mita Betting - Withdraw</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     
@@ -105,9 +105,6 @@
             } else {
                 document.getElementById('user-balance').innerText = "0";
             }
-        }, (error) => {
-            console.error("Firebase error:", error);
-            document.getElementById('user-balance').innerText = "Error";
         });
     }
 
@@ -128,13 +125,8 @@
             return;
         }
 
-        if (val.length > 5) {
-            showMsg(currentLang === 'am' ? "ከ 5 ዲጂት መብለጥ አይችልም" : "MAX 5 DIGITS ONLY", "red");
-            return;
-        }
-
         if (amount % 10 !== 0) {
-            showMsg(currentLang === 'am' ? "እባክዎ የ 10 ብዜት ያስገቡ (ለምሳሌ 50, 100,)" : "ENTER MULTIPLES OF 10 ONLY", "red");
+            showMsg(currentLang === 'am' ? "እባክዎ የ 10 ብዜት ያስገቡ" : "ENTER MULTIPLES OF 10", "red");
             return;
         }
 
@@ -143,17 +135,33 @@
             return;
         }
 
-        database.ref('withdraw_requests').push({
-            phone: userPhone,
-            amount: amount,
-            status: "pending",
-            site: "Mita Betting",
-            time: new Date().toLocaleString()
-        }).then(() => {
-            showMsg(currentLang === 'am' ? "ጥያቄው ተልኳል! በ 10 ደቂቃ ውስጥ ገቢ ይሆናል" : "SENT! RECEIVED WITHIN 10 MINS", "#2e7d32");
-            amountInput.value = "";
-        }).catch((err) => {
-            showMsg("Error! Try again", "red");
+        // 1. መጀመሪያ በዳታቤዙ ውስጥ ያለውን ብር ይቀንሳል
+        const userRef = database.ref('users/' + userPhone);
+        
+        userRef.transaction((currentData) => {
+            if (currentData && currentData.balance >= amount) {
+                currentData.balance -= amount;
+                return currentData;
+            }
+            return; // ሂሳብ ከሌለው ትራንዛክሽኑ ይቆማል
+        }, (error, committed) => {
+            if (error) {
+                showMsg("Error! Try again", "red");
+            } else if (!committed) {
+                showMsg(currentLang === 'am' ? "በቂ ቀሪ ሂሳብ የለዎትም" : "INSUFFICIENT BALANCE", "red");
+            } else {
+                // 2. ብሩ ከተቀነሰ በኋላ ለAdmin ሪከርድ ይልካል
+                database.ref('withdraw_requests').push({
+                    phone: userPhone,
+                    amount: amount,
+                    status: "pending",
+                    site: "Mita Betting",
+                    time: new Date().toLocaleString()
+                }).then(() => {
+                    showMsg(currentLang === 'am' ? "ተልኳል! ከሂሳብዎ ላይ ተቀንሷል" : "SENT! DEDUCTED FROM BALANCE", "#2e7d32");
+                    amountInput.value = "";
+                });
+            }
         });
     }
 
