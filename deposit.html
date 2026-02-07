@@ -3,92 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ገንዘብ ማስገቢያ</title>
+    <title>Mita Betting - Deposit</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Noto+Sans+Ethiopic:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        body { background: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; padding: 0; overflow: hidden; }
-        .card { width: 95%; max-width: 360px; height: 96vh; background: white; border: 3px solid #000; display: flex; flex-direction: column; box-sizing: border-box; }
+        body { background: #eef2f7; font-family: 'Noto Sans Ethiopic', sans-serif; margin: 0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 10px 0; box-sizing: border-box; }
+        .en-mode { font-family: 'Poppins', sans-serif !important; }
         
-        /* Headers - Bold */
-        .yellow-bar { background: #ffcc00; padding: 8px; display: flex; justify-content: space-between; align-items: center; font-weight: 900; font-size: 19px; border-bottom: 3px solid #000; flex-shrink: 0; }
-        .plus18 { color: red; font-size: 22px; font-weight: 900; }
+        .app-card { width: 94%; max-width: 360px; background: #fff; border-radius: 15px; border: 2px solid #002d4b; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
-        .content { padding: 8px 15px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .yellow-bar { background: #002d4b; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; color: #fff; }
+        .title-txt { font-weight: 900; font-size: 17px; }
+        .plus18 { color: #ff8c00; font-size: 18px; font-weight: 900; }
+        .header-line { height: 3px; background: #ff8c00; width: 100%; }
+        .content { padding: 12px; }
         
-        /* DATE & TIME - English Only & Bold */
-        .dt-section { border-bottom: 2px solid #000; padding-bottom: 3px; margin-bottom: 5px; flex-shrink: 0; }
-        .dt-row { font-weight: 900; font-size: 14px; color: #002d4b; margin: 2px 0; text-transform: uppercase; }
+        .user-card { background: #002d4b; border-radius: 12px; padding: 15px 10px; margin-bottom: 15px; text-align: center; color: #fff; }
+        .bal-label { font-weight: 900; font-size: 16px; display: block; margin-bottom: 5px; color: #fff; }
+        .bal-val { font-weight: 900; font-size: 30px; color: #ff8c00; }
         
-        /* Branding placeholder removed */
-        .branding h1 { display: none; }
+        .instruction-box { background: #fff; border: none; border-radius: 15px; padding: 10px; margin-bottom: 15px; text-align: center; }
+        .instr-head { font-size: 17px; font-weight: 900; color: #002d4b; display: block; margin-bottom: 15px; }
         
-        /* Instruction - Bold */
-        .instruction-box { background: transparent; padding: 5px; text-align: center; margin-bottom: 8px; font-weight: 900; font-size: 16px; color: #000; line-height: 1.4; margin-top: 10px; }
-        .tele-highlight { color: #c00000; font-size: 22px; display: block; margin: 4px 0; font-weight: 900; }
+        .card-main { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .info-row { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; flex-wrap: wrap; }
+        
+        .owner-name { font-size: 16px; font-weight: 900; color: #002d4b; background: #f0f4f8; padding: 5px 15px; border-radius: 8px; margin-bottom: 5px; }
+        .tele-num { color: #d00000; font-size: 19px; font-weight: 900; letter-spacing: 0.5px; }
+        
+        .copy-btn { background: #ff8c00; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 900; transition: 0.2s; box-shadow: none; outline: none; }
+        .copy-btn:active { background: #cc7000; transform: scale(0.95); }
 
-        .balance-box { background: #002d4b; color: #ffcc00; padding: 10px; text-align: center; font-weight: 900; font-size: 19px; border: 2.5px solid #000; margin-bottom: 8px; flex-shrink: 0; }
-        #msg-display { font-weight: 900; font-size: 14px; text-align: center; height: 18px; margin-bottom: 3px; }
+        .input-group { margin-bottom: 12px; }
+        .input-label { display: block; font-weight: 900; font-size: 15px; color: #002d4b; margin-bottom: 10px; line-height: 1.4; }
         
-        /* Input Labels - Bold */
-        .input-group { margin-bottom: 12px; flex-shrink: 0; }
-        .label-text { color: #000; font-weight: 900; font-size: 15px; text-transform: uppercase; margin-bottom: 6px; display: block; }
-        .input-box { border: 3px solid #00b050; padding: 0 12px; display: flex; align-items: center; background: #fff; height: 48px; box-sizing: border-box; }
-        input { border: none; outline: none; width: 100%; font-size: 20px; font-weight: 900; background: transparent; color: #002d4b; text-transform: uppercase; }
+        .textarea-wrapper { border: 2px solid #002d4b; border-radius: 8px; overflow: hidden; }
+        .input-box-textarea { width: 100%; border: none; outline: none; padding: 10px; font-size: 14px; font-weight: 600; font-family: inherit; resize: none; box-sizing: border-box; display: block; min-height: 80px; }
+
+        #msg-display { font-size: 14px; font-weight: 900; text-align: center; margin-bottom: 8px; min-height: 20px; }
+        .btn-stack { display: flex; flex-direction: column; gap: 8px; }
+        .btn { padding: 14px; border: none; border-radius: 8px; font-weight: 900; font-size: 16px; cursor: pointer; text-align: center; text-decoration: none; font-family: inherit; }
+        .btn-main { background: #002d4b; color: white; }
+        .btn-back { background: #777; color: white; }
         
-        /* Buttons - Language Sensitive */
-        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 10px; }
-        .row-btns { display: flex; gap: 6px; }
-        .btn { width: 100%; border: 3px solid #000; color: white; font-weight: 900; font-size: 15px; cursor: pointer; text-transform: uppercase; height: 40px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
-        .dep-btn { background: #ffcc00; color: #000; height: 45px; font-size: 18px; }
-        .info-btn { background: #00b050; flex: 1; }
-        .back-btn { background: #002d4b; flex: 1; }
-        
-        .footer { border-top: 3px solid #000; padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; background: #fff; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; font-size: 14px; font-weight: 900; color: #002d4b; }
-        .active { color: #00b050 !important; }
+        .lang-bar { padding: 10px 15px; display: flex; justify-content: space-between; font-weight: 900; font-size: 13px; border-top: 2px solid #002d4b; background: #f9f9f9; }
+        .lang-btn { cursor: pointer; color: #002d4b; text-decoration: none; border-bottom: none; }
+        /* Underline ጠፍቷል፣ ቀለም ብቻ ይቀየራል */
+        .lang-btn.active { color: #ff8c00; border-bottom: none; }
     </style>
 </head>
 <body>
-<div class="card">
-    <div class="yellow-bar"><span id="top-title">ገንዘብ ማስገቢያ</span><span class="plus18">18+</span></div>
+
+<div class="app-card">
+    <div class="yellow-bar">
+        <span class="title-txt" id="title-name">ብር ማስገቢያ</span>
+        <span class="plus18">18+</span>
+    </div>
+    <div class="header-line"></div>
+
     <div class="content">
-        <div class="dt-section">
-            <div id="date-label" class="dt-row">DATE: ...</div>
-            <div id="time-label" class="dt-row">TIME: ...</div>
+        <div class="user-card">
+            <span class="bal-label" id="txt-bal-label">ያለዎት ቀሪ ሂሳብ</span>
+            <div class="bal-val"><span id="user-balance">0.00</span> <small style="font-size:16px" id="txt-curr">ብር</small></div>
         </div>
 
-        <div class="instruction-box" id="instruction-text">
-            <b>በቴሌብር ወደዚህ ቁጥር ይላኩ:</b> <span class="tele-highlight">0978272061</span> <b>ከዛም የትራንዛክሽን ኮዱንና መጠኑን ያስገቡ።</b>
+        <div class="instruction-box">
+            <span class="instr-head" id="txt-instr-main">በቴሌብር ወደዚህ ቁጥር ይላኩ፡</span>
+            <div class="card-main">
+                <span class="owner-name">Binyam</span>
+                <div class="info-row">
+                    <span class="tele-num" id="tele-val">+251978272061</span>
+                    <button class="copy-btn" id="btn-copy-label" onclick="copyPhone()">ገልብጥ</button>
+                </div>
+            </div>
         </div>
 
-        <div id="bal-display" class="balance-box">ቀሪ ሂሳብ: 0.00 ETB</div>
         <div id="msg-display"></div>
 
         <div class="input-group">
-            <span class="label-text" id="tr-label">የትራንዛክሽን ኮድ</span>
-            <div class="input-box">
-                <input type="text" id="tr-input" placeholder="10 ዲጂት" maxlength="10" oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0,10)">
-            </div>
-        </div>
-        <div class="input-group">
-            <span class="label-text" id="am-label">የገንዘብ መጠን</span>
-            <div class="input-box">
-                <input type="number" id="am-input" placeholder="0000" oninput="if(this.value.length > 5) this.value = this.value.slice(0, 5)">
+            <label class="input-label" id="lbl-sms-desc">ገንዘቡን ሲያስገቡ የገባሎትን የቴሌ ብር SMS ከታች ይለጥፉ።</label>
+            <div class="textarea-wrapper">
+                <textarea id="sms-input" class="input-box-textarea" rows="3" placeholder="SMS..."></textarea>
             </div>
         </div>
 
-        <div class="btn-group">
-            <button class="btn dep-btn" id="dep-btn" onclick="handleDeposit()">ገንዘብ አስገባ</button>
-            <div class="row-btns">
-                <a href="info.html" class="btn info-btn" id="info-btn">መመሪያ</a>
-                <a href="home.html" class="btn back-btn" id="back-btn">ቤት</a>
-            </div>
+        <div class="btn-stack">
+            <button onclick="handleDeposit()" class="btn btn-main" id="btn-submit">ብር አስገባ</button>
+            <a href="home.html" class="btn btn-back" id="btn-home">ተመለስ</a>
         </div>
     </div>
-    <div class="footer">
-        <span id="l-text" style="font-weight: 900; font-size: 14px;">ቋንቋ:</span>
-        <div><span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span></div>
+
+    <div class="lang-bar">
+        <div id="txt-lang"><strong>ቋንቋ</strong></div>
+        <div>
+            <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | 
+            <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
+        </div>
     </div>
 </div>
 
@@ -96,115 +108,77 @@
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
-        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com/",
         projectId: "bekas-fast-d2a3b",
         storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
+
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    const userPhone = localStorage.getItem('userPhone') || "Guest";
 
-    let currentLang = 'am';
-    let userPhone = localStorage.getItem('userPhone'); 
-    let currentBalance = 0;
-
-    if (!userPhone) window.location.replace("Index.html");
-
-    function updateClock() {
-        const n = new Date();
-        const monthsEN = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-        document.getElementById('date-label').innerText = "DATE: " + monthsEN[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
-        document.getElementById('time-label').innerText = "TIME: " + n.getHours().toString().padStart(2, '0') + ":" + n.getMinutes().toString().padStart(2, '0') + ":" + n.getSeconds().toString().padStart(2, '0');
-    }
-    setInterval(updateClock, 1000); updateClock();
-
-    database.ref('users/' + userPhone).on('value', (snap) => {
-        const userData = snap.val();
-        if (userData) {
-            currentBalance = parseFloat(userData.balance || 0);
-            updateBalanceDisplay();
-        }
-    });
-
-    function updateBalanceDisplay() {
-        document.getElementById('bal-display').innerText = (currentLang==='am'?"ቀሪ ሂሳብ: ":"BALANCE: ") + currentBalance.toFixed(2) + " ETB";
+    if (userPhone !== "Guest") {
+        database.ref('users/' + userPhone).on('value', (snapshot) => {
+            const userData = snapshot.val();
+            if (userData) document.getElementById('user-balance').innerText = parseFloat(userData.balance || 0).toFixed(2);
+        });
     }
 
     function showMsg(txt, color) {
         const d = document.getElementById('msg-display');
-        d.innerText = txt; d.style.color = color;
-        setTimeout(() => d.innerText = "", 4000);
+        d.innerText = txt; 
+        d.style.color = color;
+        setTimeout(() => { d.innerText = ""; }, 5000);
     }
 
+    function copyPhone() {
+        const num = document.getElementById('tele-val').innerText;
+        navigator.clipboard.writeText(num).then(() => {
+            showMsg(currentLang === 'am' ? "ተገልብጧል!" : "Copied!", "#2e7d32");
+        });
+    }
+
+    let currentLang = 'am';
+
     function handleDeposit() {
-        const code = document.getElementById('tr-input').value;
-        const amount = document.getElementById('am-input').value;
-        const numAmount = parseFloat(amount);
-        
-        if (code.length !== 10) {
-            const err = currentLang==='am' ? "ትክክለኛ የትራንዛክሽን ኮድ ያስገቡ!" : "ENTER VALID TRANSACTION CODE!";
-            showMsg(err, "red");
+        const smsContent = document.getElementById('sms-input').value.trim();
+        if (smsContent === "") {
+            showMsg(currentLang === 'am' ? "እባክዎ መጀመሪያ SMS ይለጥፉ!" : "Please paste the SMS first!", "#d00000");
             return;
         }
 
-        if (numAmount > 0 && numAmount % 10 === 0) {
+        if (smsContent.startsWith("Dear") || smsContent.startsWith("ውድ") || smsContent.includes("telebirr")) {
+            showMsg(currentLang === 'am' ? "በ2 ደቂቃ ውስጥ ገቢ ይሆናል" : "Will be deposited within 2 minutes", "#2e7d32");
             database.ref('deposit_requests').push({ 
                 phone: userPhone, 
-                transactionCode: code, 
-                amount: numAmount, 
+                smsData: smsContent, 
                 status: "pending", 
                 time: new Date().toLocaleString() 
-            })
-            .then(() => { 
-                const ok = currentLang==='am'?"ጥያቄው ተልኳል!":"REQUEST SENT!";
-                showMsg(ok, "#00b050"); 
-                document.getElementById('tr-input').value=""; 
-                document.getElementById('am-input').value=""; 
             });
-        } else { 
-            const errorMsg = currentLang==='am' ? "የ10 እጥፍ ያስገቡ!" : "ENTER MULTIPLES OF 10!";
-            showMsg(errorMsg, "red"); 
+            document.getElementById('sms-input').value = "";
+        } else {
+            showMsg(currentLang === 'am' ? "የተሳሳተ SMS" : "Incorrect SMS", "#d00000");
         }
     }
 
     function setLang(l) {
         currentLang = l;
-        const labels = {
-            'am': { 
-                't': 'ገንዘብ ማስገቢያ', 
-                'ins': '<b>በቴሌብር ወደዚህ ቁጥር ይላኩ:</b> <span class="tele-highlight">0978272061</span> <b>ከዛም የትራንዛክሽን ኮዱንና መጠኑን ያስገቡ።</b>',
-                'tr': 'የትራንዛክሽን ኮድ', 
-                'am': 'የገንዘብ መጠን', 
-                'dp': 'ገንዘብ አስገባ',
-                'if': 'መመሪያ',
-                'bk': 'ቤት'
-            },
-            'en': { 
-                't': 'DEPOSIT', 
-                'ins': '<b>SEND VIA TELEBIRR TO</b> <span class="tele-highlight">0978272061</span> <b>THEN ENTER THE TRANSACTION CODE AND AMOUNT.</b>',
-                'tr': 'TRANSACTION CODE', 
-                'am': 'AMOUNT', 
-                'dp': 'DEPOSIT',
-                'if': 'INFO',
-                'bk': 'HOME'
-            }
-        };
-        const s = labels[l];
-        document.getElementById('top-title').innerText = s.t;
-        document.getElementById('instruction-text').innerHTML = s.ins;
-        document.getElementById('tr-label').innerText = s.tr;
-        document.getElementById('am-label').innerText = s.am;
-        
-        document.getElementById('dep-btn').innerText = s.dp;
-        document.getElementById('info-btn').innerText = s.if;
-        document.getElementById('back-btn').innerText = s.bk;
-
-        updateBalanceDisplay();
-        document.getElementById('lang-am').classList.toggle('active', l === 'am');
-        document.getElementById('lang-en').classList.toggle('active', l === 'en');
+        const isEn = l === 'en';
+        document.body.classList.toggle('en-mode', isEn);
+        document.getElementById('title-name').innerText = isEn ? "DEPOSIT" : "ብር ማስገቢያ";
+        document.getElementById('txt-bal-label').innerText = isEn ? "YOUR BALANCE" : "ያለዎት ቀሪ ሂሳብ";
+        document.getElementById('txt-curr').innerText = isEn ? "ETB" : "ብር";
+        document.getElementById('txt-instr-main').innerText = isEn ? "Send money via Telebirr to:" : "በቴሌብር ወደዚህ ቁጥር ይላኩ፡";
+        document.getElementById('lbl-sms-desc').innerText = isEn ? "Paste the Telebirr SMS below." : "ገንዘቡን ሲያስገቡ የገባሎትን የቴሌ ብር SMS ከታች ይለጥፉ።";
+        document.getElementById('btn-submit').innerText = isEn ? "DEPOSIT" : "ብር አስገባ";
+        document.getElementById('btn-home').innerText = isEn ? "BACK" : "ተመለስ";
+        document.getElementById('txt-lang').innerHTML = isEn ? "<strong>LANGUAGE</strong>" : "<strong>ቋንቋ</strong>";
+        document.getElementById('btn-copy-label').innerText = isEn ? "COPY" : "ገልብጥ";
+        document.getElementById('lang-am').className = isEn ? 'lang-btn' : 'lang-btn active';
+        document.getElementById('lang-en').className = isEn ? 'lang-btn active' : 'lang-btn';
     }
-    setLang('am');
 </script>
 </body>
 </html>
