@@ -8,13 +8,13 @@
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
     <style>
         body { background: #1a1a1a; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; margin: 0; }
         .app-card { width: 100%; max-width: 400px; background: #fff; min-height: 100vh; display: flex; flex-direction: column; border: 2px solid #002d4b; }
         .top-banner { background: #002d4b; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #ff8c00; }
         .branding-wrapper { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 900; font-size: 19px; }
-        /* ቡናማ አይኮን ስታይል */
         .brand-icon { color: #ff8c00 !important; font-size: 24px !important; } 
         .plus18 { color: #ff8c00; font-weight: 900; font-size: 24px; }
         .content { padding: 15px; flex-grow: 1; }
@@ -45,7 +45,7 @@
 <div class="app-card">
     <div class="top-banner">
         <div class="branding-wrapper">
-            <i class="fas fa-mug-hot brand-icon"></i>
+            <i class="fas fa-coffee brand-icon"></i>
             <span id="brand-name">ቡናማው ፈጣን እጣ</span>
         </div>
         <span class="plus18">18+</span>
@@ -87,7 +87,25 @@
                     <td><span class="amt-v">90</span><span class="sub-v birr-text">ብር</span></td>
                     <td><a href="play1.html" class="play-now p-btn">ተጫወት</a></td>
                 </tr>
-                </tbody>
+                <tr>
+                    <td><span class="amt-v">10</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><span class="amt-v">20</span><span class="sub-v p-text">ሰው</span></td>
+                    <td><span class="amt-v">180</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><a href="play2.html" class="play-now p-btn">ተጫወት</a></td>
+                </tr>
+                <tr>
+                    <td><span class="amt-v">20</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><span class="amt-v">20</span><span class="sub-v p-text">ሰው</span></td>
+                    <td><span class="amt-v">350</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><a href="play3.html" class="play-now p-btn">ተጫወት</a></td>
+                </tr>
+                <tr>
+                    <td><span class="amt-v">20</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><span class="amt-v">50</span><span class="sub-v p-text">ሰው</span></td>
+                    <td><span class="amt-v">900</span><span class="sub-v birr-text">ብር</span></td>
+                    <td><a href="play4.html" class="play-now p-btn">ተጫወት</a></td>
+                </tr>
+            </tbody>
         </table>
 
         <div class="footer-nav">
@@ -106,7 +124,7 @@
 </div>
 
 <script>
-    // --- Firebase Config (ከላይ እንደነበረው ይቀጥላል) ---
+    // Firebase Config ከ A.html
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -120,16 +138,14 @@
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
     }
-    const database = firebase.database();
 
     let currentLang = 'am';
 
-    // --- Language Switcher ---
     function setLang(l) {
         currentLang = l;
         const s = {
             'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'brand': 'Bunama Fast', 'hello': 'Hi', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
+            'en': { 'brand': 'BUNAMAW FAST', 'hello': 'Hi', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
         }[l];
         
         document.getElementById('brand-name').innerText = s.brand;
@@ -151,42 +167,39 @@
 
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
-        
         updateDateTime();
     }
 
-    // --- Date & Time ---
+    const amMonths = ["መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜ"];
     function updateDateTime() {
         const now = new Date();
-        document.getElementById('date-label').innerText = now.toLocaleDateString(currentLang === 'am' ? 'am-ET' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        if (currentLang === 'am') {
+            document.getElementById('date-label').innerText = `${amMonths[(now.getMonth() + 3) % 12]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
+        } else {
+            document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
         document.getElementById('time-label').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     setInterval(updateDateTime, 1000);
 
-    // --- Load User Data (username ተስተካክሏል) ---
     const loggedUserPhone = localStorage.getItem('loggedUser');
-
-    if (!loggedUserPhone) {
-        window.location.href = 'index.html';
-    } else {
-        const userRef = database.ref('users/' + loggedUserPhone);
+    if (loggedUserPhone) {
+        const userRef = firebase.database().ref('users/' + loggedUserPhone);
         userRef.on('value', (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                // እዚህ ጋር በusername እንዲጠራ ተደርጓል
-                document.getElementById('user-nick').innerText = userData.username || "ተጫዋች";
+                document.getElementById('user-nick').innerText = userData.nickname || "ተጫዋች";
                 document.getElementById('user-balance').innerText = Number(userData.balance || 0).toFixed(2);
             } else {
-                localStorage.removeItem('loggedUser');
                 window.location.href = 'index.html';
             }
         });
+    } else {
+        window.location.href = 'index.html';
     }
 
-    // Logout
     function handleLogout() {
-        const msg = currentLang === 'am' ? "ለመውጣት እርግጠኛ ነዎት?" : "Are you sure you want to logout?";
-        if(confirm(msg)) {
+        if(confirm(currentLang === 'am' ? "ለመውጣት እርግጠኛ ነዎት?" : "Are you sure?")) {
             localStorage.removeItem('loggedUser');
             window.location.href = 'index.html';
         }
