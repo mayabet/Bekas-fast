@@ -98,12 +98,12 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- 1. IMPROVED AUTOMATIC DEPOSIT LOGIC (Telebirr Only) ---
+    // --- 1. IMPROVED AUTOMATIC DEPOSIT (Multi-SMS Check) ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
 
-        if (req.status === "pending") {
+        if (req && req.status === "pending") {
             const txCode = req.transactionCode;
             const reqAmt = parseFloat(req.amount);
 
@@ -114,26 +114,21 @@
 
             // ሀ. ኮዱ ከዚህ በፊት ጥቅም ላይ መዋሉን ቼክ አድርግ
             database.ref('used_transactions/' + txCode).once('value', (usedSnap) => {
-                if (usedSnap.exists()) {
-                    console.log("Code already used: " + txCode);
-                    return; 
-                }
+                if (usedSnap.exists()) return; 
 
-                // ለ. ከ SMS Forwarder የመጣውን Telebirr SMS ፈልግ
-                database.ref('telebirr_sms/' + txCode).once('value', (smsSnap) => {
-                    if (smsSnap.exists()) {
-                        const smsData = smsSnap.val();
-                        const bankAmt = parseFloat(smsData.amount);
-
-                        // ሐ. መጠኑ ከተመሳሰለ ብቻ Auto Approve
-                        if (bankAmt === reqAmt) {
+                // ለ. ሁሉንም SMS-ዎች ፈልግ (በ Random Key የተቀመጡትን ጨምሮ)
+                database.ref('telebirr_sms').once('value', (smsSnap) => {
+                    smsSnap.forEach(child => {
+                        const smsData = child.val();
+                        const smsContent = (smsData.content || "").toUpperCase();
+                        
+                        // በ SMS ውስጥ ኮዱ እና መጠኑ ካለ (ሁለቱም መገኘት አለባቸው)
+                        if (smsContent.includes(txCode.toUpperCase()) && smsContent.includes(reqAmt.toString())) {
                             approveAutomaticDeposit(reqKey, req.phone, reqAmt, txCode);
-                        } else {
-                            console.log("Amount Mismatch for " + txCode);
+                            // አንዴ ከተገኘ SMS-ን ማጥፋት ይቻላል (አማራጭ)
+                            database.ref('telebirr_sms/' + child.key).remove();
                         }
-                    } else {
-                        console.log("Waiting for Telebirr SMS for code: " + txCode);
-                    }
+                    });
                 });
             });
         }
@@ -171,7 +166,6 @@
 
     function approveManual(key, phone, amt, txCode) {
         if(confirm("Approve " + amt + " ETB Manually?")) {
-            // ማኑዋል ሲሆን SMS ባይኖርም እንዲያሳልፍ ቀጥታ ፈንክሽኑን እንጠራዋለን
             approveAutomaticDeposit(key, phone, amt, txCode);
         }
     }
