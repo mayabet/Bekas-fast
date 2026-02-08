@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BEKAS FAST - ADMIN PANEL</title>
+    <title>MITA BETTING - ADMIN PANEL</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -39,7 +39,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests</div>
+    <div class="section-title">Deposit Requests (ብር ማስገቢያ)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -98,7 +98,72 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- 1. User Management ---
+    // --- AUTOMATIC DEPOSIT LOGIC ---
+    database.ref('deposit_requests').on('child_added', (snapshot) => {
+        const req = snapshot.val();
+        const reqKey = snapshot.key;
+
+        if (req.status === "pending") {
+            const txCode = req.transactionCode;
+
+            // 1. ትራንዛክሽኑ ጥቅም ላይ መዋሉን ማረጋገጥ
+            database.ref('used_transactions/' + txCode).once('value', (usedSnap) => {
+                if (usedSnap.exists()) {
+                    console.log("Duplicate transaction detected: " + txCode);
+                    database.ref('deposit_requests/' + reqKey).remove();
+                } else {
+                    // 2. ትክክለኛ ከሆነ በራሱ ይጨምር
+                    approveAutomaticDeposit(reqKey, req.phone, req.amount, txCode);
+                }
+            });
+        }
+    });
+
+    function approveAutomaticDeposit(key, phone, amt, txCode) {
+        if (!amt || amt <= 0) return;
+        database.ref('users/' + phone + '/balance').transaction(current => (current || 0) + amt, (error, committed) => {
+            if (committed) {
+                database.ref('used_transactions/' + txCode).set({
+                    usedBy: phone, amount: amt, time: new Date().toISOString()
+                });
+                database.ref('deposit_requests/' + key).remove();
+                logTransaction(phone, 'Auto Deposit Approved', amt);
+            }
+        });
+    }
+
+    // --- MANUAL APPROVAL DISPLAY ---
+    database.ref('deposit_requests').on('value', snap => {
+        const cont = document.getElementById('dep-list'); cont.innerHTML = "";
+        snap.forEach(child => {
+            const r = child.val();
+            cont.innerHTML += `<div class="card">
+                <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold">${r.amount} ETB</span></div>
+                <div class="row" style="margin-top:5px;"><span class="trans-no-box">ID: ${r.transactionCode}</span>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-green" onclick="approveManual('${child.key}', '${r.phone}', ${r.amount}, '${r.transactionCode}')">APPROVE</button>
+                    <button class="btn-red" onclick="declineDep('${child.key}', '${r.phone}', ${r.amount})">DECLINE</button>
+                </div>
+                </div>
+            </div>`;
+        });
+    });
+
+    function approveManual(key, phone, amt, txCode) {
+        if(confirm("Approve " + amt + " ETB?")) {
+            approveAutomaticDeposit(key, phone, amt, txCode);
+            alert("Success!");
+        }
+    }
+
+    function declineDep(key, phone, amt) {
+        if(confirm("Decline this request?")) {
+            database.ref('deposit_requests/' + key).remove();
+            logTransaction(phone, 'Deposit Declined', amt);
+        }
+    }
+
+    // --- USER MANAGEMENT ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -108,10 +173,10 @@
                 <div class="row" style="margin-top:8px;">
                     <span style="font-weight:900; font-size:14px;">BAL: ${(u.balance || 0).toFixed(2)} ETB</span>
                     <div style="display:flex; gap:5px;">
-                        <input type="number" id="amt-${phone}" placeholder="Amount" oninput="if(this.value.length > 5) this.value = this.value.slice(0,5);">
+                        <input type="number" id="amt-${phone}" placeholder="Amt">
                         <button class="btn-green" onclick="adjustBal('${phone}', 'add')">+</button>
                         <button class="btn-red" onclick="adjustBal('${phone}', 'sub')">-</button>
-                        <button class="btn-red" style="background:#000; margin-left:10px;" onclick="deleteAccount('${phone}')">DEL</button>
+                        <button class="btn-red" style="background:#000;" onclick="deleteAccount('${phone}')">DEL</button>
                     </div>
                 </div>
             </div>`;
@@ -120,124 +185,58 @@
 
     function adjustBal(phone, type) {
         const el = document.getElementById('amt-' + phone);
-        const valStr = el.value;
-        const v = parseInt(valStr);
-        if (!v || v < 10 || v % 10 !== 0 || valStr.length > 5) {
-            alert("Error: Enter multiple of 10, max 5 digits!");
-            el.value = "";
-            return;
-        }
+        const v = parseInt(el.value);
+        if (!v) return;
         database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + (type === 'add' ? v : -v)).then(() => {
             logTransaction(phone, type === 'add' ? 'Admin Add' : 'Admin Sub', v);
             el.value = "";
-            alert("Success!");
         });
     }
 
-    // --- 2. Deposit Approval (English Buttons) ---
-    database.ref('deposit_requests').on('value', snap => {
-        const cont = document.getElementById('dep-list'); cont.innerHTML = "";
-        snap.forEach(child => {
-            const r = child.val();
-            cont.innerHTML += `<div class="card">
-                <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold">${r.amount} ETB</span></div>
-                <div class="row" style="margin-top:5px;"><span class="trans-no-box">ID: ${r.transactionCode}</span>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn-green" onclick="approveDep('${child.key}', '${r.phone}', ${r.amount})">APPROVE</button>
-                    <button class="btn-red" onclick="declineDep('${child.key}', '${r.phone}', ${r.amount})">DECLINE</button>
-                </div>
-                </div>
-            </div>`;
-        });
-    });
-
-    function approveDep(key, phone, amt) {
-        if(confirm("Approve " + amt + " ETB for " + phone + "?")) {
-            database.ref('users/' + phone + '/balance').transaction(c => (c || 0) + amt).then(() => {
-                database.ref('deposit_requests/' + key).remove();
-                logTransaction(phone, 'Deposit Approved', amt);
-                alert("Deposit Approved!");
-            });
-        }
-    }
-
-    function declineDep(key, phone, amt) {
-        if(confirm("Decline this request?")) {
-            database.ref('deposit_requests/' + key).remove();
-            logTransaction(phone, 'Deposit Declined', amt);
-            alert("Request Deleted!");
-        }
-    }
-
-    // --- 3. Withdrawal Handling ---
+    // --- WITHDRAWAL & PW REQUESTS ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
             cont.innerHTML += `<div class="card" style="border-left: 5px solid #ffcc00;">
-                <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold" style="color:red; background:#fff0f0; border-color:red;">${r.amount} ETB</span></div>
-                <div class="row" style="margin-top:5px;"><span>Bank: ${r.bankName || 'CBE'}</span>
-                <button class="btn-red" onclick="database.ref('withdraw_requests/${child.key}').remove(); alert('Done!');">DONE</button></div>
+                <div class="row"><span class="phone-text">${r.phone}</span><span class="amt-bold" style="color:red; background:#fff0f0;">${r.amount} ETB</span></div>
+                <div class="row" style="margin-top:5px;"><span>Bank: CBE</span>
+                <button class="btn-red" onclick="database.ref('withdraw_requests/${child.key}').remove()">DONE</button></div>
             </div>`;
         });
     });
 
-    // --- 4. Password Requests ---
     database.ref('password_requests').on('value', snap => {
         const cont = document.getElementById('lost-pw-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
-            cont.innerHTML += `<div class="card" style="border-left: 5px solid #d00000;">
-                <div class="row"><span class="phone-text">${r.phone}</span><span>${r.time}</span></div>
-                <div class="row" style="margin-top:5px;"><span>User: ${r.username}</span>
-                <button class="btn-red" onclick="database.ref('password_requests/${child.key}').remove()">DONE</button></div>
-            </div>`;
+            cont.innerHTML += `<div class="card"><div class="row"><span class="phone-text">${r.phone}</span><button class="btn-red" onclick="database.ref('password_requests/${child.key}').remove()">DONE</button></div></div>`;
         });
     });
 
-    // --- 5. Transaction History ---
-    database.ref('transaction_history').limitToLast(50).on('value', snap => {
-        const cont = document.getElementById('history-list'); cont.innerHTML = "";
-        let items = [];
-        snap.forEach(child => { items.unshift(child.val()); });
-        items.forEach(h => {
-            cont.innerHTML += `<div class="history-item">
-                <div class="row"><b>${h.phone}</b> <span>${h.amount} ETB</span></div>
-                <div class="row" style="color:#666; font-size:11px;"><span>${h.type}</span> <span>${h.time}</span></div>
-            </div>`;
-        });
-    });
-
+    // --- HISTORY & STATS ---
     function logTransaction(phone, type, amount) {
-        const now = new Date(); const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + " | " + now.toLocaleDateString();
+        const now = new Date(); const timeStr = now.toLocaleTimeString() + " | " + now.toLocaleDateString();
         database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
     }
 
-    // --- 6. Game Stats (Last 24H) ---
-    function updateGameStats() {
-        const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-        ['play1', 'play2', 'play3', 'play4'].forEach(game => {
-            database.ref('games/' + game).orderByChild('timestamp').startAt(oneDayAgo).on('value', snap => {
-                document.getElementById('stat-' + game).innerText = snap.numChildren();
-            });
+    database.ref('transaction_history').limitToLast(50).on('value', snap => {
+        const cont = document.getElementById('history-list'); cont.innerHTML = "";
+        let items = []; snap.forEach(c => items.unshift(c.val()));
+        items.forEach(h => {
+            cont.innerHTML += `<div class="history-item"><div class="row"><b>${h.phone}</b> <span>${h.amount} ETB</span></div><div class="row" style="font-size:11px; color:#666;"><span>${h.type}</span><span>${h.time}</span></div></div>`;
         });
-    }
-    updateGameStats();
+    });
 
-    function deleteAccount(phone) {
-        if(confirm("Delete this account permanently?")) database.ref('users/' + phone).remove();
-    }
-
-    // --- 7. Clear All Logic ---
+    function deleteAccount(phone) { if(confirm("Delete?")) database.ref('users/' + phone).remove(); }
+    
     function clearAllDataExceptUsers() {
-        if(confirm("Warning! This will clear all history and stats. Continue?")) {
+        if(confirm("Clear all?")) {
             database.ref('deposit_requests').remove();
             database.ref('withdraw_requests').remove();
             database.ref('transaction_history').remove();
-            database.ref('password_requests').remove();
-            database.ref('used_transactions').remove();
-            database.ref('games').remove(); 
-            alert("All data cleared!");
+            database.ref('games').remove();
+            alert("Cleared!");
         }
     }
 </script>
