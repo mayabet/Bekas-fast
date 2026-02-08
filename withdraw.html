@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bunamaw ቡናማዉ - Withdraw</title>
+    <title>Mita Betting - Withdraw</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     
@@ -91,6 +91,9 @@
     const database = firebase.database();
 
     const userPhone = localStorage.getItem('userPhone');
+    // እዚህ ጋር ስሙን ከ localStorage እናገኛለን
+    const userName = localStorage.getItem('userName') || "Unknown"; 
+
     let currentBalance = 0;
     let currentLang = 'am';
 
@@ -135,7 +138,6 @@
             return;
         }
 
-        // 1. መጀመሪያ በዳታቤዙ ውስጥ ያለውን ብር ይቀንሳል
         const userRef = database.ref('users/' + userPhone);
         
         userRef.transaction((currentData) => {
@@ -143,16 +145,17 @@
                 currentData.balance -= amount;
                 return currentData;
             }
-            return; // ሂሳብ ከሌለው ትራንዛክሽኑ ይቆማል
+            return; 
         }, (error, committed) => {
             if (error) {
                 showMsg("Error! Try again", "red");
             } else if (!committed) {
                 showMsg(currentLang === 'am' ? "በቂ ቀሪ ሂሳብ የለዎትም" : "INSUFFICIENT BALANCE", "red");
             } else {
-                // 2. ብሩ ከተቀነሰ በኋላ ለAdmin ሪከርድ ይልካል
+                // እዚህ ጋር 'username' የሚለው ዳታ እንዲላክ ተደርጓል
                 database.ref('withdraw_requests').push({
                     phone: userPhone,
+                    username: userName,
                     amount: amount,
                     status: "pending",
                     site: "Mita Betting",
