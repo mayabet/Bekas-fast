@@ -33,9 +33,8 @@
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; color: #002d4b; }
-        /* Underline (የስር መስመሩ) እዚህ ጋር ጠፍቷል */
-        .lang-btn.active { color: #00b050; font-weight: bold; }
+        .lang-btn { cursor: pointer; color: #002d4b; text-decoration: none !important; }
+        .lang-btn.active { color: #00b050; text-decoration: none !important; }
     </style>
 </head>
 <body>
@@ -207,9 +206,8 @@
             let history = [];
             snapshot.forEach(child => { history.unshift(child.val()); });
             history.forEach(item => {
-                // ታሪክ ላይም የኢትዮጵያ ሰዓት እንዲሆን
-                let ethTime = new Intl.DateTimeFormat('am-ET', {hour:'2-digit', minute:'2-digit'}).format(item.timestamp);
-                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>${item.winner} - ${ethTime}</td></tr>`;
+                let time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>${item.winner} - ${time}</td></tr>`;
             });
         });
     }
@@ -239,17 +237,25 @@
         document.getElementById('l-en').classList.toggle('active', l === 'en');
     }
 
-    // የኢትዮጵያ ቀን እና ሰዓት አዘማመኛ
-    setInterval(() => {
-        const now = new Date();
-        const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    // --- የኢትዮጵያ ቀንና ሰዓት ማስተካከያ (ተዛውሮ የመጣ) ---
+    function updateClock() { 
+        const now = new Date(); 
+        const timeLabel = document.getElementById('time-label');
+        const dateLabel = document.getElementById('date-label');
         
-        // አቆጣጠሩን ወደ ኢትዮጵያ (am-ET) ይቀይረዋል
-        document.getElementById('date-label').innerText = new Intl.DateTimeFormat('am-ET', optionsDate).format(now);
-        document.getElementById('time-label').innerText = new Intl.DateTimeFormat('am-ET', optionsTime).format(now);
-    }, 1000);
+        if (currentLang === 'am') {
+            const amDays = ["እሁድ", "ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "አርብ", "ቅዳሜ"];
+            // የኢትዮጵያ ዓመተ ምህረት በግምት ከፈረንጆቹ 8 ዓመት ይቀንሳል
+            dateLabel.innerText = `${amDays[now.getDay()]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
+        } else {
+            const options = { weekday: 'long', day: 'numeric', year: 'numeric' };
+            dateLabel.innerText = now.toLocaleDateString('en-US', options).toUpperCase();
+        }
+        timeLabel.innerText = now.toLocaleTimeString(); 
+    }
     
+    setInterval(updateClock, 1000); 
+    updateClock();
     setLang('am');
 </script>
 </body>
