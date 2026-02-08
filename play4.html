@@ -34,13 +34,17 @@
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
-        .lang-btn.active { color: #00b050; text-decoration: underline; }
+        /* Underline (የስር መስመሩ) እዚህ ጋር ጠፍቷል */
+        .lang-btn.active { color: #00b050; font-weight: bold; }
     </style>
 </head>
 <body>
 <div class="app-container">
     <div class="yellow-banner"><span class="game-title" id="gt">20 ብር ወደ 900 ብር</span><span class="plus18">18+</span></div>
-    <div class="info-section"><div>ቀን: <span id="date-label"></span></div><div>ሰዓት: <span id="time-label"></span></div></div>
+    <div class="info-section">
+        <div>ቀን: <span id="date-label"></span></div>
+        <div>ሰዓት: <span id="time-label"></span></div>
+    </div>
     <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ</div>
     <div class="number-grid" id="grid-container"></div>
@@ -203,8 +207,9 @@
             let history = [];
             snapshot.forEach(child => { history.unshift(child.val()); });
             history.forEach(item => {
-                let time = new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>${item.winner} - ${time}</td></tr>`;
+                // ታሪክ ላይም የኢትዮጵያ ሰዓት እንዲሆን
+                let ethTime = new Intl.DateTimeFormat('am-ET', {hour:'2-digit', minute:'2-digit'}).format(item.timestamp);
+                table.innerHTML += `<tr><td class="id-col" style="background:#00b050; color:white;">${item.number}</td><td>${item.winner} - ${ethTime}</td></tr>`;
             });
         });
     }
@@ -234,7 +239,16 @@
         document.getElementById('l-en').classList.toggle('active', l === 'en');
     }
 
-    setInterval(() => { const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString(); document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }, 1000);
+    // የኢትዮጵያ ቀን እና ሰዓት አዘማመኛ
+    setInterval(() => {
+        const now = new Date();
+        const optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const optionsTime = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        
+        // አቆጣጠሩን ወደ ኢትዮጵያ (am-ET) ይቀይረዋል
+        document.getElementById('date-label').innerText = new Intl.DateTimeFormat('am-ET', optionsDate).format(now);
+        document.getElementById('time-label').innerText = new Intl.DateTimeFormat('am-ET', optionsTime).format(now);
+    }, 1000);
     
     setLang('am');
 </script>
