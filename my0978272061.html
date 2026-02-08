@@ -39,7 +39,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests (Auto & Manual)</div>
+    <div class="section-title">Deposit Requests (Telebirr Auto & Manual)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -98,22 +98,43 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- 1. AUTOMATIC DEPOSIT LOGIC ---
+    // --- 1. IMPROVED AUTOMATIC DEPOSIT LOGIC (Telebirr Only) ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
+
         if (req.status === "pending") {
             const txCode = req.transactionCode;
+            const reqAmt = parseFloat(req.amount);
+
             if(!req.phone || req.phone === "Guest") {
                 database.ref('deposit_requests/' + reqKey).remove();
                 return;
             }
+
+            // ሀ. ኮዱ ከዚህ በፊት ጥቅም ላይ መዋሉን ቼክ አድርግ
             database.ref('used_transactions/' + txCode).once('value', (usedSnap) => {
                 if (usedSnap.exists()) {
-                    database.ref('deposit_requests/' + reqKey).remove();
-                } else {
-                    approveAutomaticDeposit(reqKey, req.phone, req.amount, txCode);
+                    console.log("Code already used: " + txCode);
+                    return; 
                 }
+
+                // ለ. ከ SMS Forwarder የመጣውን Telebirr SMS ፈልግ
+                database.ref('telebirr_sms/' + txCode).once('value', (smsSnap) => {
+                    if (smsSnap.exists()) {
+                        const smsData = smsSnap.val();
+                        const bankAmt = parseFloat(smsData.amount);
+
+                        // ሐ. መጠኑ ከተመሳሰለ ብቻ Auto Approve
+                        if (bankAmt === reqAmt) {
+                            approveAutomaticDeposit(reqKey, req.phone, reqAmt, txCode);
+                        } else {
+                            console.log("Amount Mismatch for " + txCode);
+                        }
+                    } else {
+                        console.log("Waiting for Telebirr SMS for code: " + txCode);
+                    }
+                });
             });
         }
     });
@@ -122,9 +143,13 @@
         if (!amt || amt <= 0) return;
         database.ref('users/' + phone + '/balance').transaction(current => (current || 0) + amt, (error, committed) => {
             if (committed) {
-                database.ref('used_transactions/' + txCode).set({ usedBy: phone, amount: amt, time: new Date().toISOString() });
+                database.ref('used_transactions/' + txCode).set({ 
+                    usedBy: phone, 
+                    amount: amt, 
+                    time: new Date().toISOString() 
+                });
                 database.ref('deposit_requests/' + key).remove();
-                logTransaction(phone, 'Deposit Approved', amt);
+                logTransaction(phone, 'Auto Deposit Approved', amt);
             }
         });
     }
@@ -145,11 +170,14 @@
     });
 
     function approveManual(key, phone, amt, txCode) {
-        if(confirm("Approve " + amt + " ETB?")) approveAutomaticDeposit(key, phone, amt, txCode);
+        if(confirm("Approve " + amt + " ETB Manually?")) {
+            // ማኑዋል ሲሆን SMS ባይኖርም እንዲያሳልፍ ቀጥታ ፈንክሽኑን እንጠራዋለን
+            approveAutomaticDeposit(key, phone, amt, txCode);
+        }
     }
 
     function declineDep(key, phone, amt) {
-        if(confirm("Decline?")) {
+        if(confirm("Decline this request?")) {
             database.ref('deposit_requests/' + key).remove();
             logTransaction(phone, 'Deposit Declined', amt);
         }
@@ -239,16 +267,16 @@
         });
     });
 
-    function deleteAccount(phone) { if(confirm("Delete?")) database.ref('users/' + phone).remove(); }
+    function deleteAccount(phone) { if(confirm("Delete Account?")) database.ref('users/' + phone).remove(); }
     
     function clearAllDataExceptUsers() {
-        if(confirm("Clear All History & Stats?")) {
+        if(confirm("Clear All History, Requests & Stats?")) {
             database.ref('deposit_requests').remove();
             database.ref('withdraw_requests').remove();
             database.ref('transaction_history').remove();
             database.ref('games').remove();
             database.ref('used_transactions').remove();
-            alert("Cleared!");
+            alert("All cleared successfully!");
         }
     }
 </script>
