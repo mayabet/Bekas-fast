@@ -91,19 +91,19 @@
     const database = firebase.database();
 
     const userPhone = localStorage.getItem('userPhone');
-    // እዚህ ጋር ስሙን ከ localStorage እናገኛለን
-    const userName = localStorage.getItem('userName') || "Unknown"; 
-
     let currentBalance = 0;
     let currentLang = 'am';
+    let fetchedUserName = "Unknown"; // እዚህ ጋር ዳታቤዝ ውስጥ ያለውን ስም እንይዛለን
 
     if (!userPhone) { 
         window.location.replace("index.html"); 
     } else {
+        // የተጠቃሚውን ዳታ መጀመሪያውኑ እንጫነው (ስሙን እና ብሩን)
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 currentBalance = data.balance || 0;
+                fetchedUserName = data.username || "Unknown"; // ስሙን ከዳታቤዝ አገኘነው
                 document.getElementById('user-balance').innerText = currentBalance.toLocaleString();
             } else {
                 document.getElementById('user-balance').innerText = "0";
@@ -152,10 +152,10 @@
             } else if (!committed) {
                 showMsg(currentLang === 'am' ? "በቂ ቀሪ ሂሳብ የለዎትም" : "INSUFFICIENT BALANCE", "red");
             } else {
-                // እዚህ ጋር 'username' የሚለው ዳታ እንዲላክ ተደርጓል
+                // አሁን 'username' ከዳታቤዝ የመጣውን ትክክለኛ ስም ይጠቀማል
                 database.ref('withdraw_requests').push({
                     phone: userPhone,
-                    username: userName,
+                    username: fetchedUserName, 
                     amount: amount,
                     status: "pending",
                     site: "Mita Betting",
