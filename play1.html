@@ -36,7 +36,7 @@
         .lang-btn { cursor: pointer; color: #002d4b; text-decoration: none !important; }
         .lang-btn.active { color: #00b050; text-decoration: none !important; }
 
-        /* ማስታወቂያው መሃል ላይ ጎላ ብሎ እንዲታይ */
+        /* ማስታወቂያው መሃል ላይ */
         .promo-container {
             flex-grow: 1;
             display: flex;
@@ -47,25 +47,23 @@
             text-align: center;
         }
         .promo-brand {
-            color: #5a7d95; /* Light Blue */
+            color: #5a7d95;
             font-weight: 900;
-            font-size: 26px; /* ተለቅ ያለ */
-            margin-bottom: 15px;
+            font-size: 24px;
+            margin-bottom: 10px;
         }
         .promo-text {
-            color: #5a7d95; /* Light Blue */
+            color: #5a7d95;
             font-weight: 900;
-            font-size: 18px;
-            line-height: 1.5;
+            font-size: 17px;
+            line-height: 1.4;
         }
         .promo-win {
-            color: #5a7d95; /* Light Blue */
+            color: #5a7d95;
             font-weight: 900;
-            font-size: 32px; /* በጣም ጎላ ያለ */
-            margin-top: 10px;
+            font-size: 22px;
+            margin-top: 8px;
             display: block;
-            border: 2px dashed #5a7d95;
-            padding: 5px;
         }
     </style>
 </head>
@@ -89,6 +87,7 @@
 </div>
 
 <script>
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -190,10 +189,6 @@
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
-
-        if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 90 });
-        }
         
         setTimeout(() => {
             isResetting = true;
@@ -233,8 +228,6 @@
 
     function setLang(l) { 
         currentLang = l; 
-        document.getElementById('l-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
-        document.getElementById('l-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
         updateUI();
     }
 
@@ -245,7 +238,7 @@
             const amDays = ["እሁድ", "ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "አርብ", "ቅዳሜ"];
             document.getElementById('date-label').innerText = `${amDays[now.getDay()]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
         } else {
-            document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', year: 'numeric' });
+            document.getElementById('date-label').innerText = now.toLocaleDateString();
         }
     }, 1000);
     
