@@ -26,17 +26,38 @@
         .bg-green { background: #00b050; color: white; }
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; transition: background 0.3s; }
-        .scroll-area { overflow-y: auto; flex-grow: 1; }
+        .scroll-area { overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
-        
-        /* እዚህ ጋር አስተካክያለሁ */
         .lang-btn { cursor: pointer; color: #002d4b; text-decoration: none !important; }
         .lang-btn.active { color: #00b050; text-decoration: none !important; }
+
+        /* ማስታወቂያው መሃል ላይ እንዲሆን */
+        .promo-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            text-align: center;
+        }
+        .promo-text {
+            color: #5a7d95; /* Faded Light Blue */
+            font-weight: 900;
+            font-size: 18px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .promo-subtitle {
+            font-size: 13px;
+            opacity: 0.8;
+            font-weight: 900;
+        }
     </style>
 </head>
 <body>
@@ -52,14 +73,15 @@
     </table>
     <div class="list-container">
         <div class="selected-header" id="sh">የተመረጡ ቁጥሮች</div>
-        <div class="scroll-area"><table class="selected-list" id="sel-table"></table></div>
+        <div class="scroll-area" id="scroll-content">
+            <table class="selected-list" id="sel-table"></table>
+        </div>
     </div>
     <div class="footer-nav"><a href="home.html" class="nav-btn" id="bb">ተመለስ</a></div>
     <div class="lang-bar"><span id="ll">ቋንቋ</span><div><span class="lang-btn active" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
 <script>
-    // Firebase Config (እንደነበረው...)
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -91,8 +113,8 @@
     }
 
     const trans = {
-        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...'},
-        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...'}
+        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', brand: 'ቡናማዉ ፈጣን የቁጥር ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ 90 ብር ያገኛሉ', wait: 'እባክዎ ይጠብቁ...', low: 'በቂ ሂሳብ የሎትም'},
+        'en': {gt:'10 BIRR TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 TO 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', brand: 'BUNAMAW FAST PICKER', promo: 'The game is with 10 people. Win 90 ETB if picked.', wait: 'PLEASE WAIT...', low: 'LOW BALANCE'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -157,7 +179,6 @@
     }
 
     function finishGame(win) {
-        const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         const winCell = document.getElementById(`c-${win}`);
@@ -168,9 +189,9 @@
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 90 });
-            msg.innerText = "አሸንፈዋል!";
+            document.getElementById('msg-box').innerText = "አሸንፈዋል!";
         } else {
-            msg.innerText = "ቁጥር " + win + " ወጥቷል";
+            document.getElementById('msg-box').innerText = "ቁጥር " + win + " ወጥቷል";
         }
         
         setTimeout(() => { showWinnerHistory(); }, 2500);
@@ -185,9 +206,10 @@
     }
 
     function showWinnerHistory() {
-        const table = document.getElementById('sel-table');
+        const scrollArea = document.getElementById('scroll-content');
         database.ref('games/play1').limitToLast(5).once('value', (snapshot) => {
-            table.innerHTML = "";
+            scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
+            const table = document.getElementById('sel-table');
             let history = [];
             snapshot.forEach(child => { history.unshift(child.val()); });
             history.forEach(item => {
@@ -198,9 +220,20 @@
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table'); 
-        if (!selections || Object.keys(selections).length === 0) { table.innerHTML = ""; resetGridColors(); return; }
-        table.innerHTML = "";
+        const scrollArea = document.getElementById('scroll-content');
+        
+        if (!selections || Object.keys(selections).length === 0) { 
+            scrollArea.innerHTML = `
+                <div class="promo-container">
+                    <div class="promo-text">${trans[currentLang].brand}</div>
+                    <div class="promo-text promo-subtitle">${trans[currentLang].promo}</div>
+                </div>`;
+            resetGridColors(); 
+            return; 
+        }
+
+        scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
+        const table = document.getElementById('sel-table');
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
@@ -219,19 +252,15 @@
         updateUI();
     }
 
-    // --- ሰዓት እና ቀን (እሁድ 8 ቀን 2018) ---
     setInterval(() => { 
         const now = new Date(); 
-        const timeLabel = document.getElementById('time-label');
-        const dateLabel = document.getElementById('date-label');
+        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
         if (currentLang === 'am') {
             const amDays = ["እሁድ", "ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "አርብ", "ቅዳሜ"];
-            dateLabel.innerText = `${amDays[now.getDay()]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
+            document.getElementById('date-label').innerText = `${amDays[now.getDay()]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
         } else {
-            const options = { weekday: 'long', day: 'numeric', year: 'numeric' };
-            dateLabel.innerText = now.toLocaleDateString('en-US', options).toUpperCase();
+            document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();
         }
-        timeLabel.innerText = now.toLocaleTimeString(); 
     }, 1000);
     
     setLang('am');
