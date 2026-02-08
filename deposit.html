@@ -35,7 +35,7 @@
         .lang-label { font-weight: 900; color: #555; font-size: 13px; text-transform: uppercase; }
         .lang-options { display: flex; gap: 12px; }
         .lang-btn { cursor: pointer; font-weight: 900; color: #002d4b; font-size: 14px; text-decoration: none; }
-        .active { color: #ff8c00; } /* Underline removed */
+        .active { color: #ff8c00; }
     </style>
 </head>
 <body>
@@ -65,7 +65,7 @@
         <div class="input-group">
             <label id="lbl-sms-desc" style="font-weight:900; font-size:13px; color:#444;">የቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡ ካስገቡት የገንዘብ መጠን ጋር ታይቶ ሲስተሙ በራሱ ያስገባል።</label>
             <div class="textarea-wrapper">
-                <textarea id="sms-input" class="input-box-textarea" placeholder="Dear customer, you have received..."></textarea>
+                <textarea id="sms-input" class="input-box-textarea" placeholder="Dear customer, you have transferred..."></textarea>
             </div>
         </div>
 
@@ -121,15 +121,31 @@
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
+        // 1. የቴሌብር SMS መሆኑን ማረጋገጥ (Dear/transferred/received/ውድ)
+        const isTelebirr = /transferred|received|dear|ውድ/i.test(sms);
+        
+        // 2. የ 10 አሃዝ ትራንዛክሽን ኮድ መፈለግ (ለምሳሌ DB47GLOZJ7)
+        // በጽሁፉ ውስጥ ያለን ማንኛውንም የ 10 ፊደልና ቁጥር ጥምረት ይይዛል
         const txMatch = sms.match(/[A-Z0-9]{10}/);
-        const amtMatch = sms.match(/(\d+(\.\d+)?)\s?(ETB|ብር)/i);
+        
+        // 3. የገንዘብ መጠን መፈለግ (ETB 100.00 ወይም 100.00 ብር)
+        const amtMatch = sms.match(/(?:ETB|ብር)\s*([\d,]+\.?\d*)/i);
 
-        if(!txMatch) return showMsg(currentLang === 'am' ? "የተሳሳተ SMS (ID አልተገኘም)" : "Invalid SMS (ID not found)", "red");
+        if(!isTelebirr || !txMatch) {
+            return showMsg(currentLang === 'am' ? "የተሳሳተ SMS! እባክዎ ትክክለኛ የቴሌብር መልዕክት ይለጥፉ" : "Invalid SMS! Please paste a valid Telebirr message", "red");
+        }
 
         const txID = txMatch[0];
-        const amount = amtMatch ? parseFloat(amtMatch[1]) : 0;
+        let amount = 0;
 
-        if(amount < 10) return showMsg(currentLang === 'am' ? "ዝቅተኛው የዴፖዚት መጠን 10 ብር ነው" : "Minimum deposit is 10 ETB", "red");
+        if (amtMatch) {
+            // ኮማ ካለ (1,000.00) ያስወግዳል
+            amount = parseFloat(amtMatch[1].replace(/,/g, ''));
+        }
+
+        if(amount < 10 || isNaN(amount)) {
+            return showMsg(currentLang === 'am' ? "ዝቅተኛው የዴፖዚት መጠን 10 ብር ነው" : "Minimum deposit is 10 ETB", "red");
+        }
 
         database.ref('used_transactions/' + txID).once('value', snap => {
             if(snap.exists()){
