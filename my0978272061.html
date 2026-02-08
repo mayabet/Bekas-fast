@@ -24,7 +24,8 @@
         .history-item { padding: 8px 12px; border-bottom: 2px solid #ccc; background: #fff; border-left: 4px solid #002d4b; margin-bottom: 2px; font-size: 13px; }
         .stat-table { width: 100%; border-collapse: collapse; text-align: center; font-weight: 900; margin-top: 5px; }
         .stat-table td, .stat-table th { border: 1px solid #ddd; padding: 10px; }
-        .withdraw-name { color: #d00000; font-size: 12px; font-weight: 900; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        /* ስሙ እንዲታይ የተደረገበት ስታይል */
+        .withdraw-name { color: #002d4b; font-size: 14px; font-weight: 900; text-transform: uppercase; display: block; margin-bottom: 2px; background: #ffcc00; padding: 2px 5px; border-radius: 3px; width: fit-content; }
     </style>
 </head>
 <body>
@@ -99,7 +100,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- 1. IMPROVED AUTOMATIC DEPOSIT ---
+    // --- 1. DEPOSIT LOGIC ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
@@ -137,7 +138,6 @@
         });
     }
 
-    // --- 2. DEPOSIT DISPLAY ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -163,30 +163,33 @@
         }
     }
 
-    // --- 3. WITHDRAWAL DISPLAY (Updated with YES/NO) ---
+    // --- 2. WITHDRAWAL DISPLAY (NAME FIXED) ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
-            cont.innerHTML += `<div class="card" style="border-left: 5px solid #ffcc00;">
+            // ስሙ መኖሩን እናረጋግጣለን
+            const displayName = r.username ? r.username : "NO NAME";
+
+            cont.innerHTML += `<div class="card" style="border-left: 5px solid #ff8c00; background: #fff;">
                 <div class="row">
                     <div>
-                        <span class="withdraw-name">NAME: ${r.username || 'N/A'}</span>
-                        <span class="phone-text">${r.phone}</span>
+                        <span class="withdraw-name">👤 ${displayName}</span>
+                        <span class="phone-text">📞 ${r.phone}</span>
                     </div>
-                    <span class="amt-bold" style="color:red; background:#fff0f0;">${r.amount} ETB</span>
+                    <span class="amt-bold" style="color:red; background:#fff0f0; border-color:red;">-${r.amount} ETB</span>
                 </div>
-                <div class="row" style="margin-top:5px;">
-                    <span style="font-size:12px; font-weight:bold;">Acc: ${r.accountNumber || 'N/A'} (${r.bankName || 'CBE'})</span>
+                <div class="row" style="margin-top:8px;">
+                    <span style="font-size:12px; font-weight:900; color:#555;">Requested At: ${r.time || 'N/A'}</span>
                     <div style="display:flex; gap:5px;">
-                        <button class="btn-green" onclick="if(confirm('Mark as PAID?')) database.ref('withdraw_requests/${child.key}').remove()">YES</button>
-                        <button class="btn-red" onclick="if(confirm('Cancel/Remove this request?')) database.ref('withdraw_requests/${child.key}').remove()">NO</button>
+                        <button class="btn-green" onclick="if(confirm('Confirm PAID for ${displayName}?')) database.ref('withdraw_requests/${child.key}').remove()">PAID (YES)</button>
+                        <button class="btn-red" onclick="if(confirm('Cancel request?')) database.ref('withdraw_requests/${child.key}').remove()">CANCEL (NO)</button>
                     </div>
                 </div></div>`;
         });
     });
 
-    // --- 4. USER MANAGEMENT ---
+    // --- 3. USER MANAGEMENT ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -214,7 +217,7 @@
         });
     }
 
-    // --- 5. GAME STATS ---
+    // --- 4. GAME STATS ---
     function updateStats() {
         database.ref('games').on('value', snap => {
             let p1=0, p2=0, p3=0, p4=0;
@@ -233,7 +236,7 @@
     }
     updateStats();
 
-    // --- 6. PASSWORD REQUESTS ---
+    // --- 5. PASSWORD REQUESTS ---
     database.ref('password_requests').on('value', snap => {
         const cont = document.getElementById('lost-pw-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -242,7 +245,7 @@
         });
     });
 
-    // --- 7. HISTORY ---
+    // --- 6. HISTORY ---
     function logTransaction(phone, type, amount) {
         const now = new Date(); const timeStr = now.toLocaleTimeString() + " | " + now.toLocaleDateString();
         database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
