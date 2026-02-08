@@ -36,6 +36,18 @@
         .lang-options { display: flex; gap: 12px; }
         .lang-btn { cursor: pointer; font-weight: 900; color: #002d4b; font-size: 14px; text-decoration: none; }
         .active { color: #ff8c00; }
+
+        /* ማስተካከያ የተደረገበት የጥያቄ ጽሁፍ */
+        #lbl-sms-desc {
+            font-weight: 900;
+            font-size: 16px;
+            color: #000; /* ጥቁር ቀለም */
+            display: block;
+            margin-bottom: 5px;
+            line-height: 1.4;
+            background: transparent; /* የጀርባ ቀለም የለውም */
+            padding: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -63,7 +75,7 @@
         <div id="msg-display"></div>
 
         <div class="input-group">
-            <label id="lbl-sms-desc" style="font-weight:900; font-size:13px; color:#444;">የቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡ ካስገቡት የገንዘብ መጠን ጋር ታይቶ ሲስተሙ በራሱ ያስገባል።</label>
+            <label id="lbl-sms-desc">የቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡ ካስገቡት የገንዘብ መጠን ጋር ታይቶ ሲስተሙ በራሱ ያስገባል።</label>
             <div class="textarea-wrapper">
                 <textarea id="sms-input" class="input-box-textarea" placeholder="Dear customer, you have transferred..."></textarea>
             </div>
@@ -121,14 +133,8 @@
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        // 1. የቴሌብር SMS መሆኑን ማረጋገጥ (Dear/transferred/received/ውድ)
         const isTelebirr = /transferred|received|dear|ውድ/i.test(sms);
-        
-        // 2. የ 10 አሃዝ ትራንዛክሽን ኮድ መፈለግ (ለምሳሌ DB47GLOZJ7)
-        // በጽሁፉ ውስጥ ያለን ማንኛውንም የ 10 ፊደልና ቁጥር ጥምረት ይይዛል
         const txMatch = sms.match(/[A-Z0-9]{10}/);
-        
-        // 3. የገንዘብ መጠን መፈለግ (ETB 100.00 ወይም 100.00 ብር)
         const amtMatch = sms.match(/(?:ETB|ብር)\s*([\d,]+\.?\d*)/i);
 
         if(!isTelebirr || !txMatch) {
@@ -139,7 +145,6 @@
         let amount = 0;
 
         if (amtMatch) {
-            // ኮማ ካለ (1,000.00) ያስወግዳል
             amount = parseFloat(amtMatch[1].replace(/,/g, ''));
         }
 
