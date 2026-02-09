@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bunamaw ቡናማዉ - Play 1</title>
+    <title>Mita Betting - Play 1</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -18,6 +18,9 @@
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
         .num-cell { border: 1px solid #002d4b; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
+        /* Undo indicator style */
+        .user-selected.undo-mode::after { content: "X"; position: absolute; top: 0; right: 2px; color: #ff0000; font-size: 12px; }
+        
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         .anim-active { background-color: #ff0000 !important; color: white !important; box-shadow: 0 0 15px #ff0000; z-index: 10; border: 2px solid #fff !important; }
         .winner-cell { background-color: #ffcc00 !important; color: black !important; box-shadow: 0 0 25px #ffcc00; transform: scale(1.1); z-index: 15; border: 3px solid #002d4b !important; }
@@ -25,7 +28,7 @@
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; transition: background 0.3s; }
+        .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .scroll-area { overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
@@ -33,61 +36,36 @@
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; color: #002d4b; text-decoration: none !important; }
-        .lang-btn.active { color: #00b050; text-decoration: none !important; }
+        .lang-btn { cursor: pointer; color: #002d4b; }
+        .lang-btn.active { color: #00b050; }
 
-        /* ማስታወቂያው መሃል ላይ */
-        .promo-container {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-            text-align: center;
-        }
-        .promo-brand {
-            color: #5a7d95;
-            font-weight: 900;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        .promo-text {
-            color: #5a7d95;
-            font-weight: 900;
-            font-size: 17px;
-            line-height: 1.4;
-        }
-        .promo-win {
-            color: #5a7d95;
-            font-weight: 900;
-            font-size: 22px;
-            margin-top: 8px;
-            display: block;
-        }
+        /* ማስታወቂያው style */
+        .promo-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; text-align: center; background: #f9f9f9; }
+        .promo-brand { color: #8b4513; font-weight: 900; font-size: 20px; margin-bottom: 8px; }
+        .promo-text { color: #002d4b; font-weight: 900; font-size: 16px; line-height: 1.4; }
+        .promo-win { color: #00b050; font-weight: 900; font-size: 20px; margin-top: 8px; }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">10 ብር ወደ 90 ብር</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title">10 ብር ወደ 90 ብር</span><span class="plus18">18+</span></div>
     <div class="info-section"><div>ቀን: <span id="date-label"></span></div><div>ሰዓት: <span id="time-label"></span></div></div>
-    <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
+    <div class="balance-bar"><span>ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900;">እንኳን ደህና መጡ!</td></tr>
-        <tr><td class="bg-green" id="rn">ዙር</td><td id="round-val">1</td><td class="bg-green" id="ls">ያለፈው</td><td id="last-val">0</td></tr>
+        <tr><td class="bg-green">መልዕክት</td><td colspan="3" id="msg-box">እንኳን ደህና መጡ!</td></tr>
+        <tr><td class="bg-green">ዙር</td><td id="round-val">1</td><td class="bg-green">ያለፈው</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
-        <div class="selected-header" id="sh">የተመረጡ ቁጥሮች</div>
+        <div class="selected-header" id="sh-title">የተመረጡ ቁጥሮች</div>
         <div class="scroll-area" id="scroll-content"></div>
     </div>
-    <div class="footer-nav"><a href="home.html" class="nav-btn" id="bb">ተመለስ</a></div>
-    <div class="lang-bar"><span id="ll">ቋንቋ</span><div><span class="lang-btn active" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
+    <div class="footer-nav"><a href="home.html" class="nav-btn">ተመለስ</a></div>
+    <div class="lang-bar"><span>ቋንቋ</span><div><span class="lang-btn active" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn" onclick="setLang('en')">ENGLISH</span></div></div>
 </div>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -105,39 +83,27 @@
 
     const userPhone = localStorage.getItem('userPhone');
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
+    let canUndo = null; // የ5 ሰከንድ መሰረዣ Timer ለማከማቸት
+
+    const trans = {
+        'am': { brand: 'ቡናማዉ ፈጣን የቁጥር ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', win: '90 ብር ያገኛሉ', sh: 'የተመረጡ ቁጥሮች' },
+        'en': { brand: 'BUNAMAW FAST PICKER', promo: 'Game with 10 people. If your number is picked', win: 'YOU GET 90 ETB', sh: 'SELECTED NUMBERS' }
+    };
 
     if (!userPhone) window.location.replace("index.html");
     else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) { 
-                userName = data.username; 
-                balance = parseFloat(data.balance || 0); 
-                document.getElementById('cash').innerText = balance.toFixed(2); 
-            }
+            if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
         });
     }
 
-    const trans = {
-        'am': {
-            brand: 'ቡናማዉ ፈጣን የቁጥር ማጫወቻ',
-            promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ',
-            win: '90 ብር ያገኛሉ'
-        },
-        'en': {
-            brand: 'BUNAMAW FAST PICKER',
-            promo: 'Game with 10 people. If your number is picked',
-            win: 'YOU GET 90 ETB'
-        }
-    };
-
+    // Grid መፍጠር
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=10; i++) {
-        let cell = document.createElement('div'); 
-        cell.className = 'num-cell'; 
-        cell.id = `c-${i}`; 
-        cell.innerText = i; 
-        cell.onclick = () => pick(i); 
+        let cell = document.createElement('div');
+        cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i;
+        cell.onclick = () => pick(i);
         grid.appendChild(cell);
     }
 
@@ -148,10 +114,10 @@
     });
 
     function resetGridColors() {
-        for(let i=1; i<=10; i++) {
-            const cell = document.getElementById(`c-${i}`);
-            if(cell) cell.className = "num-cell";
-        }
+        document.querySelectorAll('.num-cell').forEach(c => {
+            c.className = "num-cell";
+            c.classList.remove('undo-mode');
+        });
     }
 
     resultRef.on('value', (snap) => {
@@ -160,18 +126,83 @@
     });
 
     function pick(n) {
-        if(isPlaying || isResetting || selections[n]) return;
+        if(isPlaying || isResetting) return;
+
+        // 3. ቁጥር መርጦ ድጋሚ ለማጥፋት (ለ5 ሰከንድ)
+        if (selections[n] === userName && canUndo === n) {
+            database.ref('users/' + userPhone).update({ balance: balance + 10 });
+            gameRef.child(n).remove();
+            clearTimeout(window.undoTimer);
+            canUndo = null;
+            return;
+        }
+
+        if (selections[n]) return;
         if (balance < 10) return;
+
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName).then(() => {
+            canUndo = n; // ሰሪው ይህንን ቁጥር ሰርዞ ማስተካከል ይችላል
+            window.undoTimer = setTimeout(() => { canUndo = null; updateUI(); }, 5000);
+            
             gameRef.once('value', (snap) => {
-                if (Object.keys(snap.val() || {}).length === 10 && !isPlaying) {
+                const currentData = snap.val() || {};
+                if (Object.keys(currentData).length === 10 && !isPlaying) {
                     let win = Math.floor(Math.random() * 10) + 1;
                     resultRef.set({ winningNum: win, status: "START_ANIMATION" });
                 }
             });
         });
     }
+
+    function updateUI() {
+        const scrollArea = document.getElementById('scroll-content');
+        document.getElementById('sh-title').innerText = trans[currentLang].sh;
+
+        // 1. ባዶ ቦታ ላይ ፕሮሞሽን እንዲታይ
+        if (!selections || Object.keys(selections).length === 0) { 
+            scrollArea.innerHTML = `
+                <div class="promo-container">
+                    <div class="promo-brand">${trans[currentLang].brand}</div>
+                    <div class="promo-text">${trans[currentLang].promo}</div>
+                    <div class="promo-win">${trans[currentLang].win}</div>
+                </div>`;
+            resetGridColors(); 
+            return; 
+        }
+
+        scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
+        const table = document.getElementById('sel-table');
+        for(let i=1; i<=10; i++) {
+            const cell = document.getElementById(`c-${i}`);
+            let occupant = selections[i] || "";
+            if (occupant === userName) {
+                cell.className = "num-cell user-selected";
+                if(canUndo === i) cell.classList.add('undo-mode'); // X ምልክት እንዲያሳይ
+            }
+            else if (occupant !== "") cell.className = "num-cell taken-cell";
+            else cell.className = "num-cell";
+            
+            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+        }
+    }
+
+    // 2. ሰዓትና ቀን በአማርኛ (ኢትዮጵያ ካሌንደር ፎርማት)
+    setInterval(() => { 
+        const now = new Date();
+        const hrs = now.getHours().toString().padStart(2, '0');
+        const mins = now.getMinutes().toString().padStart(2, '0');
+        const secs = now.getSeconds().toString().padStart(2, '0');
+        document.getElementById('time-label').innerText = `${hrs}:${mins}:${secs}`;
+
+        if (currentLang === 'am') {
+            const ethMonths = ["መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ"];
+            // ዛሬን የካቲት 1 2018 ለማድረግ (በአንተ ጥያቄ መሰረት)
+            document.getElementById('date-label').innerText = `የካቲት 1 2018`;
+        } else {
+            document.getElementById('date-label').innerText = now.toLocaleDateString();
+        }
+    }, 1000);
 
     function runAnimation(win) {
         let counter = 0, speed = 70;
@@ -192,6 +223,12 @@
         
         setTimeout(() => {
             isResetting = true;
+            if (selections[win] === userName) {
+                database.ref('users/' + userPhone).once('value', s => {
+                    let curB = parseFloat(s.val().balance || 0);
+                    database.ref('users/' + userPhone).update({ balance: curB + 90 });
+                });
+            }
             if (Object.keys(selections)[0] && selections[Object.keys(selections)[0]] === userName) {
                 gameRef.set(null); resultRef.set(null);
             }
@@ -201,46 +238,12 @@
         }, 5000);
     }
 
-    function updateUI() {
-        const scrollArea = document.getElementById('scroll-content');
-        if (!selections || Object.keys(selections).length === 0) { 
-            scrollArea.innerHTML = `
-                <div class="promo-container">
-                    <div class="promo-brand">${trans[currentLang].brand}</div>
-                    <div class="promo-text">${trans[currentLang].promo}</div>
-                    <div class="promo-win">${trans[currentLang].win}</div>
-                </div>`;
-            resetGridColors(); 
-            return; 
-        }
-
-        scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
-        const table = document.getElementById('sel-table');
-        for(let i=1; i<=10; i++) {
-            const cell = document.getElementById(`c-${i}`);
-            let occupant = selections[i] || "";
-            if (occupant === userName) cell.className = "num-cell user-selected";
-            else if (occupant !== "") cell.className = "num-cell taken-cell";
-            else cell.className = "num-cell";
-            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
-        }
-    }
-
     function setLang(l) { 
         currentLang = l; 
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
         updateUI();
     }
-
-    setInterval(() => { 
-        const now = new Date(); 
-        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
-        if (currentLang === 'am') {
-            const amDays = ["እሁድ", "ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "አርብ", "ቅዳሜ"];
-            document.getElementById('date-label').innerText = `${amDays[now.getDay()]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
-        } else {
-            document.getElementById('date-label').innerText = now.toLocaleDateString();
-        }
-    }, 1000);
     
     setLang('am');
 </script>
