@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bunamaw ቡናማዉ - Play 2</title>
+    <title>Bunamaw - Play 2</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -26,26 +26,25 @@
         .bg-green { background: #00b050; color: white; }
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
-        .scroll-area { overflow-y: auto; flex-grow: 1; display: flex; flex-direction: column; }
+        .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; height: 32px; padding: 0 10px; font-weight: 900; font-size: 13px; }
         .id-col { width: 40px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; color: #002d4b; text-decoration: none !important; }
-        .lang-btn.active { color: #00b050; text-decoration: none !important; }
+        .lang-btn { cursor: pointer; color: #002d4b; }
+        .lang-btn.active { color: #00b050; text-decoration: underline; }
 
-        /* ማስታወቂያው መሃል ላይ */
-        .promo-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; text-align: center; }
-        .promo-brand { color: #5a7d95; font-weight: 900; font-size: 24px; margin-bottom: 10px; }
-        .promo-text { color: #5a7d95; font-weight: 900; font-size: 17px; line-height: 1.4; }
-        .promo-win { color: #5a7d95; font-weight: 900; font-size: 22px; margin-top: 8px; display: block; }
+        .promo-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 10px; }
+        .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
+        .promo-box .text { color: #002d4b; font-size: 16px; margin: 5px 0; font-weight: bold; }
+        .promo-box .win { color: #00b050; font-size: 28px; font-weight: 900; }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">10 ብር ወደ 180 ብር</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title" id="gt">20 ብር ወደ 350 ብር</span><span class="plus18">18+</span></div>
     <div class="info-section"><div>ቀን: <span id="date-label"></span></div><div>ሰዓት: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ</div>
@@ -56,7 +55,9 @@
     </table>
     <div class="list-container">
         <div class="selected-header" id="sh">የተመረጡ ቁጥሮች</div>
-        <div class="scroll-area" id="scroll-content"></div>
+        <div class="scroll-area" id="scroll-ui">
+            <table class="selected-list" id="sel-table"></table>
+        </div>
     </div>
     <div class="footer-nav"><a href="home.html" class="nav-btn" id="bb">ተመለስ</a></div>
     <div class="lang-bar"><span id="ll">ቋንቋ</span><div><span class="lang-btn active" id="l-am" onclick="setLang('am')">አማርኛ</span> | <span class="lang-btn" id="l-en" onclick="setLang('en')">ENGLISH</span></div></div>
@@ -72,7 +73,6 @@
         messagingSenderId: "130702344830",
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
-
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const gameRef = database.ref('live_game/play2');
@@ -81,8 +81,14 @@
     const userPhone = localStorage.getItem('userPhone');
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
-    if (!userPhone) window.location.replace("index.html");
-    else {
+    const trans = {
+        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! 350 ብር አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '350 ብር ያገኛሉ'},
+        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON 350!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 350 ETB'}
+    };
+
+    if (!userPhone) {
+        window.location.replace("index.html");
+    } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) { 
@@ -92,19 +98,6 @@
             }
         });
     }
-
-    const trans = {
-        'am': {
-            brand: 'ቡናማዉ ፈጣን የቁጥር ማጫወቻ',
-            promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ',
-            win: '180 ብር ያገኛሉ'
-        },
-        'en': {
-            brand: 'BUNAMAW FAST PICKER',
-            promo: 'Game with 20 people. If your number is picked',
-            win: 'YOU GET 180 ETB'
-        }
-    };
 
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=20; i++) {
@@ -118,7 +111,10 @@
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) { isResetting = false; resetGridColors(); }
+        if (Object.keys(selections).length === 0 && !isPlaying) { 
+            isResetting = false; 
+            resetGridColors(); 
+        }
         updateUI();
     });
 
@@ -131,66 +127,67 @@
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) { isPlaying = true; runAnimation(data.winningNum); }
+        if (data && data.status === "START_ANIMATION" && !isPlaying) { 
+            isPlaying = true; 
+            runAnimation(data.winningNum); 
+        }
     });
 
     function pick(n) {
-        if(isPlaying || isResetting || selections[n]) return;
-        if (balance < 10) return;
-        database.ref('users/' + userPhone).update({ balance: balance - 10 });
+        const msg = document.getElementById('msg-box');
+        if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
+        if (selections[n] && selections[n] !== userName) return;
+
+        const lastPickTime = localStorage.getItem('lastPickTime2_' + n);
+        const now = Date.now();
+
+        if (selections[n] === userName) {
+            if (lastPickTime && (now - lastPickTime < 20000)) {
+                database.ref('users/' + userPhone).update({ balance: balance + 20 });
+                gameRef.child(n).remove();
+                localStorage.removeItem('lastPickTime2_' + n);
+                msg.innerText = trans[currentLang].removed.replace('{n}', n);
+                return;
+            } else {
+                msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Can't undo (20s passed)";
+                return;
+            }
+        }
+
+        if (balance < 20) { 
+            msg.innerText = trans[currentLang].low; 
+            msg.style.color = "red"; 
+            return; 
+        }
+
+        database.ref('users/' + userPhone).update({ balance: balance - 20 });
+        localStorage.setItem('lastPickTime2_' + n, Date.now());
+        
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
-                if (Object.keys(snap.val() || {}).length === 20 && !isPlaying) {
+                const picks = snap.val() || {};
+                if (Object.keys(picks).length === 20 && !isPlaying) {
                     let win = Math.floor(Math.random() * 20) + 1;
                     resultRef.set({ winningNum: win, status: "START_ANIMATION" });
                 }
             });
         });
-    }
-
-    function runAnimation(win) {
-        let counter = 0, speed = 70;
-        let animationInterval = setInterval(() => {
-            document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-            let tempIdx = Math.floor(Math.random() * 20) + 1;
-            document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
-            counter += speed;
-            if (counter >= 3000) { clearInterval(animationInterval); finishGame(win); }
-        }, speed);
-    }
-
-    function finishGame(win) {
-        document.getElementById('last-val').innerText = win;
-        document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-        const winCell = document.getElementById(`c-${win}`);
-        winCell.classList.add('winner-cell');
-
-        if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 180 });
-        }
-        
-        setTimeout(() => {
-            isResetting = true;
-            if (Object.keys(selections)[0] && selections[Object.keys(selections)[0]] === userName) {
-                gameRef.set(null); resultRef.set(null);
-            }
-            document.getElementById('round-val').innerText = ++round;
-            isPlaying = false; winCell.classList.remove('winner-cell');
-            resetGridColors();
-        }, 5000);
+        msg.innerText = trans[currentLang].pick.replace('{n}', n);
     }
 
     function updateUI() {
-        const scrollArea = document.getElementById('scroll-content');
-        if (!selections || Object.keys(selections).length === 0) { 
+        const scrollArea = document.getElementById('scroll-ui');
+        const header = document.getElementById('sh');
+        
+        if (Object.keys(selections).length === 0) {
+            header.innerText = trans[currentLang].sh;
             scrollArea.innerHTML = `
-                <div class="promo-container">
-                    <div class="promo-brand">${trans[currentLang].brand}</div>
-                    <div class="promo-text">${trans[currentLang].promo}</div>
-                    <div class="promo-win">${trans[currentLang].win}</div>
+                <div class="promo-box">
+                    <div class="brand">${trans[currentLang].brand}</div>
+                    <div class="text">${trans[currentLang].promo}</div>
+                    <div class="win">${trans[currentLang].promoWin}</div>
                 </div>`;
-            resetGridColors(); 
-            return; 
+            return;
         }
 
         scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
@@ -200,29 +197,85 @@
             let occupant = selections[i] || "";
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
-            else cell.className = "num-cell";
-            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+            else if (!isPlaying) cell.className = "num-cell";
+            
+            if (occupant !== "") {
+                let row = table.insertRow();
+                row.innerHTML = `<td class="id-col">${i}</td><td>${occupant}</td>`;
+            }
         }
     }
 
     function setLang(l) { 
         currentLang = l; 
-        document.getElementById('l-am').className = l === 'am' ? 'lang-btn active' : 'lang-btn';
-        document.getElementById('l-en').className = l === 'en' ? 'lang-btn active' : 'lang-btn';
+        for(let k in trans[l]) { 
+            let el = document.getElementById(k);
+            if(el) el.innerText = trans[l][k]; 
+        }
+        document.getElementById('msg-box').innerText = (l === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
+        document.getElementById('l-am').classList.toggle('active', l === 'am');
+        document.getElementById('l-en').classList.toggle('active', l === 'en');
         updateUI();
     }
 
     setInterval(() => { 
         const now = new Date(); 
-        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
-        if (currentLang === 'am') {
-            const amDays = ["እሁድ", "ሰኞ", "ማክሰኞ", "ረቡዕ", "ሐሙስ", "አርብ", "ቅዳሜ"];
-            document.getElementById('date-label').innerText = `${amDays[now.getDay()]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
-        } else {
-            document.getElementById('date-label').innerText = now.toLocaleDateString();
-        }
+        let h = now.getHours();
+        let ethH = h >= 6 ? h - 6 : h + 6;
+        if (ethH > 12) ethH -= 12;
+        if (ethH === 0) ethH = 12;
+        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
+        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`; 
+        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 2 2018" : now.toDateString().toUpperCase(); 
     }, 1000);
-    
+
+    function runAnimation(win) {
+        document.getElementById('msg-box').innerText = trans[currentLang].luck;
+        let counter = 0, speed = 80;
+        let animationInterval = setInterval(() => {
+            document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
+            let tempIdx = Math.floor(Math.random() * 20) + 1;
+            document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
+            counter += speed;
+            if (counter >= 3000) { 
+                clearInterval(animationInterval); 
+                finishGame(win); 
+            }
+        }, speed);
+    }
+
+    function finishGame(win) {
+        const msg = document.getElementById('msg-box');
+        document.getElementById('last-val').innerText = win;
+        document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
+        const winCell = document.getElementById(`c-${win}`);
+        winCell.classList.add('winner-cell');
+
+        if(selections[win] === userName) {
+            database.ref('users/' + userPhone).update({ balance: balance + 350 });
+            msg.innerText = trans[currentLang].win.replace('{n}', win);
+            msg.style.color = "green";
+        } else {
+            msg.innerText = trans[currentLang].lost.replace('{n}', win);
+            msg.style.color = "red";
+        }
+
+        setTimeout(() => {
+            isResetting = true;
+            const firstKey = Object.keys(selections)[0];
+            if (selections[firstKey] === userName) {
+                gameRef.set(null);
+                resultRef.set(null);
+            }
+            document.getElementById('round-val').innerText = ++round;
+            isPlaying = false;
+            winCell.classList.remove('winner-cell');
+            msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
+            msg.style.color = "#002d4b";
+            resetGridColors();
+        }, 5000);
+    }
+
     setLang('am');
 </script>
 </body>
