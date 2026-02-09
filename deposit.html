@@ -11,7 +11,6 @@
     <style>
         html, body { margin: 0; padding: 0; min-height: 100%; overflow-y: auto; background: #eef2f7; font-family: 'Noto Sans Ethiopic', sans-serif; }
         body { display: flex; justify-content: center; padding: 10px 0; }
-        .en-mode { font-family: 'Poppins', sans-serif !important; }
         .app-card { width: 94%; max-width: 360px; background: #fff; border-radius: 15px; border: 2px solid #002d4b; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .yellow-bar { background: #002d4b; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; color: #fff; }
         .title-txt { font-weight: 900; font-size: 17px; }
@@ -24,30 +23,16 @@
         .tele-num { color: #d00000; font-size: 19px; font-weight: 900; }
         .copy-btn { background: #ff8c00; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 900; cursor: pointer; }
         .textarea-wrapper { border: 2px solid #002d4b; border-radius: 8px; overflow: hidden; margin-top: 10px; }
-        .input-box-textarea { width: 100%; border: none; padding: 10px; font-size: 14px; min-height: 80px; box-sizing: border-box; }
+        .input-box-textarea { width: 100%; border: none; padding: 10px; font-size: 14px; min-height: 80px; box-sizing: border-box; outline: none; }
         #msg-display { font-size: 14px; font-weight: 900; text-align: center; margin-bottom: 8px; min-height: 20px; }
         .btn-stack { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
         .btn { padding: 14px; border: none; border-radius: 8px; font-weight: 900; font-size: 16px; cursor: pointer; text-align: center; text-decoration: none; }
         .btn-main { background: #002d4b; color: white; }
         .btn-back { background: #777; color: white; }
-        
         .lang-bar { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #ddd; background: #fcfcfc; }
-        .lang-label { font-weight: 900; color: #555; font-size: 13px; text-transform: uppercase; }
-        .lang-options { display: flex; gap: 12px; }
-        .lang-btn { cursor: pointer; font-weight: 900; color: #002d4b; font-size: 14px; text-decoration: none; }
+        .lang-btn { cursor: pointer; font-weight: 900; color: #002d4b; font-size: 14px; }
         .active { color: #ff8c00; }
-
-        /* ማስተካከያ የተደረገበት የጥያቄ ጽሁፍ */
-        #lbl-sms-desc {
-            font-weight: 900;
-            font-size: 16px;
-            color: #000; /* ጥቁር ቀለም */
-            display: block;
-            margin-bottom: 5px;
-            line-height: 1.4;
-            background: transparent; /* የጀርባ ቀለም የለውም */
-            padding: 5px 0;
-        }
+        #lbl-sms-desc { font-weight: 900; font-size: 15px; color: #000; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -75,7 +60,7 @@
         <div id="msg-display"></div>
 
         <div class="input-group">
-            <label id="lbl-sms-desc">የቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡ ካስገቡት የገንዘብ መጠን ጋር ታይቶ ሲስተሙ በራሱ ያስገባል።</label>
+            <label id="lbl-sms-desc">የቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡</label>
             <div class="textarea-wrapper">
                 <textarea id="sms-input" class="input-box-textarea" placeholder="Dear customer, you have transferred..."></textarea>
             </div>
@@ -100,7 +85,7 @@
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
-        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com/",
+        databaseURL: "https://bekas-fast-d2a3b-default-rtdb.firebaseio.com",
         projectId: "bekas-fast-d2a3b",
         storageBucket: "bekas-fast-d2a3b.firebasestorage.app",
         messagingSenderId: "130702344830",
@@ -109,13 +94,18 @@
 
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    const userPhone = localStorage.getItem('userPhone') || "Guest";
+
+    // ማስተካከያ፡ ከ Login ገፅ ጋር እንዲመሳሰል ተደርጓል
+    const userPhone = localStorage.getItem('loggedUser'); 
     let currentLang = 'am';
 
-    if (userPhone !== "Guest") {
+    if (userPhone) {
         database.ref('users/' + userPhone + '/balance').on('value', s => {
             document.getElementById('user-balance').innerText = (s.val() || 0).toFixed(2);
         });
+    } else {
+        // ተጠቃሚው ካልገባ ወደ login ይመለስ
+        window.location.replace("index.html");
     }
 
     function showMsg(t, c) {
@@ -125,7 +115,12 @@
     }
 
     function copyPhone() {
-        navigator.clipboard.writeText("+251978272061");
+        const el = document.createElement('textarea');
+        el.value = "0978272061";
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
         showMsg(currentLang === 'am' ? "ቁጥሩ ተገልብጧል!" : "Copied!", "green");
     }
 
@@ -133,28 +128,23 @@
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        const isTelebirr = /transferred|received|dear|ውድ/i.test(sms);
         const txMatch = sms.match(/[A-Z0-9]{10}/);
         const amtMatch = sms.match(/(?:ETB|ብር)\s*([\d,]+\.?\d*)/i);
 
-        if(!isTelebirr || !txMatch) {
-            return showMsg(currentLang === 'am' ? "የተሳሳተ SMS! እባክዎ ትክክለኛ የቴሌብር መልዕክት ይለጥፉ" : "Invalid SMS! Please paste a valid Telebirr message", "red");
+        if(!txMatch) {
+            return showMsg(currentLang === 'am' ? "የተሳሳተ SMS! ትራንዛክሽን ኮድ አልተገኘም" : "Invalid SMS! Transaction ID not found", "red");
         }
 
         const txID = txMatch[0];
-        let amount = 0;
+        let amount = amtMatch ? parseFloat(amtMatch[1].replace(/,/g, '')) : 0;
 
-        if (amtMatch) {
-            amount = parseFloat(amtMatch[1].replace(/,/g, ''));
-        }
-
-        if(amount < 10 || isNaN(amount)) {
-            return showMsg(currentLang === 'am' ? "ዝቅተኛው የዴፖዚት መጠን 10 ብር ነው" : "Minimum deposit is 10 ETB", "red");
+        if(amount < 10) {
+            return showMsg(currentLang === 'am' ? "ዝቅተኛው ማስገቢያ 10 ብር ነው" : "Min deposit is 10 ETB", "red");
         }
 
         database.ref('used_transactions/' + txID).once('value', snap => {
             if(snap.exists()){
-                showMsg(currentLang === 'am' ? "ይህ ትራንዛክሽን ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Transaction already used!", "red");
+                showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Transaction already used!", "red");
             } else {
                 processAutoDeposit(txID, amount, sms);
             }
@@ -162,18 +152,17 @@
     }
 
     function processAutoDeposit(id, amt, fullSms) {
-        showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ... እባክዎ ይጠብቁ" : "Processing... please wait", "blue");
+        showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Processing...", "blue");
         
         database.ref('deposit_requests').push({
             phone: userPhone,
             amount: amt,
             transactionCode: id,
-            smsData: fullSms,
             status: "pending",
             time: new Date().toLocaleString()
         }).then(() => {
             document.getElementById('sms-input').value = "";
-            showMsg(currentLang === 'am' ? "ጥያቄዎ ተልኳል። በቅርቡ ሂሳብዎ ላይ ይደመራል!" : "Request sent! Will be added soon.", "green");
+            showMsg(currentLang === 'am' ? "ጥያቄው ተልኳል! በቅርቡ ይጨመርልዎታል" : "Sent! Will be added soon.", "green");
         });
     }
 
@@ -183,7 +172,7 @@
         document.getElementById('title-name').innerText = isEn ? "DEPOSIT" : "ብር ማስገቢያ";
         document.getElementById('txt-bal-label').innerText = isEn ? "YOUR BALANCE" : "ያለዎት ቀሪ ሂሳብ";
         document.getElementById('txt-instr-main').innerText = isEn ? "Send via Telebirr to:" : "በቴሌብር ወደዚህ ቁጥር ይላኩ፡";
-        document.getElementById('lbl-sms-desc').innerText = isEn ? "Paste the Telebirr SMS here: The system will automatically credit your account based on the amount." : "የቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡ ካስገቡት የገንዘብ መጠን ጋር ታይቶ ሲስተሙ በራሱ ያስገባል።";
+        document.getElementById('lbl-sms-desc').innerText = isEn ? "Paste the Telebirr SMS here:" : "የቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡";
         document.getElementById('btn-submit').innerText = isEn ? "DEPOSIT" : "ብር አስገባ";
         document.getElementById('btn-home').innerText = isEn ? "BACK" : "ተመለስ";
         document.getElementById('btn-copy-label').innerText = isEn ? "COPY" : "ገልብጥ";
