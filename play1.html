@@ -78,7 +78,7 @@
     const gameRef = database.ref('live_game/play1');
     const resultRef = database.ref('live_game/play1_result');
 
-    const userPhone = localStorage.getItem('userPhone');
+    const userPhone = localStorage.getItem('loggedUser');
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
     const trans = {
