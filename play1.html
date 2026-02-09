@@ -36,7 +36,6 @@
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
 
-        /* Promo UI - የታዘዝኩት ማስተካከያ እዚህ ጋር ብቻ ነው */
         .promo-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 10px; }
         .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
         .promo-box .text { color: #002d4b; font-size: 16px; margin: 5px 0; font-weight: bold; }
@@ -87,22 +86,35 @@
         'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW FAST PICKER', promo: 'Game with 10 people. If your number is picked', promoWin: 'YOU GET 90 ETB'}
     };
 
-    if (!userPhone) window.location.replace("index.html");
-    else {
+    if (!userPhone) {
+        window.location.replace("index.html");
+    } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
+            if (data) { 
+                userName = data.username; 
+                balance = parseFloat(data.balance || 0); 
+                document.getElementById('cash').innerText = balance.toFixed(2); 
+            }
         });
     }
 
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=10; i++) {
-        let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
+        let cell = document.createElement('div'); 
+        cell.className = 'num-cell'; 
+        cell.id = `c-${i}`; 
+        cell.innerText = i; 
+        cell.onclick = () => pick(i); 
+        grid.appendChild(cell);
     }
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) { isResetting = false; resetGridColors(); }
+        if (Object.keys(selections).length === 0 && !isPlaying) { 
+            isResetting = false; 
+            resetGridColors(); 
+        }
         updateUI();
     });
 
@@ -115,12 +127,16 @@
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) { isPlaying = true; runAnimation(data.winningNum); }
+        if (data && data.status === "START_ANIMATION" && !isPlaying) { 
+            isPlaying = true; 
+            runAnimation(data.winningNum); 
+        }
     });
 
     function pick(n) {
         const msg = document.getElementById('msg-box');
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
+        if (selections[n] && selections[n] !== userName) return;
 
         const lastPickTime = localStorage.getItem('lastPickTime_' + n);
         const now = Date.now();
@@ -138,15 +154,19 @@
             }
         }
 
-        if (selections[n]) return;
-        if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
+        if (balance < 10) { 
+            msg.innerText = trans[currentLang].low; 
+            msg.style.color = "red"; 
+            return; 
+        }
 
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         localStorage.setItem('lastPickTime_' + n, Date.now());
         
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
-                if (Object.keys(snap.val() || {}).length === 10 && !isPlaying) {
+                const picks = snap.val() || {};
+                if (Object.keys(picks).length === 10 && !isPlaying) {
                     let win = Math.floor(Math.random() * 10) + 1;
                     resultRef.set({ winningNum: win, status: "START_ANIMATION" });
                 }
@@ -167,7 +187,6 @@
                     <div class="text">${trans[currentLang].promo}</div>
                     <div class="win">${trans[currentLang].promoWin}</div>
                 </div>`;
-            resetGridColors();
             return;
         }
 
@@ -178,8 +197,12 @@
             let occupant = selections[i] || "";
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
-            else cell.className = "num-cell";
-            if (occupant !== "") table.innerHTML += `<tr><td class="id-col">${i}</td><td>${occupant}</td></tr>`;
+            else if (!isPlaying) cell.className = "num-cell";
+            
+            if (occupant !== "") {
+                let row = table.insertRow();
+                row.innerHTML = `<td class="id-col">${i}</td><td>${occupant}</td>`;
+            }
         }
     }
 
@@ -201,24 +224,23 @@
         let ethH = h >= 6 ? h - 6 : h + 6;
         if (ethH > 12) ethH -= 12;
         if (ethH === 0) ethH = 12;
-        
-        let m = now.getMinutes().toString().padStart(2, '0');
-        let s = now.getSeconds().toString().padStart(2, '0');
         let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
-        
-        document.getElementById('time-label').innerText = `${ethH}:${m}:${s} ${ampm}`; 
+        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`; 
         document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 2 2018" : now.toDateString().toUpperCase(); 
     }, 1000);
 
     function runAnimation(win) {
         document.getElementById('msg-box').innerText = trans[currentLang].luck;
-        let counter = 0, speed = 70;
+        let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 10) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
-            if (counter >= 3000) { clearInterval(animationInterval); finishGame(win); }
+            if (counter >= 3000) { 
+                clearInterval(animationInterval); 
+                finishGame(win); 
+            }
         }, speed);
     }
 
@@ -240,10 +262,17 @@
 
         setTimeout(() => {
             isResetting = true;
-            if (selections[Object.keys(selections)[0]] === userName) { gameRef.set(null); resultRef.set(null); }
+            // የመጀመሪያው ተጫዋች ብቻ ዳታውን እንዲያጠፋ (Conflict ለመከላከል)
+            const firstKey = Object.keys(selections)[0];
+            if (selections[firstKey] === userName) {
+                gameRef.set(null);
+                resultRef.set(null);
+            }
             document.getElementById('round-val').innerText = ++round;
-            isPlaying = false; winCell.classList.remove('winner-cell');
-            msg.innerText = "";
+            isPlaying = false;
+            winCell.classList.remove('winner-cell');
+            msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
+            msg.style.color = "#002d4b";
             resetGridColors();
         }, 5000);
     }
