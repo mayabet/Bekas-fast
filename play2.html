@@ -44,7 +44,7 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">20 ብር ወደ 350 ብር</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title" id="gt">10 ብር ወደ 180 ብር</span><span class="plus18">18+</span></div>
     <div class="info-section"><div>ቀን: <span id="date-label"></span></div><div>ሰዓት: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ</div>
@@ -82,8 +82,8 @@
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
     const trans = {
-        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! 350 ብር አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '350 ብር ያገኛሉ'},
-        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON 350!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 350 ETB'}
+        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! 180 ብር አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '180 ብር ያገኛሉ'},
+        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON 180!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 180 ETB'}
     };
 
     if (!userPhone) {
@@ -143,7 +143,7 @@
 
         if (selections[n] === userName) {
             if (lastPickTime && (now - lastPickTime < 20000)) {
-                database.ref('users/' + userPhone).update({ balance: balance + 20 });
+                database.ref('users/' + userPhone).update({ balance: balance + 10 });
                 gameRef.child(n).remove();
                 localStorage.removeItem('lastPickTime2_' + n);
                 msg.innerText = trans[currentLang].removed.replace('{n}', n);
@@ -154,13 +154,13 @@
             }
         }
 
-        if (balance < 20) { 
+        if (balance < 10) { 
             msg.innerText = trans[currentLang].low; 
             msg.style.color = "red"; 
             return; 
         }
 
-        database.ref('users/' + userPhone).update({ balance: balance - 20 });
+        database.ref('users/' + userPhone).update({ balance: balance - 10 });
         localStorage.setItem('lastPickTime2_' + n, Date.now());
         
         gameRef.child(n).set(userName).then(() => {
@@ -252,7 +252,7 @@
         winCell.classList.add('winner-cell');
 
         if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 350 });
+            database.ref('users/' + userPhone).update({ balance: balance + 180 });
             msg.innerText = trans[currentLang].win.replace('{n}', win);
             msg.style.color = "green";
         } else {
