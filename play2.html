@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bunamaw - Play 2</title>
+    <title>Mita Betting - Play 2</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
+        /* ከላይ የነበረው ስታይል እንዳለ ይቀጥላል */
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #ffffff; font-family: sans-serif; }
         .app-container { width: 100%; max-width: 400px; height: 100%; border: 3px solid #002d4b; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
         .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
@@ -35,7 +36,6 @@
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
-
         .promo-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 10px; }
         .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
         .promo-box .text { color: #002d4b; font-size: 16px; margin: 5px 0; font-weight: bold; }
@@ -75,15 +75,17 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    
+    // Play 1 ጋር ተመሳሳይ እንዲሆን የተስተካከሉ ሪፈረንሶች
     const gameRef = database.ref('live_game/play2');
     const resultRef = database.ref('live_game/play2_result');
 
     const userPhone = localStorage.getItem('userPhone');
-    let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
+    let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false;
 
     const trans = {
-        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! 180 ብር አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '180 ብር ያገኛሉ'},
-        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON 180!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 180 ETB'}
+        'am': {gt:'10 ብር ወደ 180 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! 180 ብር አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '180 ብር ያገኛሉ'},
+        'en': {gt:'10 BIRR IN TO 180 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON 180!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 180 ETB'}
     };
 
     if (!userPhone) {
@@ -99,6 +101,7 @@
         });
     }
 
+    // Grid መፍጠር
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=20; i++) {
         let cell = document.createElement('div'); 
@@ -109,10 +112,10 @@
         grid.appendChild(cell);
     }
 
+    // ከ Play 1 ጋር ተመሳሳይ የሆነ የዳታ ክትትል
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
         if (Object.keys(selections).length === 0 && !isPlaying) { 
-            isResetting = false; 
             resetGridColors(); 
         }
         updateUI();
@@ -135,12 +138,15 @@
 
     function pick(n) {
         const msg = document.getElementById('msg-box');
-        if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
+        if(isPlaying) { msg.innerText = trans[currentLang].wait; return; }
+        
+        // ሌላ ሰው የያዘው ከሆነ አይፈቅድም
         if (selections[n] && selections[n] !== userName) return;
 
         const lastPickTime = localStorage.getItem('lastPickTime2_' + n);
         const now = Date.now();
 
+        // መሰረዝ (Refund)
         if (selections[n] === userName) {
             if (lastPickTime && (now - lastPickTime < 20000)) {
                 database.ref('users/' + userPhone).update({ balance: balance + 10 });
@@ -160,12 +166,14 @@
             return; 
         }
 
+        // ቁጥር መምረጥ
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         localStorage.setItem('lastPickTime2_' + n, Date.now());
         
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const picks = snap.val() || {};
+                // 20 ሰው ሲሞላ አኒሜሽኑን እንዲጀምር Play 1 በሚያደርገው መንገድ
                 if (Object.keys(picks).length === 20 && !isPlaying) {
                     let win = Math.floor(Math.random() * 20) + 1;
                     resultRef.set({ winningNum: win, status: "START_ANIMATION" });
@@ -206,18 +214,7 @@
         }
     }
 
-    function setLang(l) { 
-        currentLang = l; 
-        for(let k in trans[l]) { 
-            let el = document.getElementById(k);
-            if(el) el.innerText = trans[l][k]; 
-        }
-        document.getElementById('msg-box').innerText = (l === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
-        document.getElementById('l-am').classList.toggle('active', l === 'am');
-        document.getElementById('l-en').classList.toggle('active', l === 'en');
-        updateUI();
-    }
-
+    // ሰዓት አቆጣጠር (እንደ Play 1)
     setInterval(() => { 
         const now = new Date(); 
         let h = now.getHours();
@@ -260,10 +257,11 @@
             msg.style.color = "red";
         }
 
+        // ከ Play 1 ጋር ተመሳሳይ የሆነ Reset አሰራር
         setTimeout(() => {
-            isResetting = true;
-            const firstKey = Object.keys(selections)[0];
-            if (selections[firstKey] === userName) {
+            const keys = Object.keys(selections);
+            // ዳታውን የሚያጸዳው በዝርዝሩ ውስጥ የመጀመሪያው የሆነው ሰው ብቻ ነው (ግጭት እንዳይፈጠር)
+            if (selections[keys[0]] === userName) {
                 gameRef.set(null);
                 resultRef.set(null);
             }
@@ -274,6 +272,18 @@
             msg.style.color = "#002d4b";
             resetGridColors();
         }, 5000);
+    }
+
+    function setLang(l) { 
+        currentLang = l; 
+        for(let k in trans[l]) { 
+            let el = document.getElementById(k);
+            if(el) el.innerText = trans[l][k]; 
+        }
+        document.getElementById('msg-box').innerText = (l === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
+        document.getElementById('l-am').classList.toggle('active', l === 'am');
+        document.getElementById('l-en').classList.toggle('active', l === 'en');
+        updateUI();
     }
 
     setLang('am');
