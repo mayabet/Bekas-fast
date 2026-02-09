@@ -90,23 +90,23 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    const userPhone = localStorage.getItem('userPhone');
+    // እዚህ ጋር 'loggedUser' በሚለው ተቀይሯል (ከሌሎቹ ገጾች ጋር እንዲመሳሰል)
+    const userPhone = localStorage.getItem('loggedUser');
     let currentBalance = 0;
     let currentLang = 'am';
-    let fetchedUserName = "Unknown"; // እዚህ ጋር ዳታቤዝ ውስጥ ያለውን ስም እንይዛለን
+    let fetchedUserName = "Unknown User"; 
 
     if (!userPhone) { 
         window.location.replace("index.html"); 
     } else {
-        // የተጠቃሚውን ዳታ መጀመሪያውኑ እንጫነው (ስሙን እና ብሩን)
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 currentBalance = data.balance || 0;
-                fetchedUserName = data.username || "Unknown"; // ስሙን ከዳታቤዝ አገኘነው
-                document.getElementById('user-balance').innerText = currentBalance.toLocaleString();
+                fetchedUserName = data.username || "Unknown";
+                document.getElementById('user-balance').innerText = Number(currentBalance).toFixed(2);
             } else {
-                document.getElementById('user-balance').innerText = "0";
+                document.getElementById('user-balance').innerText = "0.00";
             }
         });
     }
@@ -142,7 +142,7 @@
         
         userRef.transaction((currentData) => {
             if (currentData && currentData.balance >= amount) {
-                currentData.balance -= amount;
+                currentData.balance = Number(currentData.balance) - amount;
                 return currentData;
             }
             return; 
@@ -152,7 +152,6 @@
             } else if (!committed) {
                 showMsg(currentLang === 'am' ? "በቂ ቀሪ ሂሳብ የለዎትም" : "INSUFFICIENT BALANCE", "red");
             } else {
-                // አሁን 'username' ከዳታቤዝ የመጣውን ትክክለኛ ስም ይጠቀማል
                 database.ref('withdraw_requests').push({
                     phone: userPhone,
                     username: fetchedUserName, 
