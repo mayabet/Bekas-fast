@@ -23,7 +23,7 @@
         .tele-num { color: #d00000; font-size: 19px; font-weight: 900; }
         .copy-btn { background: #ff8c00; color: white; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 900; cursor: pointer; }
         .textarea-wrapper { border: 2px solid #002d4b; border-radius: 8px; overflow: hidden; margin-top: 10px; }
-        .input-box-textarea { width: 100%; border: none; padding: 10px; font-size: 14px; min-height: 80px; box-sizing: border-box; outline: none; }
+        .input-box-textarea { width: 100%; border: none; padding: 10px; font-size: 14px; min-height: 120px; box-sizing: border-box; outline: none; }
         #msg-display { font-size: 14px; font-weight: 900; text-align: center; margin-bottom: 8px; min-height: 20px; }
         .btn-stack { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
         .btn { padding: 14px; border: none; border-radius: 8px; font-weight: 900; font-size: 16px; cursor: pointer; text-align: center; text-decoration: none; }
@@ -33,6 +33,7 @@
         .lang-btn { cursor: pointer; font-weight: 900; color: #002d4b; font-size: 14px; }
         .active { color: #ff8c00; }
         #lbl-sms-desc { font-weight: 900; font-size: 15px; color: #000; display: block; margin-bottom: 5px; }
+        .main-guide { font-weight: 900; font-size: 14px; color: #002d4b; margin-bottom: 15px; text-align: center; line-height: 1.5; padding: 10px; background: #fff3e0; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -48,6 +49,10 @@
         <div class="user-card">
             <span id="txt-bal-label" style="font-weight:900">ያለዎት ቀሪ ሂሳብ</span>
             <div class="bal-val"><span id="user-balance">0.00</span> <small style="font-size:16px" id="txt-curr">ብር</small></div>
+        </div>
+
+        <div class="main-guide" id="main-guide-text">
+            ከቴሌ ብር ብር ሲልኩ የመጣሎትን sms እዚህ ጋር ይለጥፉ፡ ለ ሲስተሙ ከደረሰዉ sms ጋር ታይቶ ገንዘብዎ ገቢ ይሆናል።
         </div>
 
         <div class="instruction-box">
@@ -73,7 +78,7 @@
     </div>
 
     <div class="lang-bar">
-        <span class="lang-label">Language</span>
+        <span class="lang-label" id="lang-indicator"><b>LANGUAGE</b></span>
         <div class="lang-options">
             <span id="lang-am" class="lang-btn active" onclick="setLang('am')">አማርኛ</span>
             <span id="lang-en" class="lang-btn" onclick="setLang('en')">ENGLISH</span>
@@ -95,7 +100,6 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // ማስተካከያ፡ ከ Login ገፅ ጋር እንዲመሳሰል ተደርጓል
     const userPhone = localStorage.getItem('loggedUser'); 
     let currentLang = 'am';
 
@@ -104,7 +108,6 @@
             document.getElementById('user-balance').innerText = (s.val() || 0).toFixed(2);
         });
     } else {
-        // ተጠቃሚው ካልገባ ወደ login ይመለስ
         window.location.replace("index.html");
     }
 
@@ -171,11 +174,15 @@
         const isEn = l === 'en';
         document.getElementById('title-name').innerText = isEn ? "DEPOSIT" : "ብር ማስገቢያ";
         document.getElementById('txt-bal-label').innerText = isEn ? "YOUR BALANCE" : "ያለዎት ቀሪ ሂሳብ";
+        document.getElementById('txt-curr').innerText = isEn ? "ETB" : "ብር";
+        document.getElementById('main-guide-text').innerText = isEn ? "Paste the SMS you received from Telebirr here: It will be verified and added to your balance." : "ከቴሌ ብር ብር ሲልኩ የመጣሎትን sms እዚህ ጋር ይለጥፉ፡ ለ ሲስተሙ ከደረሰዉ sms ጋር ታይቶ ገንዘብዎ ገቢ ይሆናል።";
         document.getElementById('txt-instr-main').innerText = isEn ? "Send via Telebirr to:" : "በቴሌብር ወደዚህ ቁጥር ይላኩ፡";
         document.getElementById('lbl-sms-desc').innerText = isEn ? "Paste the Telebirr SMS here:" : "የቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡";
         document.getElementById('btn-submit').innerText = isEn ? "DEPOSIT" : "ብር አስገባ";
         document.getElementById('btn-home').innerText = isEn ? "BACK" : "ተመለስ";
         document.getElementById('btn-copy-label').innerText = isEn ? "COPY" : "ገልብጥ";
+        document.getElementById('lang-indicator').innerHTML = isEn ? "<b>LANGUAGE</b>" : "<b>ቋንቋ</b>";
+        
         document.getElementById('lang-am').className = isEn ? 'lang-btn' : 'lang-btn active';
         document.getElementById('lang-en').className = isEn ? 'lang-btn active' : 'lang-btn';
     }
