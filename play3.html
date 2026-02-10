@@ -76,11 +76,12 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
-    // 2. የጨዋታ አመራረጥ (Play 3 Refs)
     const gameRef = database.ref('live_game/play3'); 
     const resultRef = database.ref('live_game/play3_result');
 
-    const userPhone = localStorage.getItem('userPhone');
+    // የተቀየረው መስመር
+    const userPhone = localStorage.getItem('loggedUser'); 
+    
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
     if (!userPhone) window.location.replace("index.html");
@@ -141,7 +142,6 @@
         const scrollArea = document.getElementById('scroll-ui');
         const header = document.getElementById('sh');
         
-        // 3. የተስተካከለ የማስታወቂያ ጽሁፍ (20 ሰዎች 350 ብር)
         if (Object.keys(selections).length === 0) {
             header.innerText = trans[currentLang].sh;
             header.style.background = "#ffcc00"; header.style.color = "#000";
@@ -252,7 +252,6 @@
         updateUI();
     }
 
-    // 1. የ date አቆጣጠር (ኢትዮጵያዊ አቆጣጠር)
     setInterval(() => { 
         const now = new Date(); 
         let h = now.getHours();
