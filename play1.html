@@ -111,8 +111,9 @@
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0 && !isPlaying) { 
+        if (Object.keys(selections).length === 0) { 
             isResetting = false; 
+            isPlaying = false;
             resetGridColors(); 
         }
         updateUI();
@@ -226,7 +227,9 @@
         if (ethH === 0) ethH = 12;
         let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
         document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`; 
-        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 2 2018" : now.toDateString().toUpperCase(); 
+        
+        // ቀን ማስተካከያ (ለዛሬው ቀን የካቲት 3 2018)
+        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 3 2018" : now.toDateString().toUpperCase(); 
     }, 1000);
 
     function runAnimation(win) {
@@ -262,11 +265,10 @@
 
         setTimeout(() => {
             isResetting = true;
-            const firstKey = Object.keys(selections)[0];
-            if (selections[firstKey] === userName) {
-                gameRef.set(null);
-                resultRef.set(null);
-            }
+            // ጨዋታው ሲያልቅ ዳታቤዙ እንዲጸዳ እና አዲስ ምርጫ እንዲቻል
+            gameRef.set(null);
+            resultRef.set(null);
+            
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false;
             winCell.classList.remove('winner-cell');
