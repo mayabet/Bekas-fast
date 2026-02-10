@@ -30,7 +30,10 @@
         .sport-table td { background: #fff; border-bottom: 3px solid #002d4b; padding: 15px 5px; text-align: center; }
         .amt-v { font-size: 22px; font-weight: 900; color: #002d4b; display: block; }
         .sub-v { font-size: 14px; color: #000; font-weight: 900; display: block; margin-top: 2px; }
-        .play-now { background: #002d4b; color: white; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 900; font-size: 13px; display: inline-block; box-shadow: 0 4px 8px rgba(0,0,0,0.3); transition: transform 0.2s; }
+        
+        /* የተስተካከለ Play Button (እንደ Deposit color እና shadow) */
+        .play-now { background: #28a745; color: white; padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 900; font-size: 13px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; border: none; }
+        
         .footer-nav { margin-top: auto; display: grid; gap: 10px; padding-bottom: 10px; }
         .f-link { padding: 14px; text-align: center; color: white; font-weight: 900; text-decoration: none; border-radius: 8px; font-size: 15px; }
         .l-info { background: #002d4b; }
@@ -46,7 +49,7 @@
     <div class="top-banner">
         <div class="branding-wrapper">
             <i class="fas fa-coffee brand-icon"></i>
-            <span id="brand-name">ቡናማው ፈጣን እጣ</span>
+            <span id="brand-name">ቡናማው ፈጣን እጣ ማጫወቻ</span>
         </div>
         <span class="plus18">18+</span>
     </div>
@@ -77,7 +80,7 @@
                     <th id="th-class">ክፍል</th>
                     <th id="th-qty">ብዛት</th>
                     <th id="th-reach">ደራሽ</th>
-                    <th id="th-play-head">ተጫወት</th>
+                    <th id="th-play-head">ማጫወቻ</th>
                 </tr>
             </thead>
             <tbody>
@@ -124,7 +127,6 @@
 </div>
 
 <script>
-    // Firebase and JS logic remains exactly as you had it
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -135,17 +137,15 @@
         appId: "1:130702344830:web:58577289ec2f3208a64e2f"
     };
 
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
     let currentLang = 'am';
 
     function setLang(l) {
         currentLang = l;
         const s = {
-            'am': { 'brand': 'ቡናማው ፈጣን እጣ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ተጫወት', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
-            'en': { 'brand': 'BUNAMAW FAST', 'hello': 'Hi', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
+            'am': { 'brand': 'ቡናማው ፈጣን እጣ ማጫወቻ', 'hello': 'ሰላም', 'dep': 'ገንዘብ አስገባ', 'with': 'ገንዘብ አውጣ', 'class': 'ክፍል', 'qty': 'ብዛት', 'reach': 'ደራሽ', 'playhead': 'ማጫወቻ', 'info': 'መረጃ እና መመሪያ', 'out': 'ውጣ', 'lang': 'ቋንቋ', 'play': 'ተጫወት', 'people': 'ሰው', 'birr': 'ብር' },
+            'en': { 'brand': 'BUNAMAW FAST PLAYER', 'hello': 'Hi', 'dep': 'DEPOSIT', 'with': 'WITHDRAW', 'class': 'CLASS', 'qty': 'QTY', 'reach': 'REACH', 'playhead': 'PLAY', 'info': 'INFO & RULES', 'out': 'SIGN OUT', 'lang': 'LANGUAGE', 'play': 'PLAY', 'people': 'USERS', 'birr': 'BIRR' }
         }[l];
         
         document.getElementById('brand-name').innerText = s.brand;
@@ -167,28 +167,27 @@
 
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
-        updateDateTime();
     }
 
-    const amMonths = ["መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜ"];
     function updateDateTime() {
         const now = new Date();
-        if (currentLang === 'am') {
-            document.getElementById('date-label').innerText = `${amMonths[(now.getMonth() + 3) % 12]} ${now.getDate()} ቀን ${now.getFullYear() - 8}`;
-        } else {
-            document.getElementById('date-label').innerText = now.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        }
-        document.getElementById('time-label').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        let h = now.getHours();
+        let ethH = h >= 6 ? h - 6 : h + 6;
+        if (ethH > 12) ethH -= 12;
+        if (ethH === 0) ethH = 12;
+        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
+        
+        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
+        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 3 2018" : now.toDateString().toUpperCase();
     }
     setInterval(updateDateTime, 1000);
 
     const loggedUserPhone = localStorage.getItem('loggedUser');
     if (loggedUserPhone) {
-        const userRef = firebase.database().ref('users/' + loggedUserPhone);
-        userRef.on('value', (snapshot) => {
+        firebase.database().ref('users/' + loggedUserPhone).on('value', (snapshot) => {
             const userData = snapshot.val();
             if (userData) {
-                document.getElementById('user-nick').innerText = userData.username || "ተጫዋች";
+                document.getElementById('user-nick').innerText = userData.username || "...";
                 document.getElementById('user-balance').innerText = Number(userData.balance || 0).toFixed(2);
             }
         });
