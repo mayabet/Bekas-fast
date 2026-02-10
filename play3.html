@@ -79,7 +79,6 @@
     const gameRef = database.ref('live_game/play3'); 
     const resultRef = database.ref('live_game/play3_result');
 
-    // የተቀየረው መስመር
     const userPhone = localStorage.getItem('loggedUser'); 
     
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
@@ -93,8 +92,8 @@
     }
 
     const trans = {
-        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'መልካም እድል!', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '350 ብር ያገኛሉ'},
-        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'GOOD LUCK!', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 350 ETB'}
+        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '350 ብር ያገኛሉ'},
+        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 350 ETB'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -116,16 +115,30 @@
     function pick(n) {
         const msg = document.getElementById('msg-box');
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
+        if (selections[n] && selections[n] !== userName) return;
+
+        const lastPickTime = localStorage.getItem('lastPickTime_play3_' + n);
+        const now = Date.now();
+
+        // 1. የ20 ሰከንድ ገደብ ማስተካከያ (ከ Play 1 የመጣ)
         if (selections[n] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 20 });
-            gameRef.child(n).remove();
-            msg.innerText = trans[currentLang].removed.replace('{n}', n);
-            return;
+            if (lastPickTime && (now - lastPickTime < 20000)) {
+                database.ref('users/' + userPhone).update({ balance: balance + 20 });
+                gameRef.child(n).remove();
+                localStorage.removeItem('lastPickTime_play3_' + n);
+                msg.innerText = trans[currentLang].removed.replace('{n}', n);
+                return;
+            } else {
+                msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Expired (20s)";
+                return;
+            }
         }
-        if (selections[n]) return;
+
         if (balance < 20) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
 
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
+        localStorage.setItem('lastPickTime_play3_' + n, Date.now());
+
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const count = Object.keys(snap.val() || {}).length;
@@ -172,15 +185,27 @@
         }
     }
 
+    // 2. የ10 ሰከንድ አኒሜሽን እና የቁልቁለት ቆጠራ (ከ Play 1 የመጣ)
     function runAnimation(win) {
-        document.getElementById('msg-box').innerText = trans[currentLang].luck;
-        let counter = 0, speed = 70;
+        let timeLeft = 10;
+        const msg = document.getElementById('msg-box');
+        
+        let countdownInterval = setInterval(() => {
+            msg.innerText = trans[currentLang].luck + timeLeft;
+            timeLeft--;
+            if (timeLeft < 0) clearInterval(countdownInterval);
+        }, 1000);
+
+        let counter = 0, speed = 100;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 20) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
-            if (counter >= 3000) { clearInterval(animationInterval); finishGame(win); }
+            if (counter >= 10000) { 
+                clearInterval(animationInterval); 
+                finishGame(win); 
+            }
         }, speed);
     }
 
