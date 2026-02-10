@@ -36,7 +36,6 @@
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
 
-        /* ማስታወቂያ ሳጥን Play 1 ላይ ያለዉ አይነት */
         .promo-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 10px; }
         .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
         .promo-box .text { color: #002d4b; font-size: 16px; margin: 5px 0; font-weight: bold; }
@@ -79,14 +78,19 @@
     const gameRef = database.ref('live_game/play2'); 
     const resultRef = database.ref('live_game/play2_result');
 
-    const userPhone = localStorage.getItem('userPhone');
+    // ከ Play 1 ጋር ተመሳሳይ እንዲሆን ተስተካክሏል
+    const userPhone = localStorage.getItem('loggedUser'); 
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
     if (!userPhone) window.location.replace("index.html");
     else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
+            if (data) { 
+                userName = data.username; 
+                balance = parseFloat(data.balance || 0); 
+                document.getElementById('cash').innerText = balance.toFixed(2); 
+            }
         });
     }
 
@@ -140,7 +144,6 @@
         const scrollArea = document.getElementById('scroll-ui');
         const header = document.getElementById('sh');
         
-        // ምርጫ ከሌለ ማስታወቂያውን አሳይ
         if (Object.keys(selections).length === 0) {
             header.innerText = trans[currentLang].sh;
             header.style.background = "#ffcc00"; header.style.color = "#000";
