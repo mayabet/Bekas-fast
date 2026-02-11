@@ -114,14 +114,17 @@
         selections = snapshot.val() || {};
         const count = Object.keys(selections).length;
 
-        // አዲስ ቁጥር መመረጥ ሲጀምር (ከዜሮ በላይ ሲሆን) የቆየውን ውጤት አጥፋ
-        if (count > 0 && !isPlaying) {
+        // *** ለውጥ፡ አዲስ ጨዋታ መጀመሩን የምናውቀው 1 ቁጥር ሲመረጥ ነው ***
+        if (count === 1 && !isPlaying) {
             resultRef.child('status').once('value', (s) => {
                 if (s.val() === "FINISHED") {
                     resultRef.update({ status: "WAITING", winningNum: 0 });
+                    resetGridColors();
+                    // አዲስ ዙር ሲጀመር መልዕክቱን ወደ መጀመሪያው መልስ
+                    document.getElementById('msg-box').style.color = "#002d4b";
+                    document.getElementById('msg-box').innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
                 }
             });
-            resetGridColors();
         }
 
         if (count === 0) { 
@@ -143,7 +146,6 @@
         const data = snap.val();
         if (!data) return;
 
-        // ውጤቱ ተቀምጦ ከሆነ (FINISHED) ለሁሉም ተጠቃሚ አሳይ
         if (data.status === "FINISHED" && data.winningNum > 0) {
             showWinnerResult(data.winningNum);
         }
@@ -233,7 +235,6 @@
             let el = document.getElementById(k);
             if(el) el.innerText = trans[l][k]; 
         }
-        document.getElementById('msg-box').innerText = (l === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
         document.getElementById('l-am').classList.toggle('active', l === 'am');
         document.getElementById('l-en').classList.toggle('active', l === 'en');
         updateUI();
@@ -268,7 +269,6 @@
             counter += speed;
             if (counter >= 10000) { 
                 clearInterval(animationInterval); 
-                // ውጤቱን Firebase ላይ ቋሚ አድርጎ መመዝገብ
                 resultRef.update({ status: "FINISHED", winningNum: win });
                 finishGame(win); 
             }
@@ -278,11 +278,15 @@
     function showWinnerResult(win) {
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
-        resetGridColors();
+        
+        // አሸናፊውን Grid ላይ ብቻ አሳይ
         const winCell = document.getElementById(`c-${win}`);
-        if(winCell) winCell.classList.add('winner-cell');
+        if(winCell && !isResetting) {
+            resetGridColors();
+            winCell.classList.add('winner-cell');
+        }
 
-        // ውጤቱን ለተጠቃሚው ማሳወቅ
+        // ውጤቱን ለተጠቃሚው በቋሚነት ማሳወቅ (አዲስ ዙር እስኪጀመር አይጠፋም)
         if(selections[win] === userName) {
             msg.innerText = trans[currentLang].win.replace('{n}', win);
             msg.style.color = "green";
@@ -293,17 +297,17 @@
     }
 
     function finishGame(win) {
-        // አሸናፊው ሂሳብ እንዲጨመርለት (አንድ ጊዜ ብቻ)
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).child('balance').transaction(current => (current || 0) + 90);
         }
 
         setTimeout(() => {
             isResetting = true;
-            gameRef.set(null); // ጨዋታውን ባዶ ማድረግ
+            resetGridColors(); // የGrid ከለር ብቻ ከ5 ሰከንድ በኋላ ይጥፋ
+            gameRef.set(null); 
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false;
-        }, 5000);
+        }, 5000); // 5 ሰከንድ ቆይታ
     }
 
     setLang('am');
