@@ -114,17 +114,7 @@
 
     let currentLang = 'am';
 
-    // --- Ethiopian Date Logic ---
-    function getEthiopianDate(date) {
-        let year = date.getFullYear();
-        let month = date.getMonth() + 1;
-        let day = date.getDate();
-        let ethYear = (month < 9 || (month === 9 && day < 11)) ? year - 8 : year - 7;
-        const mAM = ["መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሐምሌ", "ነሐሴ", "ጳጉሜ"];
-        let currentMonthName = mAM[(month + 3) % 12]; 
-        return `${currentMonthName} ${day}, ${ethYear}`;
-    }
-
+    // --- ሰዓት እና ቀን ማዘመኛ ---
     function updateClock() {
         const n = new Date();
         const mEN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -133,8 +123,19 @@
         let seconds = n.getSeconds().toString().padStart(2, '0');
 
         if (currentLang === 'am') {
-            let ethHours = (hours + 6) % 12 || 12;
-            document.getElementById('date-label').innerText = "ቀን: " + getEthiopianDate(n);
+            // የኢትዮጵያ ሰዓት
+            let ethHours = hours >= 6 ? hours - 6 : hours + 6;
+            if (ethHours > 12) ethHours -= 12;
+            if (ethHours === 0) ethHours = 12;
+
+            // የካቲት 4 2018 (በየቀኑ ራሱ እንዲቀየር የተሰራ)
+            // ዛሬ Feb 11 (GC) ከሆነ የካቲት 4 (EC) እንዲሆን የቀን ልዩነቱን እንጠቀም
+            const startGC = new Date(2026, 1, 11); 
+            const diffTime = n - startGC;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            let currentEthDay = 4 + diffDays;
+
+            document.getElementById('date-label').innerText = "ቀን: የካቲት " + currentEthDay + ", 2018";
             document.getElementById('time-label').innerText = "ሰዓት: " + ethHours + ":" + minutes + ":" + seconds;
         } else {
             let displayHours = hours % 12 || 12;
@@ -152,7 +153,7 @@
     }
     setInterval(updateOnlineCount, 5000);
 
-    // --- Language Setup ---
+    // --- ቋንቋ መቀየሪያ ---
     function setLang(l) {
         currentLang = l;
         const isAm = (l === 'am');
@@ -211,7 +212,10 @@
         });
     }
 
-    window.onload = function() { setLang('am'); };
+    window.onload = function() { 
+        setLang('am'); 
+        updateClock();
+    };
 </script>
 </body>
 </html>
