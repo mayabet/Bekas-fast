@@ -80,7 +80,7 @@
 
     const userPhone = localStorage.getItem('loggedUser');
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
-    let currentWinningNum = null; // የቆይታ መልዕክቱን ለመቆጣጠር
+    let currentWinningNum = null;
 
     const trans = {
         'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'ቁጥር {n} ወጥቷል...', welcome: 'እንኳን ደህና መጡ!', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '90 ብር ያገኛሉ'},
@@ -203,7 +203,6 @@
         }
     }
 
-    // ቋንቋ ሲቀየር መልዕክቱ አብሮ እንዲቀየር
     function setLang(l) { 
         currentLang = l; 
         for(let k in trans[l]) { 
@@ -213,7 +212,6 @@
         
         const msg = document.getElementById('msg-box');
         if (currentWinningNum !== null) {
-            // ውጤቱ እየታየ ከሆነ ቋንቋውን አብሮ ቀይረው
             msg.innerText = trans[currentLang].win.replace('{n}', currentWinningNum);
         } else {
             msg.innerText = trans[currentLang].welcome;
@@ -256,6 +254,7 @@
             counter += speed;
             if (counter >= 10000) { 
                 clearInterval(animationInterval); 
+                clearInterval(countdownInterval); // ውጤቱ ሲወጣ ቆጠራው መልዕክቱን እንዳይደመስሰው እዚህ ይቆማል
                 finishGame(win); 
             }
         }, speed);
@@ -269,7 +268,6 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
 
-        // ውጤቱን አሳይ (ቋንቋውን በጠበቀ መልኩ)
         msg.innerText = trans[currentLang].win.replace('{n}', win);
         msg.style.color = (selections[win] === userName) ? "green" : "red";
 
@@ -277,7 +275,6 @@
             database.ref('users/' + userPhone).update({ balance: balance + 90 });
         }
 
-        // ለ 5 ሰከንድ (5000ms) ይቆያል
         setTimeout(() => {
             isResetting = true;
             currentWinningNum = null;
