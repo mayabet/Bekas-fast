@@ -113,16 +113,23 @@
         selections = snapshot.val() || {};
         const count = Object.keys(selections).length;
 
-        if (count === 1 && !isPlaying) {
-            resultRef.child('status').once('value', (s) => {
-                if (s.val() === "FINISHED") {
-                    resultRef.update({ status: "WAITING", winningNum: 0 });
-                    lastWinNum = 0; 
-                    resetGridColors();
-                    document.getElementById('msg-box').style.color = "#002d4b";
-                    document.getElementById('msg-box').innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
+        // ዘግቶ ሲገባ አሸናፊው ቁጥር ተቀምጦ እንዲቆይ
+        if (count === 0 && !isPlaying) {
+            resultRef.once('value', (s) => {
+                const data = s.val();
+                if (data && data.status === "FINISHED" && data.winningNum > 0) {
+                    showWinnerResult(data.winningNum);
                 }
             });
+        }
+
+        // አንድ ሰው መምረጥ ሲጀምር መልዕክቱን እናጸዳዋለን
+        if (count === 1 && !isPlaying) {
+            resultRef.update({ status: "WAITING", winningNum: 0 });
+            lastWinNum = 0; 
+            resetGridColors();
+            document.getElementById('msg-box').style.color = "#002d4b";
+            document.getElementById('msg-box').innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
         }
 
         if (count === 0) { 
@@ -253,15 +260,14 @@
         document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 4 2018" : now.toDateString().toUpperCase(); 
     }, 1000);
 
-    // ተስተካክሎ የተቀመጠው የAnimation ፈንክሽን
     function runAnimation(win) {
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
         
         let countdownInterval = setInterval(() => {
-            // በቆጠራው ሰዓት 0 መጥቶ ውጤቱን እንዳያጠፋው ጽሁፉን አብሮ ያሳያል
-            if (timeLeft >= 0) {
-                msg.innerText = trans[currentLang].luck + " (" + timeLeft + ")";
+            if (timeLeft > 0) {
+                // ብሬኬት የሌለው ቁጥር ቆጣሪ
+                msg.innerText = trans[currentLang].luck + " " + timeLeft;
                 timeLeft--;
             } else {
                 clearInterval(countdownInterval);
@@ -276,8 +282,9 @@
             counter += speed;
             if (counter >= 10000) { 
                 clearInterval(animationInterval); 
-                clearInterval(countdownInterval); // ቆጣሪው ካላለቀ እዚህ ጋር እናቁመው
+                clearInterval(countdownInterval); 
                 resultRef.update({ status: "FINISHED", winningNum: win });
+                showWinnerResult(win);
                 finishGame(win); 
             }
         }, speed);
@@ -297,6 +304,10 @@
         } else if (Object.keys(selections).length > 0) {
             msg.innerText = trans[currentLang].lost.replace('{n}', win);
             msg.style.color = "red";
+        } else {
+            // ተጠቃሚው ሳይመርጥ ዘግቶ ሲገባ አሸናፊውን ብቻ እንዲያሳየው
+            msg.innerText = trans[currentLang].lost.replace('{n}', win).replace('እድል ለሌላ ጊዜ', '');
+            msg.style.color = "#002d4b";
         }
     }
 
@@ -307,7 +318,7 @@
 
         setTimeout(() => {
             isResetting = true;
-            lastWinNum = 0; 
+            // lastWinNum አንቀይረውም መልዕክቱ እንዲቆይ
             resetGridColors();
             gameRef.set(null); 
             document.getElementById('round-val').innerText = ++round;
