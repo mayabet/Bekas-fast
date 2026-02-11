@@ -20,7 +20,10 @@
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         .anim-active { background-color: #ff0000 !important; color: white !important; box-shadow: 0 0 15px #ff0000; z-index: 10; border: 2px solid #fff !important; }
-        .winner-cell { background-color: #ffcc00 !important; color: black !important; box-shadow: 0 0 25px #ffcc00; transform: scale(1.1); z-index: 15; border: 3px solid #002d4b !important; }
+        .winner-cell { background-color: #ffcc00 !important; color: black !important; box-shadow: 0 0 25px #ffcc00; transform: scale(1.2); z-index: 15; border: 3px solid #002d4b !important; animation: blink 0.5s infinite; }
+        
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
         .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
         .bg-green { background: #00b050; color: white; }
@@ -38,8 +41,6 @@
 
         .promo-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 10px; }
         .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
-        .promo-box .text { color: #002d4b; font-size: 16px; margin: 5px 0; font-weight: bold; }
-        .promo-box .win { color: #00b050; font-size: 28px; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -50,7 +51,7 @@
     <div class="instruction" id="ins">ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900;">እንኳን ደህና መጡ!</td></tr>
+        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900; color: #002d4b;">እንኳን ደህና መጡ!</td></tr>
         <tr><td class="bg-green" id="rn">ዙር</td><td id="round-val">1</td><td class="bg-green" id="ls">ያለፈው</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
@@ -82,8 +83,8 @@
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
 
     const trans = {
-        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '90 ብር ያገኛሉ'},
-        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 10 people. If your number is picked', promoWin: 'YOU GET 90 ETB'}
+        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', res: 'ቁጥር {n} ወጥቷል...'},
+        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', res: 'Number {n} drawn...'}
     };
 
     if (!userPhone) {
@@ -135,36 +136,10 @@
     });
 
     function pick(n) {
-        const msg = document.getElementById('msg-box');
-        if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
-        if (selections[n] && selections[n] !== userName) return;
-
-        const lastPickTime = localStorage.getItem('lastPickTime_' + n);
-        const now = Date.now();
-
-        // 1. የ20 ሰከንድ ገደብ ለለውጥ
-        if (selections[n] === userName) {
-            if (lastPickTime && (now - lastPickTime < 20000)) {
-                database.ref('users/' + userPhone).update({ balance: balance + 10 });
-                gameRef.child(n).remove();
-                localStorage.removeItem('lastPickTime_' + n);
-                msg.innerText = trans[currentLang].removed.replace('{n}', n);
-                return;
-            } else {
-                msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Expired (20s)";
-                return;
-            }
-        }
-
-        if (balance < 10) { 
-            msg.innerText = trans[currentLang].low; 
-            msg.style.color = "red"; 
-            return; 
-        }
+        if(isPlaying || isResetting || (selections[n] && selections[n] !== userName)) return;
+        if (balance < 10) { document.getElementById('msg-box').innerText = "በቂ ሂሳብ የሎትም"; return; }
 
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        localStorage.setItem('lastPickTime_' + n, Date.now());
-        
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const picks = snap.val() || {};
@@ -174,26 +149,11 @@
                 }
             });
         });
-        msg.innerText = trans[currentLang].pick.replace('{n}', n);
     }
 
     function updateUI() {
-        const scrollArea = document.getElementById('scroll-ui');
-        const header = document.getElementById('sh');
-        
-        if (Object.keys(selections).length === 0) {
-            header.innerText = trans[currentLang].sh;
-            scrollArea.innerHTML = `
-                <div class="promo-box">
-                    <div class="brand">${trans[currentLang].brand}</div>
-                    <div class="text">${trans[currentLang].promo}</div>
-                    <div class="win">${trans[currentLang].promoWin}</div>
-                </div>`;
-            return;
-        }
-
-        scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
         const table = document.getElementById('sel-table');
+        table.innerHTML = "";
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
@@ -208,34 +168,9 @@
         }
     }
 
-    function setLang(l) { 
-        currentLang = l; 
-        for(let k in trans[l]) { 
-            let el = document.getElementById(k);
-            if(el) el.innerText = trans[l][k]; 
-        }
-        document.getElementById('msg-box').innerText = (l === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
-        document.getElementById('l-am').classList.toggle('active', l === 'am');
-        document.getElementById('l-en').classList.toggle('active', l === 'en');
-        updateUI();
-    }
-
-    setInterval(() => { 
-        const now = new Date(); 
-        let h = now.getHours();
-        let ethH = h >= 6 ? h - 6 : h + 6;
-        if (ethH > 12) ethH -= 12;
-        if (ethH === 0) ethH = 12;
-        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
-        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`; 
-        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 3 2018" : now.toDateString().toUpperCase(); 
-    }, 1000);
-
-    // 2. Animation ለ10 ሰከንድ እና የቁልቁለት ቆጠራ
     function runAnimation(win) {
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
-        
         let countdownInterval = setInterval(() => {
             msg.innerText = trans[currentLang].luck + timeLeft;
             timeLeft--;
@@ -259,31 +194,43 @@
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
+        
         const winCell = document.getElementById(`c-${win}`);
-        winCell.classList.add('winner-cell');
+        winCell.className = "num-cell winner-cell"; // አኒሜሽን እንዲታይ
+
+        // ለ 3 ሰከንድ ውጤቱን ብቻ ያሳያል
+        msg.innerText = trans[currentLang].res.replace('{n}', win);
+        msg.style.color = "blue";
 
         if(selections[win] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 90 });
-            msg.innerText = trans[currentLang].win.replace('{n}', win);
-            msg.style.color = "green";
-        } else {
-            msg.innerText = trans[currentLang].lost.replace('{n}', win);
-            msg.style.color = "red";
         }
 
         setTimeout(() => {
             isResetting = true;
             gameRef.set(null);
             resultRef.set(null);
-            
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false;
-            winCell.classList.remove('winner-cell');
             msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
             msg.style.color = "#002d4b";
             resetGridColors();
-        }, 5000);
+        }, 3000); // 3 second wait
     }
+
+    function setLang(l) { 
+        currentLang = l; 
+        for(let k in trans[l]) { 
+            let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; 
+        }
+        updateUI();
+    }
+
+    setInterval(() => { 
+        const now = new Date(); 
+        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
+        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 3 2018" : now.toDateString(); 
+    }, 1000);
 
     setLang('am');
 </script>
