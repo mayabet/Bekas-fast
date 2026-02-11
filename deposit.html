@@ -131,11 +131,17 @@
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
+        // 1. "Dear" ወይም "ውድ" ብሎ መጀመሩን ማረጋገጥ
+        if (!(sms.startsWith("Dear") || sms.startsWith("ውድ"))) {
+            return showMsg(currentLang === 'am' ? "የተሳሳተ መረጃ! በ 'ውድ' ወይም 'Dear' መጀመር አለበት" : "Invalid Info! Must start with 'Dear' or 'ውድ'", "red");
+        }
+
+        // 2. በትክክል 10 ዲጂት ያለው ኮድ መፈለግ
         const txMatch = sms.match(/[A-Z0-9]{10}/);
         const amtMatch = sms.match(/(?:ETB|ብር)\s*([\d,]+\.?\d*)/i);
 
         if(!txMatch) {
-            return showMsg(currentLang === 'am' ? "የተሳሳተ SMS! ትራንዛክሽን ኮድ አልተገኘም" : "Invalid SMS! Transaction ID not found", "red");
+            return showMsg(currentLang === 'am' ? "የተሳሳተ SMS! ባለ 10 ዲጂት ኮድ አልተገኘም" : "Invalid SMS! 10-digit ID not found", "red");
         }
 
         const txID = txMatch[0];
@@ -145,6 +151,7 @@
             return showMsg(currentLang === 'am' ? "ዝቅተኛው ማስገቢያ 10 ብር ነው" : "Min deposit is 10 ETB", "red");
         }
 
+        // 3. ድግግሞሽን መከላከል (አንድ ጊዜ የገባ ኮድ እንዳይደገም)
         database.ref('used_transactions/' + txID).once('value', snap => {
             if(snap.exists()){
                 showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Transaction already used!", "red");
@@ -157,6 +164,7 @@
     function processAutoDeposit(id, amt, fullSms) {
         showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Processing...", "blue");
         
+        // ሪኩዌስቱን መላክ
         database.ref('deposit_requests').push({
             phone: userPhone,
             amount: amt,
@@ -164,6 +172,12 @@
             status: "pending",
             time: new Date().toLocaleString()
         }).then(() => {
+            // ኮዱን ለወደፊት እንዳይደገም በ used_transactions ውስጥ ማስመዝገብ
+            database.ref('used_transactions/' + id).set({
+                user: userPhone,
+                date: new Date().toISOString()
+            });
+            
             document.getElementById('sms-input').value = "";
             showMsg(currentLang === 'am' ? "ጥያቄው ተልኳል! በቅርቡ ይጨመርልዎታል" : "Sent! Will be added soon.", "green");
         });
