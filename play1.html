@@ -109,12 +109,24 @@
         grid.appendChild(cell);
     }
 
+    // የጨዋታ መረጃዎችን መከታተል
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) { 
+        const count = Object.keys(selections).length;
+
+        // አዲስ ቁጥር መመረጥ ሲጀምር (ከዜሮ በላይ ሲሆን) የቆየውን ውጤት አጥፋ
+        if (count > 0 && !isPlaying) {
+            resultRef.child('status').once('value', (s) => {
+                if (s.val() === "FINISHED") {
+                    resultRef.update({ status: "WAITING", winningNum: 0 });
+                }
+            });
+            resetGridColors();
+        }
+
+        if (count === 0) { 
             isResetting = false; 
             isPlaying = false;
-            resetGridColors(); 
         }
         updateUI();
     });
@@ -122,13 +134,21 @@
     function resetGridColors() {
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
-            if(cell) cell.className = "num-cell";
+            if(cell) cell.classList.remove('winner-cell', 'anim-active');
         }
     }
 
+    // ውጤቱን መከታተል
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) { 
+        if (!data) return;
+
+        // ውጤቱ ተቀምጦ ከሆነ (FINISHED) ለሁሉም ተጠቃሚ አሳይ
+        if (data.status === "FINISHED" && data.winningNum > 0) {
+            showWinnerResult(data.winningNum);
+        }
+
+        if (data.status === "START_ANIMATION" && !isPlaying) { 
             isPlaying = true; 
             runAnimation(data.winningNum); 
         }
@@ -142,7 +162,6 @@
         const lastPickTime = localStorage.getItem('lastPickTime_' + n);
         const now = Date.now();
 
-        // 1. የ20 ሰከንድ ገደብ ለለውጥ
         if (selections[n] === userName) {
             if (lastPickTime && (now - lastPickTime < 20000)) {
                 database.ref('users/' + userPhone).update({ balance: balance + 10 });
@@ -231,13 +250,12 @@
         document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 3 2018" : now.toDateString().toUpperCase(); 
     }, 1000);
 
-    // 2. Animation ለ10 ሰከንድ እና የቁልቁለት ቆጠራ
     function runAnimation(win) {
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
         
         let countdownInterval = setInterval(() => {
-            msg.innerText = trans[currentLang].luck + timeLeft;
+            msg.innerText = timeLeft;
             timeLeft--;
             if (timeLeft < 0) clearInterval(countdownInterval);
         }, 1000);
@@ -250,38 +268,41 @@
             counter += speed;
             if (counter >= 10000) { 
                 clearInterval(animationInterval); 
+                // ውጤቱን Firebase ላይ ቋሚ አድርጎ መመዝገብ
+                resultRef.update({ status: "FINISHED", winningNum: win });
                 finishGame(win); 
             }
         }, speed);
     }
 
-    function finishGame(win) {
+    function showWinnerResult(win) {
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
-        document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
+        resetGridColors();
         const winCell = document.getElementById(`c-${win}`);
-        winCell.classList.add('winner-cell');
+        if(winCell) winCell.classList.add('winner-cell');
 
+        // ውጤቱን ለተጠቃሚው ማሳወቅ
         if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 90 });
             msg.innerText = trans[currentLang].win.replace('{n}', win);
             msg.style.color = "green";
-        } else {
+        } else if (Object.keys(selections).length > 0) {
             msg.innerText = trans[currentLang].lost.replace('{n}', win);
             msg.style.color = "red";
+        }
+    }
+
+    function finishGame(win) {
+        // አሸናፊው ሂሳብ እንዲጨመርለት (አንድ ጊዜ ብቻ)
+        if(selections[win] === userName) {
+            database.ref('users/' + userPhone).child('balance').transaction(current => (current || 0) + 90);
         }
 
         setTimeout(() => {
             isResetting = true;
-            gameRef.set(null);
-            resultRef.set(null);
-            
+            gameRef.set(null); // ጨዋታውን ባዶ ማድረግ
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false;
-            winCell.classList.remove('winner-cell');
-            msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
-            msg.style.color = "#002d4b";
-            resetGridColors();
         }, 5000);
     }
 
