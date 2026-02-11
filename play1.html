@@ -113,12 +113,11 @@
         selections = snapshot.val() || {};
         const count = Object.keys(selections).length;
 
-        // አዲስ ዙር መጀመሩን የምናውቀው የመጀመሪያው ቁጥር ሲመረጥ ነው
         if (count === 1 && !isPlaying) {
             resultRef.child('status').once('value', (s) => {
                 if (s.val() === "FINISHED") {
                     resultRef.update({ status: "WAITING", winningNum: 0 });
-                    lastWinNum = 0; // የቆየውን ውጤት Grid ላይ ማሳያውን አጥፋ
+                    lastWinNum = 0; 
                     resetGridColors();
                     document.getElementById('msg-box').style.color = "#002d4b";
                     document.getElementById('msg-box').innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
@@ -209,7 +208,6 @@
                     <div class="text">${trans[currentLang].promo}</div>
                     <div class="win">${trans[currentLang].promoWin}</div>
                 </div>`;
-            // ጨዋታው ሲያልቅ Grid ባዶ እንዲሆን
             for(let i=1; i<=10; i++) {
                 const cell = document.getElementById(`c-${i}`);
                 if (cell && i !== lastWinNum) cell.className = "num-cell";
@@ -255,14 +253,19 @@
         document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 4 2018" : now.toDateString().toUpperCase(); 
     }, 1000);
 
+    // ተስተካክሎ የተቀመጠው የAnimation ፈንክሽን
     function runAnimation(win) {
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
         
         let countdownInterval = setInterval(() => {
-            msg.innerText = timeLeft;
-            timeLeft--;
-            if (timeLeft < 0) clearInterval(countdownInterval);
+            // በቆጠራው ሰዓት 0 መጥቶ ውጤቱን እንዳያጠፋው ጽሁፉን አብሮ ያሳያል
+            if (timeLeft >= 0) {
+                msg.innerText = trans[currentLang].luck + " (" + timeLeft + ")";
+                timeLeft--;
+            } else {
+                clearInterval(countdownInterval);
+            }
         }, 1000);
 
         let counter = 0, speed = 100;
@@ -273,6 +276,7 @@
             counter += speed;
             if (counter >= 10000) { 
                 clearInterval(animationInterval); 
+                clearInterval(countdownInterval); // ቆጣሪው ካላለቀ እዚህ ጋር እናቁመው
                 resultRef.update({ status: "FINISHED", winningNum: win });
                 finishGame(win); 
             }
@@ -283,12 +287,10 @@
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
         
-        // ያሸነፈውን ቁጥር Grid ላይ ማሳየት
         resetGridColors();
         const winCell = document.getElementById(`c-${win}`);
         if(winCell) winCell.classList.add('winner-cell');
 
-        // የድል/ሽንፈት መልዕክት - አዲስ ዙር እስኪጀመር አይጠፋም
         if(selections[win] === userName) {
             msg.innerText = trans[currentLang].win.replace('{n}', win);
             msg.style.color = "green";
@@ -305,12 +307,12 @@
 
         setTimeout(() => {
             isResetting = true;
-            lastWinNum = 0; // ለ5 ሰከንድ ከታየ በኋላ በ Grid ላይ ያለው የWinner ምልክት እንዲጠፋ
+            lastWinNum = 0; 
             resetGridColors();
-            gameRef.set(null); // ዳታውን ባዶ ማድረግ
+            gameRef.set(null); 
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false;
-        }, 5000); // 5 ሰከንድ ቆይታ
+        }, 5000);
     }
 
     setLang('am');
