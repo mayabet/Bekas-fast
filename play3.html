@@ -51,7 +51,7 @@
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
         <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900;">እንኳን ደህና መጡ!</td></tr>
-        <tr><td class="bg-green" id="rn">ዙር</td><td id="round-val">1</td><td class="bg-green" id="ls">ያለፈው</td><td id="last-val">0</td></tr>
+        <tr><td class="bg-green" id="rn">ዙር</td><td id="round-val">1</td><td class="bg-green" id="ls">ያለፈው</td><td id="last-val">---</td></tr>
     </table>
     <div class="list-container">
         <div class="selected-header" id="sh">የተመረጡ ቁጥሮች</div>
@@ -92,8 +92,8 @@
     }
 
     const trans = {
-        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '350 ብር ያገኛሉ'},
-        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 350 ETB'}
+        'am': {gt:'20 ብር ወደ 350 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', hist: 'ያለፉ አሸናፊዎች', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '350 ብር ያገኛሉ', welcome: 'እንኳን ደህና መጡ!'},
+        'en': {gt:'20 BIRR IN TO 350 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', hist: 'WINNER HISTORY', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. If your number is picked', promoWin: 'YOU GET 350 ETB', welcome: 'Welcome!'}
     };
 
     const grid = document.getElementById('grid-container');
@@ -104,10 +104,10 @@
     gameRef.on('value', (snapshot) => {
         const newSelections = snapshot.val() || {};
         
-        // አዲስ ዙር መጀመሩን የምናውቀው ዳታው ባዶ ሆኖ አዲስ ሲገባ ነው
+        // አዲስ ዙር ተጀምሮ አንድ ሰው እንኳን መምረጥ ሲጀምር መልዕክቱን ቀይር
         if (Object.keys(selections).length === 0 && Object.keys(newSelections).length > 0) {
             const msg = document.getElementById('msg-box');
-            msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
+            msg.innerText = trans[currentLang].welcome;
             msg.style.color = "#002d4b";
         }
         
@@ -237,7 +237,6 @@
         
         setTimeout(() => { showWinnerHistory(); }, 2500);
 
-        // 5 ሰከንድ ሲሞላ Grid ላይ ያለው ቢጫ ምልክት ብቻ ይጠፋል
         setTimeout(() => {
             winCell.classList.remove('winner-cell');
             isResetting = true;
@@ -246,7 +245,7 @@
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false; 
             resetGridColors();
-            // የመልዕክት ሳጥኑ (msg.innerText) እዚህ ጋር አይቀየርም!
+            // እዚህ ጋር መልዕክቱን አናጠፋውም (አዲሱ ዙር ተጫዋች እስኪያገኝ ይቆያል)
         }, 5000);
     }
 
