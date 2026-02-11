@@ -102,7 +102,16 @@
     }
 
     gameRef.on('value', (snapshot) => {
-        selections = snapshot.val() || {};
+        const newSelections = snapshot.val() || {};
+        
+        // አዲስ ዙር መጀመሩን የምናውቀው ዳታው ባዶ ሆኖ አዲስ ሲገባ ነው
+        if (Object.keys(selections).length === 0 && Object.keys(newSelections).length > 0) {
+            const msg = document.getElementById('msg-box');
+            msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
+            msg.style.color = "#002d4b";
+        }
+        
+        selections = newSelections;
         if (Object.keys(selections).length === 0) { isResetting = false; isPlaying = false; resetGridColors(); }
         updateUI();
     });
@@ -120,7 +129,6 @@
         const lastPickTime = localStorage.getItem('lastPickTime_play3_' + n);
         const now = Date.now();
 
-        // 1. የ20 ሰከንድ ገደብ ማስተካከያ (ከ Play 1 የመጣ)
         if (selections[n] === userName) {
             if (lastPickTime && (now - lastPickTime < 20000)) {
                 database.ref('users/' + userPhone).update({ balance: balance + 20 });
@@ -185,7 +193,6 @@
         }
     }
 
-    // 2. የ10 ሰከንድ አኒሜሽን እና የቁልቁለት ቆጠራ (ከ Play 1 የመጣ)
     function runAnimation(win) {
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
@@ -230,16 +237,16 @@
         
         setTimeout(() => { showWinnerHistory(); }, 2500);
 
+        // 5 ሰከንድ ሲሞላ Grid ላይ ያለው ቢጫ ምልክት ብቻ ይጠፋል
         setTimeout(() => {
+            winCell.classList.remove('winner-cell');
             isResetting = true;
             gameRef.set(null); 
             resultRef.set(null); 
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false; 
-            winCell.classList.remove('winner-cell');
-            msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
-            msg.style.color = "#002d4b";
             resetGridColors();
+            // የመልዕክት ሳጥኑ (msg.innerText) እዚህ ጋር አይቀየርም!
         }, 5000);
     }
 
@@ -285,7 +292,7 @@
         if (ethH === 0) ethH = 12;
         let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
         document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`; 
-        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 3 2018" : now.toDateString().toUpperCase(); 
+        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 4 2018" : now.toDateString().toUpperCase(); 
     }, 1000);
     
     setLang('am');
