@@ -30,10 +30,7 @@
         .sport-table td { background: #fff; border-bottom: 3px solid #002d4b; padding: 15px 5px; text-align: center; }
         .amt-v { font-size: 22px; font-weight: 900; color: #002d4b; display: block; }
         .sub-v { font-size: 14px; color: #000; font-weight: 900; display: block; margin-top: 2px; }
-        
-        /* የተስተካከለ Play Button (እንደ Deposit color እና shadow) */
         .play-now { background: #28a745; color: white; padding: 10px 14px; border-radius: 8px; text-decoration: none; font-weight: 900; font-size: 13px; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; border: none; }
-        
         .footer-nav { margin-top: auto; display: grid; gap: 10px; padding-bottom: 10px; }
         .f-link { padding: 14px; text-align: center; color: white; font-weight: 900; text-decoration: none; border-radius: 8px; font-size: 15px; }
         .l-info { background: #002d4b; }
@@ -167,18 +164,32 @@
 
         document.getElementById('lang-am').classList.toggle('active', l === 'am');
         document.getElementById('lang-en').classList.toggle('active', l === 'en');
+        updateDateTime();
     }
 
     function updateDateTime() {
         const now = new Date();
+        
+        // --- የሰዓት አቆጣጠር ---
         let h = now.getHours();
         let ethH = h >= 6 ? h - 6 : h + 6;
         if (ethH > 12) ethH -= 12;
         if (ethH === 0) ethH = 12;
         let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
-        
         document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
-        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 3 2018" : now.toDateString().toUpperCase();
+        
+        // --- የቀን አቆጣጠር (Dynamic) ---
+        // ዛሬ Feb 11, 2026 GC = የካቲት 4, 2018 EC
+        // የቀን ልዩነቱን በመጠቀም በየቀኑ ራሱ እንዲቀየር እናድርገው
+        if (currentLang === 'am') {
+            const startGC = new Date(2026, 1, 11); // ዛሬ Feb 11
+            const diffDays = Math.floor((now - startGC) / (1000 * 60 * 60 * 24));
+            let currentEthDay = 4 + diffDays; // ከየካቲት 4 ጀምሮ ይቆጥራል
+            
+            document.getElementById('date-label').innerText = "የካቲት " + currentEthDay + ", 2018";
+        } else {
+            document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
+        }
     }
     setInterval(updateDateTime, 1000);
 
@@ -202,7 +213,6 @@
 
     window.onload = function() {
         setLang('am');
-        updateDateTime();
     };
 </script>
 </body>
