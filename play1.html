@@ -36,11 +36,6 @@
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
-        .lang-btn { cursor: pointer; color: #002d4b; }
-        .lang-btn.active { color: #00b050; text-decoration: underline; }
-
-        .promo-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 10px; }
-        .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -92,53 +87,33 @@
     } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) { 
-                userName = data.username; 
-                balance = parseFloat(data.balance || 0); 
-                document.getElementById('cash').innerText = balance.toFixed(2); 
-            }
+            if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
         });
     }
 
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=10; i++) {
-        let cell = document.createElement('div'); 
-        cell.className = 'num-cell'; 
-        cell.id = `c-${i}`; 
-        cell.innerText = i; 
-        cell.onclick = () => pick(i); 
-        grid.appendChild(cell);
+        let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) { 
-            isResetting = false; 
-            isPlaying = false;
-            resetGridColors(); 
-        }
+        if (Object.keys(selections).length === 0) { isResetting = false; isPlaying = false; resetGridColors(); }
         updateUI();
     });
 
     function resetGridColors() {
-        for(let i=1; i<=10; i++) {
-            const cell = document.getElementById(`c-${i}`);
-            if(cell) cell.className = "num-cell";
-        }
+        for(let i=1; i<=10; i++) { const cell = document.getElementById(`c-${i}`); if(cell) cell.className = "num-cell"; }
     }
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) { 
-            isPlaying = true; 
-            runAnimation(data.winningNum); 
-        }
+        if (data && data.status === "START_ANIMATION" && !isPlaying) { isPlaying = true; runAnimation(data.winningNum); }
     });
 
     function pick(n) {
         if(isPlaying || isResetting || (selections[n] && selections[n] !== userName)) return;
         if (balance < 10) { document.getElementById('msg-box').innerText = "በቂ ሂሳብ የሎትም"; return; }
-
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
@@ -152,86 +127,62 @@
     }
 
     function updateUI() {
-        const table = document.getElementById('sel-table');
-        table.innerHTML = "";
+        const table = document.getElementById('sel-table'); table.innerHTML = "";
         for(let i=1; i<=10; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else if (!isPlaying) cell.className = "num-cell";
-            
-            if (occupant !== "") {
-                let row = table.insertRow();
-                row.innerHTML = `<td class="id-col">${i}</td><td>${occupant}</td>`;
-            }
+            if (occupant !== "") { let row = table.insertRow(); row.innerHTML = `<td class="id-col">${i}</td><td>${occupant}</td>`; }
         }
     }
 
     function runAnimation(win) {
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
-        let countdownInterval = setInterval(() => {
-            msg.innerText = trans[currentLang].luck + timeLeft;
-            timeLeft--;
-            if (timeLeft < 0) clearInterval(countdownInterval);
-        }, 1000);
-
-        let counter = 0, speed = 100;
+        let countdownInterval = setInterval(() => { msg.innerText = trans[currentLang].luck + timeLeft; timeLeft--; if (timeLeft < 0) clearInterval(countdownInterval); }, 1000);
+        let counter = 0;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 10) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
-            counter += speed;
-            if (counter >= 10000) { 
-                clearInterval(animationInterval); 
-                finishGame(win); 
-            }
-        }, speed);
+            counter += 100;
+            if (counter >= 10000) { clearInterval(animationInterval); finishGame(win); }
+        }, 100);
     }
 
     function finishGame(win) {
         const msg = document.getElementById('msg-box');
         document.getElementById('last-val').innerText = win;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-        
         const winCell = document.getElementById(`c-${win}`);
-        winCell.className = "num-cell winner-cell"; // አኒሜሽን እንዲታይ
-
-        // ለ 3 ሰከንድ ውጤቱን ብቻ ያሳያል
+        winCell.className = "num-cell winner-cell";
         msg.innerText = trans[currentLang].res.replace('{n}', win);
         msg.style.color = "blue";
-
-        if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 90 });
-        }
-
+        if(selections[win] === userName) { database.ref('users/' + userPhone).update({ balance: balance + 90 }); }
         setTimeout(() => {
-            isResetting = true;
-            gameRef.set(null);
-            resultRef.set(null);
+            isResetting = true; gameRef.set(null); resultRef.set(null);
             document.getElementById('round-val').innerText = ++round;
-            isPlaying = false;
-            msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
-            msg.style.color = "#002d4b";
-            resetGridColors();
-        }, 3000); // 3 second wait
-    }
-
-    function setLang(l) { 
-        currentLang = l; 
-        for(let k in trans[l]) { 
-            let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; 
-        }
-        updateUI();
+            isPlaying = false; msg.innerText = (currentLang === 'am' ? "እንኳን ደህና መጡ!" : "Welcome!");
+            msg.style.color = "#002d4b"; resetGridColors();
+        }, 3000);
     }
 
     setInterval(() => { 
         const now = new Date(); 
-        document.getElementById('time-label').innerText = now.toLocaleTimeString(); 
-        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 3 2018" : now.toDateString(); 
+        let h = now.getHours(); let ethH = h >= 6 ? h - 6 : h + 6; if (ethH >= 24) ethH -= 24;
+        document.getElementById('time-label').innerText = ethH.toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0');
+        
+        const months = ["መስከረም", "ጥቅምት", "ህዳር", "ታህሳስ", "ጥር", "የካቲት", "መጋቢት", "ሚያዝያ", "ግንቦት", "ሰኔ", "ሀምሌ", "ነሐሴ", "ጳጉሜ"];
+        let day = now.getDate(); let ethDay = day - 7; let monthIdx = 5; let ethYear = 2018;
+        if (ethDay <= 0) { ethDay = 30 + ethDay; monthIdx = 4; }
+        
+        if (currentLang === 'am') { document.getElementById('date-label').innerText = `${months[monthIdx]} ${ethDay} ${ethYear}`; }
+        else { document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
     }, 1000);
 
+    function setLang(l) { currentLang = l; for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; } updateUI(); }
     setLang('am');
 </script>
 </body>
