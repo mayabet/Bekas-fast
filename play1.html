@@ -240,6 +240,8 @@
     function runAnimation(win) {
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
+        
+        // አሮጌ ካውንትዳውን ካለ እናጠፋዋለን
         let countdownInterval = setInterval(() => {
             msg.innerText = trans[currentLang].luck + timeLeft;
             timeLeft--;
@@ -254,7 +256,7 @@
             counter += speed;
             if (counter >= 10000) { 
                 clearInterval(animationInterval); 
-                clearInterval(countdownInterval); // ውጤቱ ሲወጣ ቆጠራው መልዕክቱን እንዳይደመስሰው እዚህ ይቆማል
+                clearInterval(countdownInterval); // እዚህ ጋር ቆጠራው እንዲቆም ተደረገ
                 finishGame(win); 
             }
         }, speed);
@@ -268,6 +270,7 @@
         const winCell = document.getElementById(`c-${win}`);
         winCell.classList.add('winner-cell');
 
+        // ቁጥሩን በትክክል ተክቶ ያሳያል
         msg.innerText = trans[currentLang].win.replace('{n}', win);
         msg.style.color = (selections[win] === userName) ? "green" : "red";
 
@@ -287,7 +290,7 @@
             msg.innerText = trans[currentLang].welcome;
             msg.style.color = "#002d4b";
             resetGridColors();
-        }, 5000);
+        }, 5000); // 5 ሰከንድ እንዲቆይ ተደርጓል
     }
 
     setLang('am');
