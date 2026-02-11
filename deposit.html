@@ -52,13 +52,13 @@
         </div>
 
         <div class="main-guide" id="main-guide-text">
-            ከቴሌ ብር ብር ሲልኩ የመጣሎትን sms እዚህ ጋር ይለጥፉ፡ ለ ሲስተሙ ከደረሰዉ sms ጋር ታይቶ ገንዘብዎ ገቢ ይሆናል።
+            ከቴሌ ብር ብር ሲልኩ የመጣሎትን sms እዚህ ጋር ይለጥፉ፡ ለ ሲስተሙ ወዲያውኑ ታይቶ ገንዘብዎ ገቢ ይሆናል።
         </div>
 
         <div class="instruction-box">
             <span id="txt-instr-main" style="font-weight:900; color:#002d4b;">በቴሌብር ወደዚህ ቁጥር ይላኩ፡</span><br><br>
             <b style="font-size:18px">Biniyam</b><br>
-            <span class="tele-num" id="tele-val">+251978272061</span>
+            <span class="tele-num" id="tele-val">0978272061</span>
             <button class="copy-btn" onclick="copyPhone()" id="btn-copy-label">ገልብጥ</button>
         </div>
 
@@ -131,37 +131,36 @@
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        // 1. መኖር ያለባቸውን ቃላቶች ማረጋገጥ
-        const hasStart = sms.includes("Dear") || sms.includes("ውድ");
-        const hasTransfer = sms.includes("You have transferred ETB") || sms.includes("ብር አስተላልፈዋል");
-        
-        // 2. በትክክል 10 ዲጂት (ፊደልና ቁጥር) ያለው ኮድ መፈለግ
+        // 1. የትራንዛክሽን ቁጥር መፈለግ (10 ፊደልና ቁጥር)
         const txMatch = sms.match(/[A-Z0-9]{10}/);
-
-        // ሁኔታዎቹ ካልተሟሉ "የተሳሳተ SMS" ይበል
-        if (!hasStart || !hasTransfer || !txMatch) {
-            return showMsg(currentLang === 'am' ? "የተሳሳተ SMS ነው!" : "Invalid SMS!", "red");
+        
+        // 2. የገንዘብ መጠን መፈለግ (ለምሳሌ: ETB 50 ወይም 50 ብር)
+        const amtMatch = sms.match(/(?:ETB|ብር)\s*([\d,]+\.?\d*)|([\d,]+\.?\d*)\s*(?:ETB|ብር)/i);
+        
+        if (!txMatch || !amtMatch) {
+            return showMsg(currentLang === 'am' ? "የተሳሳተ SMS ነው! እባክዎ ሙሉውን SMS ይለጥፉ" : "Invalid SMS! Please paste the full message", "red");
         }
 
         const txID = txMatch[0];
-        const amtMatch = sms.match(/(?:ETB|ብር)\s*([\d,]+\.?\d*)/i);
-        let amount = amtMatch ? parseFloat(amtMatch[1].replace(/,/g, '')) : 0;
+        // በሁለቱም የMatch ግሩፕ ውስጥ ያለውን መጠን መፈለግ
+        const rawAmt = amtMatch[1] ? amtMatch[1] : amtMatch[2];
+        const amount = parseFloat(rawAmt.replace(/,/g, ''));
 
         if(amount < 10) {
             return showMsg(currentLang === 'am' ? "ዝቅተኛው ማስገቢያ 10 ብር ነው" : "Min deposit is 10 ETB", "red");
         }
 
-        // 3. ድግግሞሽን መከላከል
+        // 3. Admin.html ወዲያውኑ እንዲያጸድቀው ወደ deposit_requests መላክ
         database.ref('used_transactions/' + txID).once('value', snap => {
             if(snap.exists()){
                 showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Transaction already used!", "red");
             } else {
-                processAutoDeposit(txID, amount, sms);
+                processAutoDeposit(txID, amount);
             }
         });
     }
 
-    function processAutoDeposit(id, amt, fullSms) {
+    function processAutoDeposit(id, amt) {
         showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Processing...", "blue");
         
         database.ref('deposit_requests').push({
@@ -171,13 +170,8 @@
             status: "pending",
             time: new Date().toLocaleString()
         }).then(() => {
-            database.ref('used_transactions/' + id).set({
-                user: userPhone,
-                date: new Date().toISOString()
-            });
-            
             document.getElementById('sms-input').value = "";
-            showMsg(currentLang === 'am' ? "ጥያቄው ተልኳል! በቅርቡ ይጨመርልዎታል" : "Sent! Will be added soon.", "green");
+            showMsg(currentLang === 'am' ? "ተሳክቷል! ሂሳብዎ ተሞልቷል።" : "Success! Your balance has been updated.", "green");
         });
     }
 
@@ -187,13 +181,12 @@
         document.getElementById('title-name').innerText = isEn ? "DEPOSIT" : "ብር ማስገቢያ";
         document.getElementById('txt-bal-label').innerText = isEn ? "YOUR BALANCE" : "ያለዎት ቀሪ ሂሳብ";
         document.getElementById('txt-curr').innerText = isEn ? "ETB" : "ብር";
-        document.getElementById('main-guide-text').innerText = isEn ? "Paste the SMS you received from Telebirr here: It will be verified and added to your balance." : "ከቴሌ ብር ብር ሲልኩ የመጣሎትን sms እዚህ ጋር ይለጥፉ፡ ለ ሲስተሙ ከደረሰዉ sms ጋር ታይቶ ገንዘብዎ ገቢ ይሆናል።";
+        document.getElementById('main-guide-text').innerText = isEn ? "Paste the SMS you received from Telebirr here." : "ከቴሌ ብር ብር ሲልኩ የመጣሎትን sms እዚህ ጋር ይለጥፉ።";
         document.getElementById('txt-instr-main').innerText = isEn ? "Send via Telebirr to:" : "በቴሌብር ወደዚህ ቁጥር ይላኩ፡";
         document.getElementById('lbl-sms-desc').innerText = isEn ? "Paste the Telebirr SMS here:" : "የየቴሌ ብር SMS እዚህ ጋር ይለጥፉ፡";
         document.getElementById('btn-submit').innerText = isEn ? "DEPOSIT" : "ብር አስገባ";
         document.getElementById('btn-home').innerText = isEn ? "BACK" : "ተመለስ";
         document.getElementById('btn-copy-label').innerText = isEn ? "COPY" : "ገልብጥ";
-        document.getElementById('lang-indicator').innerHTML = isEn ? "<b>LANGUAGE</b>" : "<b>ቋቋ</b>";
         
         document.getElementById('lang-am').className = isEn ? 'lang-btn' : 'lang-btn active';
         document.getElementById('lang-en').className = isEn ? 'lang-btn active' : 'lang-btn';
