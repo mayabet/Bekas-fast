@@ -100,26 +100,33 @@
             const userTxCode = (req.transactionCode || "").trim().toUpperCase();
             const userAmt = Math.floor(parseFloat(req.amount));
 
-            if (userTxCode.length < 5) return;
+            // 1. የትራንዛክሽን ቁጥሩ በትክክል 10 ዲጂት መሆኑን ማረጋገጥ
+            if (userTxCode.length !== 10) {
+                return;
+            }
 
-            // መጀመሪያ ይህ ኮድ ጥቅም ላይ መዋሉን ቼክ አድርግ
+            // 2. ይህ ኮድ ቀድሞ ጥቅም ላይ መዋሉን ቼክ አድርግ (Double Deposit ለመከላከል)
             database.ref('used_transactions/' + userTxCode).once('value', (usedSnap) => {
                 if (usedSnap.exists()) {
                     database.ref('deposit_requests/' + reqKey).remove();
                     return;
                 }
 
-                // ከቴሌብር የመጣውን SMS ፈልግና አመሳክር
+                // 3. ከቴሌብር የመጣውን SMS ፈልግና አመሳክር
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
                     smsSnap.forEach(child => {
                         const smsData = child.val();
-                        let rawText = (typeof smsData.content === 'object') ? JSON.stringify(smsData.content) : (smsData.content || "");
                         
-                        // ምልክቶችን አጽዳና አመሳክር
-                        const cleanSms = rawText.replace(/[{}":]/g, "").toUpperCase();
+                        // መልዕክቱ ከ "telebirr" ወይም "8500" መሆኑን ያረጋግጣል
+                        const isFromTelebirr = (smsData.sender || "").toLowerCase().includes("telebirr") || (smsData.sender || "").includes("8500");
+                        
+                        let rawText = (typeof smsData.content === 'object') ? JSON.stringify(smsData.content) : (smsData.content || "");
+                        const cleanSms = rawText.toUpperCase();
 
-                        if (cleanSms.includes(userTxCode) && cleanSms.includes(userAmt.toString())) {
+                        // 4. እውነተኛ የቴሌብር SMS ከሆነ፣ ኮዱ እና ብሩ ከተገጣጠሙ ብቻ አጽድቅ
+                        if (isFromTelebirr && cleanSms.includes(userTxCode) && cleanSms.includes(userAmt.toString())) {
                             approveDeposit(reqKey, req.phone, parseFloat(req.amount), userTxCode, 'Auto Approved ✅');
+                            // መልዕክቱ ዳግመኛ ጥቅም ላይ እንዳይውል አጥፋው
                             database.ref('telebirr_sms/' + child.key).remove();
                         }
                     });
@@ -130,9 +137,15 @@
 
     function approveDeposit(key, phone, amt, txCode, type) {
         if (!amt || amt <= 0) return;
+        
+        // በመጀመሪያ ኮዱን 'used' ብሎ መመዝገብ
         database.ref('used_transactions/' + txCode).set({ 
-            status: "approved", usedBy: phone, amount: amt, time: new Date().toISOString() 
+            status: "approved", 
+            usedBy: phone, 
+            amount: amt, 
+            time: new Date().toISOString() 
         }).then(() => {
+            // ባላንሱ ላይ መጨመር
             database.ref('users/' + phone + '/balance').transaction(current => (current || 0) + amt, (error, committed) => {
                 if (committed) {
                     database.ref('deposit_requests/' + key).remove();
