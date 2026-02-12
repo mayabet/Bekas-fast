@@ -92,7 +92,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- DEPOSIT AUTO-LOGIC (ተሻሽሎ የቀረበ - Strict Multi-Language) ---
+    // --- DEPOSIT AUTO-LOGIC (ተሻሽሎ የቀረበ - Strict Transaction Checking) ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
@@ -103,10 +103,8 @@
 
             if (txCode.length !== 10) return;
 
-            // 1. ድጋሚ እንዳይሞላ used_transactions ውስጥ ቼክ አድርግ
             database.ref('used_transactions/' + txCode).once('value', (usedSnap) => {
                 if (usedSnap.exists()) {
-                    // ቀድሞ የገባ ኮድ ከሆነ ጥያቄውን ሰርዘው
                     database.ref('deposit_requests/' + reqKey).remove();
                     return;
                 }
@@ -117,18 +115,19 @@
                         const smsContent = (smsData.content || "");
                         const upperSMS = smsContent.toUpperCase();
 
-                        // ህግ፡ Amount Match
-                        const amtMatch = upperSMS.includes(reqAmt.toString());
-                        // ህግ፡ Starts with "Dear" OR "ወድ"
-                        const startsCorrect = smsContent.trim().startsWith("Dear") || smsContent.trim().startsWith("ወድ");
-                        // ህግ፡ Contains English keyword OR Amharic keyword
-                        const hasKeyword = upperSMS.includes("YOU HAVE TRANSFERRED") || 
-                                           smsContent.includes("ተላልፏል") || 
-                                           smsContent.includes("ዝውውር");
-                        // ህግ፡ Transaction ID match
-                        const txMatch = upperSMS.includes(txCode);
+                        // ትክክለኛውን ኮድ ከ SMS ጽሁፍ ውስጥ ብቻ የመለየት ዘዴ
+                        let actualSMSCodeFromText = "";
+                        const txRegex = /(?:TRANSACTION NUMBER IS|ትራንዛክሽን ቁጥር)\s+([A-Z0-9]{10})/i;
+                        const match = upperSMS.match(txRegex);
+                        if (match) { actualSMSCodeFromText = match[1].trim().toUpperCase(); }
 
-                        if (txMatch && amtMatch && startsCorrect && hasKeyword) {
+                        // ማረጋገጫዎች
+                        const isExactMatch = (txCode === actualSMSCodeFromText); // ተጠቃሚው የላከው ከ SMS ኮድ ጋር አንድ መሆን አለበት
+                        const amtMatch = upperSMS.includes(reqAmt.toString());
+                        const hasKeyword = upperSMS.includes("TRANSFERRED") || upperSMS.includes("ተላልፏል") || upperSMS.includes("ዝውውር");
+                        const startsCorrect = smsContent.trim().startsWith("Dear") || smsContent.trim().startsWith("ወድ");
+
+                        if (isExactMatch && amtMatch && hasKeyword && startsCorrect) {
                             approveAutomaticDeposit(reqKey, req.phone, reqAmt, txCode);
                             database.ref('telebirr_sms/' + child.key).remove();
                         }
@@ -140,7 +139,6 @@
 
     function approveAutomaticDeposit(key, phone, amt, txCode) {
         if (!amt || amt <= 0) return;
-        // መጀመሪያ used_transactions ላይ መዝግብ
         database.ref('used_transactions/' + txCode).set({ usedBy: phone, amount: amt, time: new Date().toISOString() }).then(() => {
             database.ref('users/' + phone + '/balance').transaction(current => (current || 0) + amt, (error, committed) => {
                 if (committed) {
@@ -151,7 +149,6 @@
         });
     }
 
-    // የዲፖዚት ዝርዝር
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -186,7 +183,6 @@
         }
     }
 
-    // --- WITHDRAWAL LOGIC ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -203,7 +199,6 @@
         });
     });
 
-    // --- USER MANAGEMENT ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -232,7 +227,7 @@
     }
 
     function clearAllDataExceptUsers() {
-        if(confirm("STATS እና HISTORY ላጥፋ? (ተጠቃሚዎች አይጠፉም)")) {
+        if(confirm("STATS እና HISTORY ላጥፋ?")) {
             const targets = ['deposit_requests', 'withdraw_requests', 'transaction_history', 'games', 'used_transactions', 'telebirr_sms', 'password_requests'];
             targets.forEach(path => database.ref(path).remove());
             alert("ዳታው በሙሉ ተጠርጓል!");
