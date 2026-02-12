@@ -80,7 +80,6 @@
 </div>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -93,7 +92,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- DEPOSIT AUTO-LOGIC (ተሻሽሎ የቀረበ) ---
+    // --- DEPOSIT AUTO-LOGIC (ተሻሽሎ የቀረበ - Strict Multi-Language) ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
@@ -102,11 +101,15 @@
             const txCode = (req.transactionCode || "").trim().toUpperCase();
             const reqAmt = parseFloat(req.amount);
 
-            // ህግ 1: Transaction ID 10 ዲጂት መሆን አለበት
             if (txCode.length !== 10) return;
 
+            // 1. ድጋሚ እንዳይሞላ used_transactions ውስጥ ቼክ አድርግ
             database.ref('used_transactions/' + txCode).once('value', (usedSnap) => {
-                if (usedSnap.exists()) return;
+                if (usedSnap.exists()) {
+                    // ቀድሞ የገባ ኮድ ከሆነ ጥያቄውን ሰርዘው
+                    database.ref('deposit_requests/' + reqKey).remove();
+                    return;
+                }
 
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
                     smsSnap.forEach(child => {
@@ -114,17 +117,18 @@
                         const smsContent = (smsData.content || "");
                         const upperSMS = smsContent.toUpperCase();
 
-                        // ህግ 2: Amount Match
+                        // ህግ፡ Amount Match
                         const amtMatch = upperSMS.includes(reqAmt.toString());
-                        // ህግ 3: Starts with "Dear" or "ወድ"
+                        // ህግ፡ Starts with "Dear" OR "ወድ"
                         const startsCorrect = smsContent.trim().startsWith("Dear") || smsContent.trim().startsWith("ወድ");
-                        // ህግ 4: Contains "You have transferred"
-                        const containsKeyword = upperSMS.includes("YOU HAVE TRANSFERRED");
-                        // ህግ 5: Transaction ID match
+                        // ህግ፡ Contains English keyword OR Amharic keyword
+                        const hasKeyword = upperSMS.includes("YOU HAVE TRANSFERRED") || 
+                                           smsContent.includes("ተላልፏል") || 
+                                           smsContent.includes("ዝውውር");
+                        // ህግ፡ Transaction ID match
                         const txMatch = upperSMS.includes(txCode);
 
-                        // አምስቱም ህጎች ከተሟሉ ብቻ Auto Approve ይደረጋል
-                        if (txMatch && amtMatch && startsCorrect && containsKeyword) {
+                        if (txMatch && amtMatch && startsCorrect && hasKeyword) {
                             approveAutomaticDeposit(reqKey, req.phone, reqAmt, txCode);
                             database.ref('telebirr_sms/' + child.key).remove();
                         }
@@ -136,16 +140,18 @@
 
     function approveAutomaticDeposit(key, phone, amt, txCode) {
         if (!amt || amt <= 0) return;
-        database.ref('users/' + phone + '/balance').transaction(current => (current || 0) + amt, (error, committed) => {
-            if (committed) {
-                database.ref('used_transactions/' + txCode).set({ usedBy: phone, amount: amt, time: new Date().toISOString() });
-                database.ref('deposit_requests/' + key).remove();
-                logTransaction(phone, 'Deposit Approved', amt);
-            }
+        // መጀመሪያ used_transactions ላይ መዝግብ
+        database.ref('used_transactions/' + txCode).set({ usedBy: phone, amount: amt, time: new Date().toISOString() }).then(() => {
+            database.ref('users/' + phone + '/balance').transaction(current => (current || 0) + amt, (error, committed) => {
+                if (committed) {
+                    database.ref('deposit_requests/' + key).remove();
+                    logTransaction(phone, 'Auto Approved', amt);
+                }
+            });
         });
     }
 
-    // የዲፖዚት ጥያቄዎችን በእጅ ለማጽደቅ (Manual List)
+    // የዲፖዚት ዝርዝር
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -161,7 +167,16 @@
     });
 
     function approveManual(key, phone, amt, txCode) {
-        if(confirm("በእጅ ላጽድቀው?")) approveAutomaticDeposit(key, phone, amt, txCode);
+        if(confirm("በእጅ ላጽድቀው?")) {
+            database.ref('used_transactions/' + txCode).once('value', snap => {
+                if(snap.exists()){
+                    alert("ይህ ኮድ ቀድሞ ጥቅም ላይ ውሏል!");
+                    database.ref('deposit_requests/' + key).remove();
+                } else {
+                    approveAutomaticDeposit(key, phone, amt, txCode);
+                }
+            });
+        }
     }
 
     function declineDep(key, phone, amt) {
@@ -216,16 +231,14 @@
         });
     }
 
-    // --- DELETE ALL DATA (ህግ 6) ---
     function clearAllDataExceptUsers() {
-        if(confirm("ሁሉንም ስታቲስቲክስ፣ ታሪክ እና ጥያቄዎች ላጥፋ? (ተጠቃሚዎች አይጠፉም)")) {
+        if(confirm("STATS እና HISTORY ላጥፋ? (ተጠቃሚዎች አይጠፉም)")) {
             const targets = ['deposit_requests', 'withdraw_requests', 'transaction_history', 'games', 'used_transactions', 'telebirr_sms', 'password_requests'];
             targets.forEach(path => database.ref(path).remove());
             alert("ዳታው በሙሉ ተጠርጓል!");
         }
     }
 
-    // --- HISTORY LOG ---
     function logTransaction(phone, type, amount) {
         const now = new Date(); const timeStr = now.toLocaleTimeString() + " | " + now.toLocaleDateString();
         database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
@@ -239,7 +252,6 @@
         });
     });
 
-    // --- STATS ---
     database.ref('games').on('value', snap => {
         let p1=0, p2=0, p3=0, p4=0;
         snap.forEach(child => {
@@ -253,7 +265,6 @@
         document.getElementById('stat-play4').innerText = p4;
     });
 
-    // PASSWORD REQ DISPLAY
     database.ref('password_requests').on('value', snap => {
         const cont = document.getElementById('lost-pw-list'); cont.innerHTML = "";
         snap.forEach(child => {
