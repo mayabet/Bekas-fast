@@ -38,7 +38,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests (Auto-Match Active)</div>
+    <div class="section-title">Deposit Requests (Strict Auto-Match)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -100,35 +100,41 @@
             const userTxCode = (req.transactionCode || "").trim().toUpperCase();
             const userAmt = Math.floor(parseFloat(req.amount));
 
-            // 1. መጀመሪያ ይህ ኮድ ቀደም ብሎ ጥቅም ላይ መዋሉን ቼክ አድርግ
+            // 1. መጀመሪያ የኮዱን ርዝመት ቼክ አድርግ (ግድ 10 መሆን አለበት)
+            if (userTxCode.length !== 10) {
+                console.log("Invalid Code Length: " + userTxCode);
+                database.ref('deposit_requests/' + reqKey).remove();
+                return;
+            }
+
+            // 2. ይህ ኮድ ቀደም ብሎ ጥቅም ላይ መዋሉን ቼክ አድርግ
             database.ref('used_transactions/' + userTxCode).once('value', (usedSnap) => {
                 if (usedSnap.exists()) {
-                    // ቀድሞ የተጠየቀበት/ያለፈ ከሆነ ጥያቄውን ሰርዝ
                     database.ref('deposit_requests/' + reqKey).remove();
                     return;
                 }
 
-                // 2. ከቴሌብር SMS ዝርዝር ጋር ማነጻጸር
+                // 3. ከእውነተኛው የቴሌብር SMS ዝርዝር ጋር ማነጻጸር
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
                     let matchFound = false;
-                    let smsKey = null;
+                    let matchedSmsKey = null;
 
                     smsSnap.forEach(child => {
                         const smsData = child.val();
+                        // ኮድ እና ብር 100% መገጠም አለባቸው
                         if (smsData.txCode === userTxCode && Math.floor(smsData.amt) === userAmt) {
                             matchFound = true;
-                            smsKey = child.key;
+                            matchedSmsKey = child.key;
                         }
                     });
 
-                    // 3. ማች ካገኘ ብቻ አውቶማቲክ አሳልፍ
                     if (matchFound) {
+                        // ከተገኘ አውቶማቲክ አሳልፍ
                         approveDeposit(reqKey, req.phone, parseFloat(req.amount), userTxCode, 'Auto Approved');
                         // ያገለገለውን SMS አጥፋ
-                        database.ref('telebirr_sms/' + smsKey).remove();
+                        database.ref('telebirr_sms/' + matchedSmsKey).remove();
                     } else {
-                        // ካልገጠመ ዝም ብለህ ተወው (Admin ገጽ ላይ Manual እንዲታይ)
-                        console.log("No automatic match for: " + userTxCode);
+                        console.log("SMS ገና አልደረሰም ወይም አልተገጣጠመም።");
                     }
                 });
             });
@@ -138,7 +144,7 @@
     function approveDeposit(key, phone, amt, txCode, type) {
         if (!amt || amt <= 0) return;
 
-        // ኮዱን መቆለፍ (ሁለተኛ ጥያቄ እንዳይስተናገድ)
+        // ኮዱን 'Used' ብሎ መቆለፍ (Double entry ለመከላከል)
         database.ref('used_transactions/' + txCode).set({ 
             status: "approved",
             usedBy: phone, 
@@ -155,7 +161,7 @@
         });
     }
 
-    // --- UI Update ---
+    // --- የጥያቄዎች ዝርዝር (UI) ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -171,8 +177,8 @@
     });
 
     function manualApprove(key, phone, amt, txCode) {
-        if(confirm("በእጅ ላጽድቀው?")) {
-            // Manual ሲሆንም ኮዱ ጥቅም ላይ መዋሉን ቼክ እናደርጋለን
+        if(confirm("በእጅ ላጽድቀው? (SMS መድረሱን እርግጠኛ ሁን)")) {
+            // Manual ሲሆንም ኮዱ ጥቅም ላይ መዋሉን ደግመን ቼክ እናደርጋለን
             database.ref('used_transactions/' + txCode).once('value', (used) => {
                 if(used.exists()){
                     alert("ይህ ኮድ ቀድሞ አልፏል!");
@@ -184,7 +190,7 @@
         }
     }
 
-    // --- የተቀሩት ፈንክሽኖች ---
+    // --- Withdraw, Users, Stats እና History (እንደነበረው) ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -229,9 +235,10 @@
     }
 
     function clearAllDataExceptUsers() {
-        if(confirm("ሁሉንም ዳታ ላጥፋ?")) {
+        if(confirm("ሁሉንም ዳታ ላጥፋ? (Users አይጠፉም)")) {
             const targets = ['deposit_requests', 'withdraw_requests', 'transaction_history', 'games', 'used_transactions', 'telebirr_sms', 'password_requests'];
             targets.forEach(path => database.ref(path).remove());
+            alert("ዳታው በሙሉ ተጠርጓል!");
         }
     }
 
