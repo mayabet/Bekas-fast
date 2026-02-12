@@ -259,17 +259,36 @@
         document.getElementById('l-am').classList.toggle('active', l === 'am');
         document.getElementById('l-en').classList.toggle('active', l === 'en');
         updateUI();
+        updateDateTime(); 
     }
 
-    setInterval(() => { 
-        const now = new Date(); let h = now.getHours(); let ethH = h >= 6 ? h - 6 : h + 6;
-        if (ethH > 12) ethH -= 12; if (ethH === 0) ethH = 12;
+    // --- አዲሱ የቀን እና ሰዓት ሎጂክ ---
+    function updateDateTime() {
+        const now = new Date();
+        let h = now.getHours();
+        let ethH = h >= 6 ? h - 6 : h + 6;
+        if (ethH > 12) ethH -= 12;
+        if (ethH === 0) ethH = 12;
         let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
-        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`; 
-        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 4 2018" : now.toDateString().toUpperCase(); 
-    }, 1000);
+        
+        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
+        
+        if (currentLang === 'am') {
+            const startOfYekatit = new Date(2026, 1, 8); 
+            const diffTime = now - startOfYekatit;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            document.getElementById('date-label').innerText = "የካቲት " + diffDays + ", 2018";
+        } else {
+            document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
+        }
+    }
+
+    setInterval(updateDateTime, 1000);
     
-    setLang('am');
+    window.onload = function() {
+        setLang('am');
+        updateDateTime();
+    };
 </script>
 </body>
 </html>
