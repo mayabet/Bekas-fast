@@ -109,8 +109,9 @@
         const phone = document.getElementById('p-input').value.trim();
         const pass = document.getElementById('pass-input').value.trim();
         
-        if (name === "" || name.length > 10) { 
-            showError(currentLang === 'am' ? "ስም በትክክል ያስገቡ (ቢበዛ 10)" : "INVALID NAME (MAX 10)"); 
+        // ማስተካከያ፦ ስም ከ 3 በታች ወይም ከ 10 በላይ እንዳይሆን
+        if (name.length < 3 || name.length > 10) { 
+            showError(currentLang === 'am' ? "ስም ከ 3 እስከ 10 ቁምፊ መሆን አለበት" : "NAME MUST BE 3-10 CHARACTERS"); 
             return; 
         }
         if (phone.length !== 10 || !phone.startsWith('09')) { 
@@ -133,7 +134,6 @@
                     status: "active",
                     joinedDate: new Date().toLocaleString()
                 }).then(() => {
-                    // እዚህ ጋር ነው ማስተካከያው - 'userPhone' የነበረው ወደ 'loggedUser' ተቀይሯል
                     localStorage.setItem('loggedUser', phone);
                     window.location.replace("home.html");
                 }).catch((error) => {
