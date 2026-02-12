@@ -38,7 +38,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests (Auto-Match Active)</div>
+    <div class="section-title" style="background: #28a745;">Deposit Requests (Auto-Match Active ✅)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -91,7 +91,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- AUTO-APPROVE ሎጂክ (በፎቶው ላይ ባለው ዳታ መሰረት የተስተካከለ) ---
+    // --- ጠንካራ AUTO-APPROVE ሎጂክ ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
@@ -102,23 +102,25 @@
 
             if (userTxCode.length < 10) return;
 
+            // መጀመሪያ ይህ ኮድ ጥቅም ላይ መዋሉን ቼክ አድርግ
             database.ref('used_transactions/' + userTxCode).once('value', (usedSnap) => {
                 if (usedSnap.exists()) {
                     database.ref('deposit_requests/' + reqKey).remove();
                     return;
                 }
 
+                // ከቴሌብር የመጣውን SMS ፈልግ
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
                     smsSnap.forEach(child => {
                         const smsData = child.val();
-                        const fullText = (smsData.content || "").toUpperCase(); 
+                        
+                        // በዳታቤዝ ውስጥ ያለው ዳታ Object ከሆነ ወደ String ቀይረውና ምልክቶችን አጽዳ
+                        let rawText = (typeof smsData.content === 'object') ? JSON.stringify(smsData.content) : (smsData.content || "");
+                        const cleanSms = rawText.replace(/[{}":]/g, "").toUpperCase();
 
-                        // በ SMS ጽሁፉ ውስጥ ኮዱ እና ብሩ መኖሩን ቼክ ማድረግ
-                        const hasCode = fullText.includes(userTxCode);
-                        const hasAmt = fullText.includes(userAmt.toString());
-
-                        if (hasCode && hasAmt) {
-                            approveDeposit(reqKey, req.phone, parseFloat(req.amount), userTxCode, 'Auto Approved');
+                        // ኮዱ እና ብሩ መኖሩን አረጋግጥ
+                        if (cleanSms.includes(userTxCode) && cleanSms.includes(userAmt.toString())) {
+                            approveDeposit(reqKey, req.phone, parseFloat(req.amount), userTxCode, 'Auto Approved ✅');
                             database.ref('telebirr_sms/' + child.key).remove();
                         }
                     });
@@ -141,7 +143,7 @@
         });
     }
 
-    // --- UI ዝርዝሮች ---
+    // --- UI DISPLAY ዝርዝሮች ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -169,13 +171,14 @@
         }
     }
 
+    // Withdrawal, User Management, History... (ቀሪው ኮድህ እንዳለ ይቀጥላል)
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
             cont.innerHTML += `<div class="card" style="border-left: 5px solid #ff8c00;">
                 <div class="row">
-                    <div><span class="phone-text">👤 ${r.username || 'NO NAME'}</span><br><span class="phone-text">📞 ${r.phone}</span></div>
+                    <div><span class="phone-text">📞 ${r.phone}</span></div>
                     <span class="amt-bold" style="color:red; background:#fff0f0;">-${r.amount} ETB</span>
                 </div>
                 <div class="row" style="margin-top:8px;">
