@@ -124,46 +124,38 @@
         });
     }
 
-    // --- የተቀናጀ የዲፖዚት ፋንክሽን ---
     function handleDeposit() {
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        // 1. የትራንዛክሽን ቁጥር መፈለግ (10 ዲጂት ኮድ)
-        const txMatch = sms.match(/[A-Z0-9]{10}/);
+        // 1. የትራንዛክሽን ቁጥር መፈለግ (በትክክል 10 ዲጂት መሆኑን ቼክ ያደርጋል)
+        // ይህ Regex 10 ፊደላትና ቁጥሮችን ብቻ ይፈልጋል
+        const txMatch = sms.match(/\b[A-Z0-9]{10}\b/);
         
-        // 2. የገንዘብ መጠን መፈለግ (ETB ወይም ብር)
+        // 2. የገንዘብ መጠን መፈለግ
         const amtRegex = /(?:ETB|ብር)\s*([\d,]+\.?\d*)|([\d,]+\.?\d*)\s*(?:ETB|ብር)/i;
         const amtMatch = sms.match(amtRegex);
         
-        if (!txMatch || !amtMatch) {
-            return showMsg(currentLang === 'am' ? "ትክክለኛ SMS አይደለም! እባክዎ ሙሉውን SMS ይለጥፉ" : "Invalid SMS! Please paste the full message", "red");
+        if (!txMatch) {
+            return showMsg(currentLang === 'am' ? "ትክክለኛ የ 10 ዲጂት ኮድ አልተገኘም!" : "Invalid 10-digit code!", "red");
+        }
+
+        if (!amtMatch) {
+            return showMsg(currentLang === 'am' ? "የብር መጠኑ በSMS ውስጥ አልተገኘም!" : "Amount not found in SMS!", "red");
         }
 
         const txID = txMatch[0].toUpperCase();
         const rawAmt = amtMatch[1] ? amtMatch[1] : amtMatch[2];
         const amount = Math.floor(parseFloat(rawAmt.replace(/,/g, '')));
 
-        if (isNaN(amount) || amount <= 0) {
-            return showMsg(currentLang === 'am' ? "የብር መጠኑ አልተገኘም!" : "Amount not found!", "red");
-        }
-
-        // 3. ድግግሞሽን መከላከል
+        // 3. የድግግሞሽ መከላከያ - ዳታቤዝ ውስጥ 'used_transactions' ቼክ ማድረግ
         database.ref('used_transactions/' + txID).once('value', snap => {
-            if(snap.exists() && snap.val().status === "approved"){
-                showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Transaction already used!", "red");
+            if(snap.exists()){
+                showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "This SMS has already been used!", "red");
             } else {
                 showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Processing...", "blue");
                 
-                // ለ Auto-approval ዳታውን ለይቶ ወደ 'telebirr_sms' መላክ
-                database.ref('telebirr_sms').push({
-                    content: sms,
-                    txCode: txID,
-                    amt: amount,
-                    time: new Date().toISOString()
-                });
-
-                // ወደ 'deposit_requests' መላክ
+                // ጥያቄውን ለብቻው ወደ deposit_requests መላክ
                 database.ref('deposit_requests').push({
                     phone: userPhone,
                     amount: amount,
@@ -172,7 +164,7 @@
                     time: new Date().toLocaleString()
                 }).then(() => {
                     document.getElementById('sms-input').value = "";
-                    showMsg(currentLang === 'am' ? "ተሳክቷል! ሲስተሙ ሲያረጋግጥ ሂሳብዎ ይሞላል።" : "Success! Verifying your deposit...", "green");
+                    showMsg(currentLang === 'am' ? "ጥያቄዎ ተልኳል! በቅርቡ ይረጋገጣል።" : "Request sent! It will be verified shortly.", "green");
                 });
             }
         });
