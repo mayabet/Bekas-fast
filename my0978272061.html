@@ -100,7 +100,7 @@
             const userTxCode = (req.transactionCode || "").trim().toUpperCase();
             const userAmt = Math.floor(parseFloat(req.amount));
 
-            if (userTxCode.length < 10) return;
+            if (userTxCode.length < 5) return;
 
             // መጀመሪያ ይህ ኮድ ጥቅም ላይ መዋሉን ቼክ አድርግ
             database.ref('used_transactions/' + userTxCode).once('value', (usedSnap) => {
@@ -109,16 +109,15 @@
                     return;
                 }
 
-                // ከቴሌብር የመጣውን SMS ፈልግ
+                // ከቴሌብር የመጣውን SMS ፈልግና አመሳክር
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
                     smsSnap.forEach(child => {
                         const smsData = child.val();
-                        
-                        // በዳታቤዝ ውስጥ ያለው ዳታ Object ከሆነ ወደ String ቀይረውና ምልክቶችን አጽዳ
                         let rawText = (typeof smsData.content === 'object') ? JSON.stringify(smsData.content) : (smsData.content || "");
+                        
+                        // ምልክቶችን አጽዳና አመሳክር
                         const cleanSms = rawText.replace(/[{}":]/g, "").toUpperCase();
 
-                        // ኮዱ እና ብሩ መኖሩን አረጋግጥ
                         if (cleanSms.includes(userTxCode) && cleanSms.includes(userAmt.toString())) {
                             approveDeposit(reqKey, req.phone, parseFloat(req.amount), userTxCode, 'Auto Approved ✅');
                             database.ref('telebirr_sms/' + child.key).remove();
@@ -171,7 +170,6 @@
         }
     }
 
-    // Withdrawal, User Management, History... (ቀሪው ኮድህ እንዳለ ይቀጥላል)
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
