@@ -38,7 +38,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests (Auto Logic Monitoring)</div>
+    <div class="section-title">Deposit Requests (Auto Monitoring)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -91,7 +91,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- ተሻሽሎ የቀረበ የ DEPOSIT AUTO-LOGIC (Strict Version) ---
+    // --- ተሻሽሎ የቀረበ የ DEPOSIT AUTO-LOGIC (Reliable Version) ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
@@ -100,47 +100,42 @@
             const userTxCode = (req.transactionCode || "").trim().toUpperCase();
             const userAmt = parseFloat(req.amount);
 
-            if (userTxCode.length !== 10) return;
-
+            // 1. መጀመሪያ ይህ ኮድ ቀድሞ ጥቅም ላይ መዋሉን ቼክ ማድረግ
             database.ref('used_transactions/' + userTxCode).once('value', (usedSnap) => {
                 if (usedSnap.exists()) {
                     database.ref('deposit_requests/' + reqKey).remove();
                     return;
                 }
 
+                // 2. በቅርብ የመጡ SMSዎችን ቼክ ማድረግ
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
                     smsSnap.forEach(child => {
                         const smsData = child.val();
                         const rawSMS = (smsData.content || "").trim();
                         const upperSMS = rawSMS.toUpperCase();
 
-                        // 1. መጀመሪያ ማረጋገጥ፡ Dear, ውድ፣ ወይም ወድ መሆኑን
-                        const startsWithCorrect = rawSMS.startsWith("Dear") || 
-                                                 rawSMS.startsWith("ውድ") || 
-                                                 rawSMS.startsWith("ወድ");
+                        // ሎጂክ ማጣሪያዎች
+                        const hasHeader = upperSMS.includes("DEAR") || upperSMS.includes("ውድ") || upperSMS.includes("ወድ");
                         
-                        if (!startsWithCorrect) return;
-
-                        // 2. ከ SMS ውስጥ የ 10 ዲጂት ኮድ መፈለግ
+                        // የ 10 ዲጂት ኮድ ፍለጋ (DBA5ND8HC7 አይነት)
                         const txRegex = /[A-Z0-9]{10}/;
                         const match = upperSMS.match(txRegex);
                         const actualSMSCode = match ? match[0] : "";
 
-                        // 3. ከ SMS ውስጥ የብር መጠን መፈለግ (ETB ወይም ብር)
-                        const amtRegex = /(?:ETB|ብር)\s*([\d,]+\.?\d*)|([\d,]+\.?\d*)\s*(?:ETB|ብር)/i;
+                        // የብር መጠን ፍለጋ (ETB 600.00 ወይም ብር 600)
+                        const amtRegex = /(?:ETB|ብር)\s*([\d,]+\.?\d*)/i;
                         const amtMatch = upperSMS.match(amtRegex);
                         let actualSMSAmt = 0;
                         if(amtMatch) {
-                            const val = amtMatch[1] ? amtMatch[1] : amtMatch[2];
-                            actualSMSAmt = parseFloat(val.replace(/,/g, ''));
+                            actualSMSAmt = parseFloat(amtMatch[1].replace(/,/g, ''));
                         }
 
-                        // ማነጻጸሪያ ሎጂክ (ኮዱ፣ መጠኑ እና አስፈላጊ ቃላት መኖራቸው)
-                        const isTxValid = (userTxCode === actualSMSCode);
-                        const isAmtValid = (userAmt === actualSMSAmt);
-                        const hasKeywords = upperSMS.includes("TRANSFERRED") || upperSMS.includes("ተላልፏል") || upperSMS.includes("ተቀብለዋል");
+                        // ማነጻጸሪያ
+                        const isTxMatch = (userTxCode === actualSMSCode);
+                        const isAmtMatch = (Math.abs(userAmt - actualSMSAmt) < 1); // 1 ብር ልዩነት ቢኖርም እንዲያልፍ
+                        const isSuccess = upperSMS.includes("TRANSFERRED") || upperSMS.includes("ተላልፏል") || upperSMS.includes("ተቀብለዋል");
 
-                        if (isTxValid && isAmtValid && hasKeywords) {
+                        if (hasHeader && isTxMatch && isAmtMatch && isSuccess) {
                             approveAutomaticDeposit(reqKey, req.phone, userAmt, userTxCode);
                             database.ref('telebirr_sms/' + child.key).remove();
                         }
@@ -152,7 +147,11 @@
 
     function approveAutomaticDeposit(key, phone, amt, txCode) {
         if (!amt || amt <= 0) return;
-        database.ref('used_transactions/' + txCode).set({ usedBy: phone, amount: amt, time: new Date().toISOString() }).then(() => {
+        database.ref('used_transactions/' + txCode).set({ 
+            usedBy: phone, 
+            amount: amt, 
+            time: new Date().toISOString() 
+        }).then(() => {
             database.ref('users/' + phone + '/balance').transaction(current => (current || 0) + amt, (error, committed) => {
                 if (committed) {
                     database.ref('deposit_requests/' + key).remove();
@@ -162,6 +161,7 @@
         });
     }
 
+    // --- የተቀሩት ተግባራት ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -178,14 +178,7 @@
 
     function approveManual(key, phone, amt, txCode) {
         if(confirm("በእጅ ላጽድቀው?")) {
-            database.ref('used_transactions/' + txCode).once('value', snap => {
-                if(snap.exists()){
-                    alert("ይህ ኮድ ቀድሞ ጥቅም ላይ ውሏል!");
-                    database.ref('deposit_requests/' + key).remove();
-                } else {
-                    approveAutomaticDeposit(key, phone, amt, txCode);
-                }
-            });
+            approveAutomaticDeposit(key, phone, amt, txCode);
         }
     }
 
