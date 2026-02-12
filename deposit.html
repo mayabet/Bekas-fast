@@ -87,7 +87,6 @@
 </div>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -128,34 +127,38 @@
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        // 1. የትራንዛክሽን ቁጥር መፈለግ (በትክክል 10 ዲጂት መሆኑን ቼክ ያደርጋል)
-        // ይህ Regex 10 ፊደላትና ቁጥሮችን ብቻ ይፈልጋል
-        const txMatch = sms.match(/\b[A-Z0-9]{10}\b/);
+        // 1. የትራንዛክሽን ቁጥር መፈለግ (DBA5ND8HC7 አይነት 10 ዲጂት)
+        // የቴሌብር SMS "transaction number is DBA5ND8HC7" ይላል
+        const txMatch = sms.match(/[A-Z0-9]{10}/);
         
-        // 2. የገንዘብ መጠን መፈለግ
-        const amtRegex = /(?:ETB|ብር)\s*([\d,]+\.?\d*)|([\d,]+\.?\d*)\s*(?:ETB|ብር)/i;
-        const amtMatch = sms.match(amtRegex);
+        // 2. የገንዘብ መጠን መፈለግ 
+        // "transferred ETB 600.00" ከሚለው ውስጥ 600ን ይወስዳል
+        const amtMatch = sms.match(/transferred\s+ETB\s+([\d,]+\.?\d*)/i);
         
         if (!txMatch) {
-            return showMsg(currentLang === 'am' ? "ትክክለኛ የ 10 ዲጂት ኮድ አልተገኘም!" : "Invalid 10-digit code!", "red");
+            return showMsg(currentLang === 'am' ? "የትራንዛክሽን ቁጥሩን በSMS ውስጥ ማግኘት አልተቻለም!" : "Transaction ID not found in SMS!", "red");
         }
 
         if (!amtMatch) {
-            return showMsg(currentLang === 'am' ? "የብር መጠኑ በSMS ውስጥ አልተገኘም!" : "Amount not found in SMS!", "red");
+            return showMsg(currentLang === 'am' ? "የብር መጠኑን በSMS ውስጥ ማግኘት አልተቻለም!" : "Amount not found in SMS!", "red");
         }
 
         const txID = txMatch[0].toUpperCase();
-        const rawAmt = amtMatch[1] ? amtMatch[1] : amtMatch[2];
+        const rawAmt = amtMatch[1];
         const amount = Math.floor(parseFloat(rawAmt.replace(/,/g, '')));
 
-        // 3. የድግግሞሽ መከላከያ - ዳታቤዝ ውስጥ 'used_transactions' ቼክ ማድረግ
+        if (isNaN(amount) || amount <= 0) {
+            return showMsg(currentLang === 'am' ? "የብር መጠኑ ስህተት ነው!" : "Invalid amount!", "red");
+        }
+
+        showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Checking...", "blue");
+
+        // 3. የድግግሞሽ መከላከያ ቼክ
         database.ref('used_transactions/' + txID).once('value', snap => {
             if(snap.exists()){
-                showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "This SMS has already been used!", "red");
+                showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Already used!", "red");
             } else {
-                showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Processing...", "blue");
-                
-                // ጥያቄውን ለብቻው ወደ deposit_requests መላክ
+                // ጥያቄውን ወደ Firebase መላክ
                 database.ref('deposit_requests').push({
                     phone: userPhone,
                     amount: amount,
@@ -164,7 +167,7 @@
                     time: new Date().toLocaleString()
                 }).then(() => {
                     document.getElementById('sms-input').value = "";
-                    showMsg(currentLang === 'am' ? "ጥያቄዎ ተልኳል! በቅርቡ ይረጋገጣል።" : "Request sent! It will be verified shortly.", "green");
+                    showMsg(currentLang === 'am' ? "ተልኳል! አውቶማቲክ እንዲያልፍ አድሚን ገጽን ይክፈቱ።" : "Sent! Open Admin page for auto-match.", "green");
                 });
             }
         });
