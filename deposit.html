@@ -127,38 +127,24 @@
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        // 1. የትራንዛክሽን ቁጥር መፈለግ (DBA5ND8HC7 አይነት 10 ዲጂት)
-        // የቴሌብር SMS "transaction number is DBA5ND8HC7" ይላል
+        // ትክክለኛውን የትራንዛክሽን ኮድ እና የብር መጠን የመለየት ስራ (Regex)
         const txMatch = sms.match(/[A-Z0-9]{10}/);
+        const amtMatch = sms.match(/(?:ETB|ብር|transferred)\s*([\d,]+\.?\d*)/i);
         
-        // 2. የገንዘብ መጠን መፈለግ 
-        // "transferred ETB 600.00" ከሚለው ውስጥ 600ን ይወስዳል
-        const amtMatch = sms.match(/transferred\s+ETB\s+([\d,]+\.?\d*)/i);
-        
-        if (!txMatch) {
-            return showMsg(currentLang === 'am' ? "የትራንዛክሽን ቁጥሩን በSMS ውስጥ ማግኘት አልተቻለም!" : "Transaction ID not found in SMS!", "red");
-        }
-
-        if (!amtMatch) {
-            return showMsg(currentLang === 'am' ? "የብር መጠኑን በSMS ውስጥ ማግኘት አልተቻለም!" : "Amount not found in SMS!", "red");
-        }
+        if (!txMatch) return showMsg(currentLang === 'am' ? "የትራንዛክሽን ኮዱ በSMS ውስጥ አልተገኘም!" : "Transaction ID not found!", "red");
+        if (!amtMatch) return showMsg(currentLang === 'am' ? "የብር መጠኑ በSMS ውስጥ አልተገኘም!" : "Amount not found!", "red");
 
         const txID = txMatch[0].toUpperCase();
-        const rawAmt = amtMatch[1];
-        const amount = Math.floor(parseFloat(rawAmt.replace(/,/g, '')));
+        const amount = Math.floor(parseFloat(amtMatch[1].replace(/,/g, '')));
 
-        if (isNaN(amount) || amount <= 0) {
-            return showMsg(currentLang === 'am' ? "የብር መጠኑ ስህተት ነው!" : "Invalid amount!", "red");
-        }
+        if (isNaN(amount) || amount <= 0) return showMsg(currentLang === 'am' ? "የብር መጠኑ ስህተት ነው!" : "Invalid amount!", "red");
 
         showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Checking...", "blue");
 
-        // 3. የድግግሞሽ መከላከያ ቼክ
         database.ref('used_transactions/' + txID).once('value', snap => {
             if(snap.exists()){
                 showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Already used!", "red");
             } else {
-                // ጥያቄውን ወደ Firebase መላክ
                 database.ref('deposit_requests').push({
                     phone: userPhone,
                     amount: amount,
@@ -167,7 +153,7 @@
                     time: new Date().toLocaleString()
                 }).then(() => {
                     document.getElementById('sms-input').value = "";
-                    showMsg(currentLang === 'am' ? "ተልኳል! አውቶማቲክ እንዲያልፍ አድሚን ገጽን ይክፈቱ።" : "Sent! Open Admin page for auto-match.", "green");
+                    showMsg(currentLang === 'am' ? "ተልኳል! አውቶማቲክ እንዲሞላ Admin ገጽን ይክፈቱ።" : "Sent! Open Admin for auto-approval.", "green");
                 });
             }
         });
