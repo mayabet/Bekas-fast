@@ -52,7 +52,7 @@
         <div class="input-row">
             <div class="input-box">
                 <i class="fas fa-user"></i>
-                <input type="text" id="name-input" placeholder="ስም" maxlength="10">
+                <input type="text" id="name-input" placeholder="ስም" maxlength="10" oninput="if(this.value.length > 10) this.value = this.value.slice(0, 10);">
             </div>
         </div>
 
@@ -105,19 +105,22 @@
     }
 
     function handleRegister() {
-        const name = document.getElementById('name-input').value.trim();
+        const nameInput = document.getElementById('name-input');
+        const name = nameInput.value.trim();
         const phone = document.getElementById('p-input').value.trim();
         const pass = document.getElementById('pass-input').value.trim();
         
-        // ማስተካከያ፦ ስም ከ 3 በታች ወይም ከ 10 በላይ እንዳይሆን
-        if (name.length < 3 || name.length > 10) { 
-            showError(currentLang === 'am' ? "ስም ከ 3 እስከ 10 ቁምፊ መሆን አለበት" : "NAME MUST BE 3-10 CHARACTERS"); 
+        // ጥብቅ ቁጥጥር (Strict Validation)
+        if (name.length < 3) { 
+            showError(currentLang === 'am' ? "ስም ከ 3 በታች መሆን አይችልም" : "NAME MUST BE AT LEAST 3 CHARS"); 
             return; 
         }
+
         if (phone.length !== 10 || !phone.startsWith('09')) { 
             showError(currentLang === 'am' ? "ስልክ 10 ቁጥር (09...) መሆን አለበት" : "PHONE MUST BE 10 DIGITS (09...)"); 
             return; 
         }
+
         if (pass.length !== 5) { 
             showError(currentLang === 'am' ? "ፒን 5 ቁጥር መሆን አለበት" : "PIN MUST BE 5 DIGITS"); 
             return; 
