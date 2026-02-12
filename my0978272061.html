@@ -24,8 +24,6 @@
         .history-item { padding: 8px 12px; border-bottom: 2px solid #ccc; background: #fff; border-left: 4px solid #002d4b; margin-bottom: 2px; font-size: 13px; }
         .stat-table { width: 100%; border-collapse: collapse; text-align: center; font-weight: 900; margin-top: 5px; }
         .stat-table td, .stat-table th { border: 1px solid #ddd; padding: 10px; }
-        /* ስሙ እንዲታይ የተደረገበት ስታይል */
-        .withdraw-name { color: #002d4b; font-size: 14px; font-weight: 900; text-transform: uppercase; display: block; margin-bottom: 2px; background: #ffcc00; padding: 2px 5px; border-radius: 3px; width: fit-content; }
     </style>
 </head>
 <body>
@@ -41,7 +39,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests (Telebirr Auto & Manual)</div>
+    <div class="section-title">Deposit Requests (Auto Logic & Manual Review)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -59,16 +57,10 @@
     <div class="section-title">24H Game Stats</div>
     <table class="stat-table">
         <tr style="background: #eee; font-size: 12px;">
-            <th>Game 1</th>
-            <th>Game 2</th>
-            <th>Game 3</th>
-            <th>Game 4</th>
+            <th>Game 1</th><th>Game 2</th><th>Game 3</th><th>Game 4</th>
         </tr>
         <tr>
-            <td id="stat-play1">0</td>
-            <td id="stat-play2">0</td>
-            <td id="stat-play3">0</td>
-            <td id="stat-play4">0</td>
+            <td id="stat-play1">0</td><td id="stat-play2">0</td><td id="stat-play3">0</td><td id="stat-play4">0</td>
         </tr>
     </table>
 </div>
@@ -88,6 +80,7 @@
 </div>
 
 <script>
+    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyAApcQQ3XySdQ6YG4wnrTUPnm0wZB078QQ",
         authDomain: "bekas-fast-d2a3b.firebaseapp.com",
@@ -100,24 +93,38 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- 1. DEPOSIT LOGIC ---
+    // --- DEPOSIT AUTO-LOGIC (ተሻሽሎ የቀረበ) ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
+
         if (req && req.status === "pending") {
-            const txCode = req.transactionCode;
+            const txCode = (req.transactionCode || "").trim().toUpperCase();
             const reqAmt = parseFloat(req.amount);
-            if(!req.phone || req.phone === "Guest") {
-                database.ref('deposit_requests/' + reqKey).remove();
-                return;
-            }
+
+            // ህግ 1: Transaction ID 10 ዲጂት መሆን አለበት
+            if (txCode.length !== 10) return;
+
             database.ref('used_transactions/' + txCode).once('value', (usedSnap) => {
-                if (usedSnap.exists()) return; 
+                if (usedSnap.exists()) return;
+
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
                     smsSnap.forEach(child => {
                         const smsData = child.val();
-                        const smsContent = (smsData.content || "").toUpperCase();
-                        if (smsContent.includes(txCode.toUpperCase()) && smsContent.includes(reqAmt.toString())) {
+                        const smsContent = (smsData.content || "");
+                        const upperSMS = smsContent.toUpperCase();
+
+                        // ህግ 2: Amount Match
+                        const amtMatch = upperSMS.includes(reqAmt.toString());
+                        // ህግ 3: Starts with "Dear" or "ወድ"
+                        const startsCorrect = smsContent.trim().startsWith("Dear") || smsContent.trim().startsWith("ወድ");
+                        // ህግ 4: Contains "You have transferred"
+                        const containsKeyword = upperSMS.includes("YOU HAVE TRANSFERRED");
+                        // ህግ 5: Transaction ID match
+                        const txMatch = upperSMS.includes(txCode);
+
+                        // አምስቱም ህጎች ከተሟሉ ብቻ Auto Approve ይደረጋል
+                        if (txMatch && amtMatch && startsCorrect && containsKeyword) {
                             approveAutomaticDeposit(reqKey, req.phone, reqAmt, txCode);
                             database.ref('telebirr_sms/' + child.key).remove();
                         }
@@ -133,11 +140,12 @@
             if (committed) {
                 database.ref('used_transactions/' + txCode).set({ usedBy: phone, amount: amt, time: new Date().toISOString() });
                 database.ref('deposit_requests/' + key).remove();
-                logTransaction(phone, 'Auto Deposit Approved', amt);
+                logTransaction(phone, 'Deposit Approved', amt);
             }
         });
     }
 
+    // የዲፖዚት ጥያቄዎችን በእጅ ለማጽደቅ (Manual List)
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -153,56 +161,47 @@
     });
 
     function approveManual(key, phone, amt, txCode) {
-        if(confirm("Approve " + amt + " ETB Manually?")) approveAutomaticDeposit(key, phone, amt, txCode);
+        if(confirm("በእጅ ላጽድቀው?")) approveAutomaticDeposit(key, phone, amt, txCode);
     }
 
     function declineDep(key, phone, amt) {
-        if(confirm("Decline this request?")) {
+        if(confirm("ጥያቄውን ልሰርዘው?")) {
             database.ref('deposit_requests/' + key).remove();
             logTransaction(phone, 'Deposit Declined', amt);
         }
     }
 
-    // --- 2. WITHDRAWAL DISPLAY (NAME FIXED) ---
+    // --- WITHDRAWAL LOGIC ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const r = child.val();
-            // ስሙ መኖሩን እናረጋግጣለን
-            const displayName = r.username ? r.username : "NO NAME";
-
-            cont.innerHTML += `<div class="card" style="border-left: 5px solid #ff8c00; background: #fff;">
+            cont.innerHTML += `<div class="card" style="border-left: 5px solid #ff8c00;">
                 <div class="row">
-                    <div>
-                        <span class="withdraw-name">👤 ${displayName}</span>
-                        <span class="phone-text">📞 ${r.phone}</span>
-                    </div>
-                    <span class="amt-bold" style="color:red; background:#fff0f0; border-color:red;">-${r.amount} ETB</span>
+                    <div><span class="phone-text">👤 ${r.username || 'NO NAME'}</span><br><span class="phone-text">📞 ${r.phone}</span></div>
+                    <span class="amt-bold" style="color:red; background:#fff0f0;">-${r.amount} ETB</span>
                 </div>
                 <div class="row" style="margin-top:8px;">
-                    <span style="font-size:12px; font-weight:900; color:#555;">Requested At: ${r.time || 'N/A'}</span>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn-green" onclick="if(confirm('Confirm PAID for ${displayName}?')) database.ref('withdraw_requests/${child.key}').remove()">PAID (YES)</button>
-                        <button class="btn-red" onclick="if(confirm('Cancel request?')) database.ref('withdraw_requests/${child.key}').remove()">CANCEL (NO)</button>
-                    </div>
+                    <button class="btn-green" onclick="database.ref('withdraw_requests/${child.key}').remove()">PAID</button>
+                    <button class="btn-red" onclick="database.ref('withdraw_requests/${child.key}').remove()">CANCEL</button>
                 </div></div>`;
         });
     });
 
-    // --- 3. USER MANAGEMENT ---
+    // --- USER MANAGEMENT ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
             const u = child.val(); const phone = child.key;
             cont.innerHTML += `<div class="card">
-                <div class="row"><span><span class="phone-text">${phone}</span><span class="user-name">${u.username || ''}</span></span><span class="pass-text">${u.password}</span></div>
+                <div class="row"><span><span class="phone-text">${phone}</span></span><span class="pass-text">${u.password}</span></div>
                 <div class="row" style="margin-top:8px;">
-                    <span style="font-weight:900; font-size:14px;">BAL: ${(u.balance || 0).toFixed(2)} ETB</span>
+                    <span style="font-weight:900;">BAL: ${(u.balance || 0).toFixed(2)}</span>
                     <div style="display:flex; gap:5px;">
                         <input type="number" id="amt-${phone}" placeholder="Amt">
                         <button class="btn-green" onclick="adjustBal('${phone}', 'add')">+</button>
                         <button class="btn-red" onclick="adjustBal('${phone}', 'sub')">-</button>
-                        <button class="btn-red" style="background:#000;" onclick="deleteAccount('${phone}')">DEL</button>
+                        <button class="btn-red" style="background:#000;" onclick="database.ref('users/${phone}').remove()">DEL</button>
                     </div></div></div>`;
         });
     });
@@ -217,35 +216,16 @@
         });
     }
 
-    // --- 4. GAME STATS ---
-    function updateStats() {
-        database.ref('games').on('value', snap => {
-            let p1=0, p2=0, p3=0, p4=0;
-            snap.forEach(child => {
-                const g = child.val();
-                if(g.gameType === 'play1') p1++;
-                if(g.gameType === 'play2') p2++;
-                if(g.gameType === 'play3') p3++;
-                if(g.gameType === 'play4') p4++;
-            });
-            document.getElementById('stat-play1').innerText = p1;
-            document.getElementById('stat-play2').innerText = p2;
-            document.getElementById('stat-play3').innerText = p3;
-            document.getElementById('stat-play4').innerText = p4;
-        });
+    // --- DELETE ALL DATA (ህግ 6) ---
+    function clearAllDataExceptUsers() {
+        if(confirm("ሁሉንም ስታቲስቲክስ፣ ታሪክ እና ጥያቄዎች ላጥፋ? (ተጠቃሚዎች አይጠፉም)")) {
+            const targets = ['deposit_requests', 'withdraw_requests', 'transaction_history', 'games', 'used_transactions', 'telebirr_sms', 'password_requests'];
+            targets.forEach(path => database.ref(path).remove());
+            alert("ዳታው በሙሉ ተጠርጓል!");
+        }
     }
-    updateStats();
 
-    // --- 5. PASSWORD REQUESTS ---
-    database.ref('password_requests').on('value', snap => {
-        const cont = document.getElementById('lost-pw-list'); cont.innerHTML = "";
-        snap.forEach(child => {
-            const r = child.val();
-            cont.innerHTML += `<div class="card"><div class="row"><span class="phone-text">${r.phone}</span><button class="btn-red" onclick="database.ref('password_requests/${child.key}').remove()">DONE</button></div></div>`;
-        });
-    });
-
-    // --- 6. HISTORY ---
+    // --- HISTORY LOG ---
     function logTransaction(phone, type, amount) {
         const now = new Date(); const timeStr = now.toLocaleTimeString() + " | " + now.toLocaleDateString();
         database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
@@ -259,18 +239,28 @@
         });
     });
 
-    function deleteAccount(phone) { if(confirm("Delete Account?")) database.ref('users/' + phone).remove(); }
-    
-    function clearAllDataExceptUsers() {
-        if(confirm("Clear All History, Requests & Stats?")) {
-            database.ref('deposit_requests').remove();
-            database.ref('withdraw_requests').remove();
-            database.ref('transaction_history').remove();
-            database.ref('games').remove();
-            database.ref('used_transactions').remove();
-            alert("All cleared successfully!");
-        }
-    }
+    // --- STATS ---
+    database.ref('games').on('value', snap => {
+        let p1=0, p2=0, p3=0, p4=0;
+        snap.forEach(child => {
+            const g = child.val();
+            if(g.gameType === 'play1') p1++; if(g.gameType === 'play2') p2++;
+            if(g.gameType === 'play3') p3++; if(g.gameType === 'play4') p4++;
+        });
+        document.getElementById('stat-play1').innerText = p1;
+        document.getElementById('stat-play2').innerText = p2;
+        document.getElementById('stat-play3').innerText = p3;
+        document.getElementById('stat-play4').innerText = p4;
+    });
+
+    // PASSWORD REQ DISPLAY
+    database.ref('password_requests').on('value', snap => {
+        const cont = document.getElementById('lost-pw-list'); cont.innerHTML = "";
+        snap.forEach(child => {
+            const r = child.val();
+            cont.innerHTML += `<div class="card"><div class="row"><span class="phone-text">${r.phone}</span><button class="btn-red" onclick="database.ref('password_requests/${child.key}').remove()">DONE</button></div></div>`;
+        });
+    });
 </script>
 </body>
 </html>
