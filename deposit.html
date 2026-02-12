@@ -124,19 +124,19 @@
         });
     }
 
-    // --- ዋናው የዲፖዚት ፋንክሽን ---
+    // --- የተሻሻለው የዲፖዚት ፋንክሽን ---
     function handleDeposit() {
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        // 1. የትራንዛክሽን ቁጥር መፈለግ (10 ዲጂት - ፊደልና ቁጥር)
-        const txMatch = sms.match(/[A-Z0-9]{10}/);
+        // 1. የትራንዛክሽን ቁጥር መፈለግ - በፊደል የሚጀምር 10 digit (ስልክ እንዳይቀላቅል)
+        const txMatch = sms.match(/[A-Z][A-Z0-9]{9}/);
         
-        // 2. የገንዘብ መጠን መፈለግ (ETB 600 ወይም 600.00 ብር)
+        // 2. የገንዘብ መጠን መፈለግ (ETB ወይም ብር)
         const amtMatch = sms.match(/(?:ETB|ብር)\s*([\d,]+\.?\d*)|([\d,]+\.?\d*)\s*(?:ETB|ብር)/i);
         
         if (!txMatch || !amtMatch) {
-            return showMsg(currentLang === 'am' ? "የተሳሳተ SMS ነው! እባክዎ ሙሉውን SMS ይለጥፉ" : "Invalid SMS! Please paste the full message", "red");
+            return showMsg(currentLang === 'am' ? "ትክክለኛ SMS አይደለም! እባክዎ ሙሉውን SMS ይለጥፉ" : "Invalid SMS! Please paste the full message", "red");
         }
 
         const txID = txMatch[0].toUpperCase();
@@ -147,19 +147,16 @@
             return showMsg(currentLang === 'am' ? "ዝቅተኛው ማስገቢያ 10 ብር ነው" : "Min deposit is 10 ETB", "red");
         }
 
-        // መጀመሪያ ትራንዛክሽኑ ጥቅም ላይ መዋል አለመዋሉን ቼክ እናደርጋለን
         database.ref('used_transactions/' + txID).once('value', snap => {
             if(snap.exists()){
                 showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Transaction already used!", "red");
             } else {
                 showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Processing...", "blue");
                 
-                // 1. ለ Admin እንዲታይ SMS በሙሉ ወደ telebirr_sms መላክ
                 database.ref('telebirr_sms').push({
                     content: sms,
                     time: new Date().toISOString()
                 }).then(() => {
-                    // 2. ከዚያ የዲፖዚት ጥያቄውን መላክ
                     database.ref('deposit_requests').push({
                         phone: userPhone,
                         amount: amount,
