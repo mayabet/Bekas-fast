@@ -38,7 +38,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests (Strict Auto-Match)</div>
+    <div class="section-title">Deposit Requests (Auto-Match Active)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -91,7 +91,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- ጥብቅ የ AUTO-APPROVE ሎጂክ (ከ SMS CONTENT ጽሁፍ ውስጥ ፈልጎ ማግኘት) ---
+    // --- AUTO-APPROVE ሎጂክ (በፎቶው ላይ ባለው ዳታ መሰረት የተስተካከለ) ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
@@ -100,42 +100,28 @@
             const userTxCode = (req.transactionCode || "").trim().toUpperCase();
             const userAmt = Math.floor(parseFloat(req.amount));
 
-            // 1. መጀመሪያ የኮዱን ርዝመት ቼክ አድርግ
-            if (userTxCode.length !== 10) {
-                database.ref('deposit_requests/' + reqKey).remove();
-                return;
-            }
+            if (userTxCode.length < 10) return;
 
-            // 2. ይህ ኮድ ቀደም ብሎ ጥቅም ላይ መዋሉን ቼክ አድርግ
             database.ref('used_transactions/' + userTxCode).once('value', (usedSnap) => {
                 if (usedSnap.exists()) {
                     database.ref('deposit_requests/' + reqKey).remove();
                     return;
                 }
 
-                // 3. ከቴሌብር SMS ዝርዝር ጋር ማነጻጸር (በ Content ጽሁፍ ውስጥ መፈለግ)
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
-                    let matchFound = false;
-                    let matchedSmsKey = null;
-
                     smsSnap.forEach(child => {
                         const smsData = child.val();
-                        const fullText = smsData.content || ""; 
+                        const fullText = (smsData.content || "").toUpperCase(); 
 
-                        // በጽሁፉ ውስጥ የላከውን ኮድ እና ብር መፈለግ
-                        const hasCode = fullText.toUpperCase().includes(userTxCode);
+                        // በ SMS ጽሁፉ ውስጥ ኮዱ እና ብሩ መኖሩን ቼክ ማድረግ
+                        const hasCode = fullText.includes(userTxCode);
                         const hasAmt = fullText.includes(userAmt.toString());
 
                         if (hasCode && hasAmt) {
-                            matchFound = true;
-                            matchedSmsKey = child.key;
+                            approveDeposit(reqKey, req.phone, parseFloat(req.amount), userTxCode, 'Auto Approved');
+                            database.ref('telebirr_sms/' + child.key).remove();
                         }
                     });
-
-                    if (matchFound) {
-                        approveDeposit(reqKey, req.phone, parseFloat(req.amount), userTxCode, 'Auto Approved');
-                        database.ref('telebirr_sms/' + matchedSmsKey).remove();
-                    }
                 });
             });
         }
@@ -143,12 +129,8 @@
 
     function approveDeposit(key, phone, amt, txCode, type) {
         if (!amt || amt <= 0) return;
-
         database.ref('used_transactions/' + txCode).set({ 
-            status: "approved",
-            usedBy: phone, 
-            amount: amt, 
-            time: new Date().toISOString() 
+            status: "approved", usedBy: phone, amount: amt, time: new Date().toISOString() 
         }).then(() => {
             database.ref('users/' + phone + '/balance').transaction(current => (current || 0) + amt, (error, committed) => {
                 if (committed) {
@@ -159,7 +141,7 @@
         });
     }
 
-    // --- የጥያቄዎች ዝርዝር (UI) ---
+    // --- UI ዝርዝሮች ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -187,7 +169,6 @@
         }
     }
 
-    // --- Withdrawal Requests ---
     database.ref('withdraw_requests').on('value', snap => {
         const cont = document.getElementById('with-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -204,7 +185,6 @@
         });
     });
 
-    // --- User Management ---
     database.ref('users').on('value', snap => {
         const cont = document.getElementById('user-list'); cont.innerHTML = "";
         snap.forEach(child => {
@@ -233,18 +213,16 @@
     }
 
     function clearAllDataExceptUsers() {
-        if(confirm("ሁሉንም ዳታ ላጥፋ? (Users አይጠፉም)")) {
+        if(confirm("ሁሉንም ዳታ ላጥፋ?")) {
             const targets = ['deposit_requests', 'withdraw_requests', 'transaction_history', 'games', 'used_transactions', 'telebirr_sms', 'password_requests'];
             targets.forEach(path => database.ref(path).remove());
         }
     }
 
     function logTransaction(phone, type, amount) {
-        const timeStr = new Date().toLocaleString();
-        database.ref('transaction_history').push({ phone, type, amount, time: timeStr });
+        database.ref('transaction_history').push({ phone, type, amount, time: new Date().toLocaleString() });
     }
 
-    // --- History & Stats ---
     database.ref('transaction_history').limitToLast(30).on('value', snap => {
         const cont = document.getElementById('history-list'); cont.innerHTML = "";
         let items = []; snap.forEach(c => items.unshift(c.val()));
