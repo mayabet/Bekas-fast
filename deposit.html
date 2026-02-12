@@ -124,35 +124,41 @@
         });
     }
 
-    // --- ማሻሻያ የተደረገበት የዲፖዚት ፋንክሽን ---
+    // --- የተስተካከለው የዲፖዚት ፋንክሽን ---
     function handleDeposit() {
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        // 1. የትራንዛክሽን ቁጥር መፈለግ - በትክክል 10 ዲጂት እና ፊደል (DBA5ND8HC7 አይነት)
-        // [A-Z0-9]{10} ማለት ፊደል ወይም ቁጥር የሆኑ 10 ዲጂቶች ማለት ነው
+        // 1. የትራንዛክሽን ቁጥር መፈለግ (በፊደል የሚጀምር 10 ዲጂት ኮድ)
         const txMatch = sms.match(/[A-Z0-9]{10}/);
         
         // 2. የገንዘብ መጠን መፈለግ (ETB ወይም ብር)
-        const amtMatch = sms.match(/(?:ETB|ብር)\s*([\d,]+\.?\d*)/i);
+        // ይህ Regex በሁለቱም ቋንቋ የገንዘብ መጠኑን በትክክል ይለያል
+        const amtRegex = /(?:ETB|ብር)\s*([\d,]+\.?\d*)|([\d,]+\.?\d*)\s*(?:ETB|ብር)/i;
+        const amtMatch = sms.match(amtRegex);
         
         if (!txMatch || !amtMatch) {
             return showMsg(currentLang === 'am' ? "ትክክለኛ SMS አይደለም! እባክዎ ሙሉውን SMS ይለጥፉ" : "Invalid SMS! Please paste the full message", "red");
         }
 
         const txID = txMatch[0].toUpperCase();
-        const amount = parseFloat(amtMatch[1].replace(/,/g, ''));
+        const rawAmt = amtMatch[1] ? amtMatch[1] : amtMatch[2];
+        const amount = parseFloat(rawAmt.replace(/,/g, ''));
 
-        // 3. ድግግሞሽን መከላከል (Used Transaction Check)
+        if (isNaN(amount) || amount <= 0) {
+            return showMsg(currentLang === 'am' ? "የብር መጠኑ አልተገኘም!" : "Amount not found!", "red");
+        }
+
+        // 3. ድግግሞሽን መከላከል
         database.ref('used_transactions/' + txID).once('value', snap => {
-            if(snap.exists()){
-                showMsg(currentLang === 'am' ? "ይህ የትራንዛክሽን ኮድ ቀድሞ ጥቅም ላይ ውሏል!" : "This transaction code has already been used!", "red");
+            if(snap.exists() && snap.val().status === "approved"){
+                showMsg(currentLang === 'am' ? "ይህ SMS ቀደም ብሎ ጥቅም ላይ ውሏል!" : "Transaction already used!", "red");
             } else {
                 showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Processing...", "blue");
                 
-                // ለጊዜው በ used_transactions ውስጥ Pending ብሎ ማስቀመጥ (ተጠቃሚው ደጋግሞ እንዳይሞክረው)
-                database.ref('used_transactions/' + txID).set({
-                    status: "checking",
+                // ለጊዜው በ used_transactions ውስጥ ምልክት ማድረግ
+                database.ref('used_transactions/' + txID).update({
+                    status: "pending",
                     phone: userPhone,
                     amount: amount
                 });
@@ -171,9 +177,7 @@
                     time: new Date().toLocaleString()
                 }).then(() => {
                     document.getElementById('sms-input').value = "";
-                    showMsg(currentLang === 'am' ? "ተልኳል! ሲስተሙ ሲያረጋግጥ ሂሳብዎ ይሞላል።" : "Sent! Balance will be updated after verification.", "green");
-                }).catch(err => {
-                    showMsg("Error: " + err.message, "red");
+                    showMsg(currentLang === 'am' ? "ተሳክቷል! Adminኑ ሲያረጋግጥ ሂሳብዎ ይሞላል።" : "Success! Admin will verify and update balance.", "green");
                 });
             }
         });
