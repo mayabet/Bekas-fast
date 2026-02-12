@@ -38,7 +38,7 @@
 </div>
 
 <div class="section">
-    <div class="section-title">Deposit Requests (Auto Logic Active)</div>
+    <div class="section-title">Deposit Requests (Auto Matching Active)</div>
     <div id="dep-list"></div>
 </div>
 
@@ -91,51 +91,34 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // --- AUTO-APPROVE LOGIC (STRICT & RELIABLE) ---
+    // --- AUTO-APPROVE LOGIC (STRICT & RELIABLE MATCHING) ---
     database.ref('deposit_requests').on('child_added', (snapshot) => {
         const req = snapshot.val();
         const reqKey = snapshot.key;
 
         if (req && req.status === "pending") {
             const userTxCode = (req.transactionCode || "").trim().toUpperCase();
-            // የተጠቃሚውን ብር መጠን ወደ ሙሉ ቁጥር መቀየር (ለማነጻጸር እንዲመች)
             const userAmt = Math.floor(parseFloat(req.amount));
 
+            // 1. መጀመሪያ ይህ ትራንዛክሽን ቀድሞ ጥቅም ላይ መዋሉን ቼክ አድርግ
             database.ref('used_transactions/' + userTxCode).once('value', (usedSnap) => {
-                // ኮዱ ቀደም ብሎ ጥቅም ላይ ውሎ ከሆነ ጥያቄውን ሰርዝ
                 if (usedSnap.exists() && usedSnap.val().status === "approved") {
                     database.ref('deposit_requests/' + reqKey).remove();
                     return;
                 }
 
+                // 2. ከቴሌብር SMS ዝርዝር ጋር በቀጥታ ቁጥሮቹን ማነጻጸር
                 database.ref('telebirr_sms').once('value', (smsSnap) => {
                     smsSnap.forEach(child => {
                         const smsData = child.val();
-                        const rawSMS = (smsData.content || "").trim().toUpperCase();
+                        
+                        // በ Deposit ገጽ የተላኩትን txCode እና amt በቀጥታ ማነጻጸር
+                        const isTxMatch = (smsData.txCode === userTxCode);
+                        const isAmtMatch = (Math.floor(smsData.amt) === userAmt);
 
-                        // 1. የ 10 ዲጂት Transaction ID መፈለግ
-                        const txRegex = /[A-Z0-9]{10}/;
-                        const match = rawSMS.match(txRegex);
-                        const actualSMSCode = match ? match[0] : "";
-
-                        // 2. ከ SMS ውስጥ የብር መጠን መፈለግ (ETB 600.00 ወይም ብር 600)
-                        const amtRegex = /(?:ETB|ብር)\s*([\d,]+\.?\d*)/i;
-                        const amtMatch = rawSMS.match(amtRegex);
-                        let actualSMSAmt = 0;
-                        if(amtMatch) {
-                            // ኮማዎችን አጥፍቶ ወደ ሙሉ ቁጥር መቀየር
-                            actualSMSAmt = Math.floor(parseFloat(amtMatch[1].replace(/,/g, '')));
-                        }
-
-                        // 3. ማነጻጸሪያ ሎጂክ
-                        const isTxMatch = (userTxCode === actualSMSCode);
-                        const isAmtMatch = (userAmt === actualSMSAmt);
-                        const hasKeywords = rawSMS.includes("TRANSFERRED") || rawSMS.includes("ተላልፏል") || rawSMS.includes("RECEIVED") || rawSMS.includes("ተቀብለዋል");
-
-                        if (isTxMatch && isAmtMatch && hasKeywords) {
-                            // ሁሉም ከተገጣጠመ ሂሳቡን በራስህ ሙላ
+                        if (isTxMatch && isAmtMatch) {
                             approveAutomaticDeposit(reqKey, req.phone, parseFloat(req.amount), userTxCode);
-                            // ያገለገለውን SMS አጥፋ
+                            // የተጠቀመበትን SMS ከዝርዝር አጥፋ
                             database.ref('telebirr_sms/' + child.key).remove();
                         }
                     });
@@ -161,7 +144,7 @@
         });
     }
 
-    // --- የተቀሩት ተግባራት (UI Update) ---
+    // --- UI Update Functions ---
     database.ref('deposit_requests').on('value', snap => {
         const cont = document.getElementById('dep-list'); cont.innerHTML = "";
         snap.forEach(child => {
