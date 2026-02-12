@@ -124,16 +124,15 @@
         });
     }
 
-    // --- የተስተካከለው የዲፖዚት ፋንክሽን ---
+    // --- የተቀናጀ የዲፖዚት ፋንክሽን ---
     function handleDeposit() {
         const sms = document.getElementById('sms-input').value.trim();
         if(!sms) return showMsg(currentLang === 'am' ? "እባክዎ SMS ይለጥፉ!" : "Please paste the SMS!", "red");
 
-        // 1. የትራንዛክሽን ቁጥር መፈለግ (በፊደል የሚጀምር 10 ዲጂት ኮድ)
+        // 1. የትራንዛክሽን ቁጥር መፈለግ (10 ዲጂት ኮድ)
         const txMatch = sms.match(/[A-Z0-9]{10}/);
         
         // 2. የገንዘብ መጠን መፈለግ (ETB ወይም ብር)
-        // ይህ Regex በሁለቱም ቋንቋ የገንዘብ መጠኑን በትክክል ይለያል
         const amtRegex = /(?:ETB|ብር)\s*([\d,]+\.?\d*)|([\d,]+\.?\d*)\s*(?:ETB|ብር)/i;
         const amtMatch = sms.match(amtRegex);
         
@@ -143,7 +142,7 @@
 
         const txID = txMatch[0].toUpperCase();
         const rawAmt = amtMatch[1] ? amtMatch[1] : amtMatch[2];
-        const amount = parseFloat(rawAmt.replace(/,/g, ''));
+        const amount = Math.floor(parseFloat(rawAmt.replace(/,/g, '')));
 
         if (isNaN(amount) || amount <= 0) {
             return showMsg(currentLang === 'am' ? "የብር መጠኑ አልተገኘም!" : "Amount not found!", "red");
@@ -156,19 +155,15 @@
             } else {
                 showMsg(currentLang === 'am' ? "በማረጋገጥ ላይ..." : "Processing...", "blue");
                 
-                // ለጊዜው በ used_transactions ውስጥ ምልክት ማድረግ
-                database.ref('used_transactions/' + txID).update({
-                    status: "pending",
-                    phone: userPhone,
-                    amount: amount
-                });
-
-                // ወደ አድሚን መላክ
+                // ለ Auto-approval ዳታውን ለይቶ ወደ 'telebirr_sms' መላክ
                 database.ref('telebirr_sms').push({
                     content: sms,
+                    txCode: txID,
+                    amt: amount,
                     time: new Date().toISOString()
                 });
 
+                // ወደ 'deposit_requests' መላክ
                 database.ref('deposit_requests').push({
                     phone: userPhone,
                     amount: amount,
@@ -177,7 +172,7 @@
                     time: new Date().toLocaleString()
                 }).then(() => {
                     document.getElementById('sms-input').value = "";
-                    showMsg(currentLang === 'am' ? "ተሳክቷል! Adminኑ ሲያረጋግጥ ሂሳብዎ ይሞላል።" : "Success! Admin will verify and update balance.", "green");
+                    showMsg(currentLang === 'am' ? "ተሳክቷል! ሲስተሙ ሲያረጋግጥ ሂሳብዎ ይሞላል።" : "Success! Verifying your deposit...", "green");
                 });
             }
         });
