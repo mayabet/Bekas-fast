@@ -77,7 +77,6 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     
-    // Play 3 Path
     const gameRef = database.ref('live_game/play3'); 
     const resultRef = database.ref('live_game/play3_result');
 
@@ -85,8 +84,8 @@
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false, lastResultMsg = "";
 
     const trans = {
-        'am': {gt:'20 ብር 1ኛ 330 2ኛ 20', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 330 | 2ኛ 20', welcome: 'እንኳን ደህና መጡ!'},
-        'en': {gt:'20 BIRR 1st 330 2nd 20', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. 1st & 2nd winners', promoWin: '1st 330 | 2nd 20', welcome: 'Welcome!'}
+        'am': {gt:'20 ብር 1ኛ 330 2ኛ 20', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 880ብር | 2ኛ 20ብር', welcome: 'እንኳን ደህና መጡ!'},
+        'en': {gt:'20 BIRR 1st 330 2nd 20', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. 1st & 2nd winners', promoWin: '1st 880ETB | 2nd 20ETB', welcome: 'Welcome!'}
     };
 
     if (!userPhone) window.location.replace("index.html");
@@ -113,10 +112,9 @@
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
         if (selections[n] && selections[n] !== userName) return;
 
-        const now = Date.now();
         if (selections[n] === userName) {
             const lastPickTime = localStorage.getItem('lastPickTime_p3_' + n);
-            if (lastPickTime && (now - lastPickTime < 20000)) {
+            if (lastPickTime && (Date.now() - lastPickTime < 20000)) {
                 database.ref('users/' + userPhone).update({ balance: balance + 20 });
                 gameRef.child(n).remove();
                 localStorage.removeItem('lastPickTime_p3_' + n);
@@ -135,7 +133,8 @@
         
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
-                if (Object.keys(snap.val() || {}).length === 20 && !isPlaying) {
+                const currentData = snap.val() || {};
+                if (Object.keys(currentData).length === 20 && !isPlaying) {
                     let win1 = Math.floor(Math.random() * 20) + 1;
                     let win2;
                     do { win2 = Math.floor(Math.random() * 20) + 1; } while (win2 === win1);
@@ -182,7 +181,10 @@
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) { isPlaying = true; runAnimation(data.winningNum, data.winningNum2); }
+        if (data && data.status === "START_ANIMATION" && !isPlaying) { 
+            isPlaying = true; 
+            runAnimation(data.winningNum, data.winningNum2); 
+        }
     });
 
     function runAnimation(win1, win2) {
@@ -198,7 +200,8 @@
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             let tempIdx = Math.floor(Math.random() * 20) + 1;
-            document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
+            const target = document.getElementById(`c-${tempIdx}`);
+            if (target) target.classList.add('anim-active');
             counter += speed;
             if (counter >= 11000) { clearInterval(animationInterval); finishGame(win1, win2); }
         }, speed);
@@ -211,16 +214,16 @@
         
         const cell1 = document.getElementById(`c-${win1}`);
         const cell2 = document.getElementById(`c-${win2}`);
-        cell1.classList.add('winner-cell');
-        cell2.classList.add('winner2-cell');
+        if(cell1) cell1.classList.add('winner-cell');
+        if(cell2) cell2.classList.add('winner2-cell');
 
         let res1 = currentLang === 'am' ? `1ኛ: ቁጥር ${win1}` : `1st: Num ${win1}`;
         let res2 = currentLang === 'am' ? `2ኛ: ቁጥር ${win2}` : `2nd: Num ${win2}`;
         
         let statusMsg = "";
         if(selections[win1] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 330 });
-            statusMsg = currentLang === 'am' ? " - 330 ብር አሸንፈዋል!" : " - You won 330!";
+            database.ref('users/' + userPhone).update({ balance: balance + 880 });
+            statusMsg = currentLang === 'am' ? " - 880 ብር አሸንፈዋል!" : " - You won 880!";
             msg.style.color = "green";
         } else if(selections[win2] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 20 });
@@ -231,19 +234,22 @@
             msg.style.color = "red";
         }
         
-        let finalDisplay = res1 + " | " + res2 + statusMsg;
-        lastResultMsg = finalDisplay;
-        msg.innerText = finalDisplay;
+        lastResultMsg = res1 + " | " + res2 + statusMsg;
+        msg.innerText = lastResultMsg;
 
         setTimeout(() => {
             isResetting = true;
-            gameRef.set(null); resultRef.set(null);
+            if (selections[20] === userName || selections[win1] === userName) {
+                gameRef.remove(); 
+                resultRef.remove();
+            }
+            
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false; 
-            cell1.classList.remove('winner-cell');
-            cell2.classList.remove('winner2-cell');
+            if(cell1) cell1.classList.remove('winner-cell');
+            if(cell2) cell2.classList.remove('winner2-cell');
             resetGridColors();
-        }, 8000);
+        }, 5000); 
     }
 
     function resetGridColors() {
