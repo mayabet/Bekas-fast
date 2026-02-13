@@ -104,7 +104,11 @@
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) { isResetting = false; isPlaying = false; resetGridColors(); }
+        if (Object.keys(selections).length === 0) { 
+            isResetting = false; 
+            isPlaying = false; 
+            resetGridColors(); 
+        }
         updateUI();
     });
 
@@ -155,6 +159,7 @@
         if (count === 0) {
             header.innerText = trans[currentLang].sh;
             scrollArea.innerHTML = `<div class="promo-box"><div class="brand">${trans[currentLang].brand}</div><div class="text">${trans[currentLang].promo}</div><div class="win">${trans[currentLang].promoWin}</div></div>`;
+            // ውጤቱ እዚህ ጋር እንዲቆይ ይደረጋል
             if(lastResultMsg !== "") msg.innerText = lastResultMsg;
             return;
         }
@@ -182,7 +187,12 @@
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) { isPlaying = true; runAnimation(data.winningNum, data.winningNum2); }
+        // አኒሜሽኑ ደጋግሞ እንዳይጀምር status ቼክ ይደረጋል
+        if (data && data.status === "START_ANIMATION" && !isPlaying) { 
+            isPlaying = true; 
+            resultRef.update({ status: "RUNNING" }); // status ወዲያው ይቀየራል
+            runAnimation(data.winningNum, data.winningNum2); 
+        }
     });
 
     function runAnimation(win1, win2) {
@@ -218,32 +228,40 @@
         let res2 = currentLang === 'am' ? `2ኛ: ቁጥር ${win2}` : `2nd: Num ${win2}`;
         
         let statusMsg = "";
-        if(selections[win1] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 80 });
-            statusMsg = currentLang === 'am' ? " - 80 ብር አሸንፈዋል!" : " - You won 80!";
-            msg.style.color = "green";
-        } else if(selections[win2] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 10 });
-            statusMsg = currentLang === 'am' ? " - 10 ብር ተመላሽ!" : " - 10 ETB Refunded!";
-            msg.style.color = "blue";
-        } else {
-            statusMsg = currentLang === 'am' ? " - እድል ለሌላ ጊዜ" : " - Try Again";
-            msg.style.color = "red";
+        
+        // ብር ደጋግሞ እንዳይጨምር ጥንቃቄ
+        if (!isResetting) {
+            if(selections[win1] === userName) {
+                database.ref('users/' + userPhone).update({ balance: balance + 80 });
+                statusMsg = currentLang === 'am' ? " - 80 ብር አሸንፈዋል!" : " - You won 80!";
+                msg.style.color = "green";
+            } else if(selections[win2] === userName) {
+                database.ref('users/' + userPhone).update({ balance: balance + 10 });
+                statusMsg = currentLang === 'am' ? " - 10 ብር ተመላሽ!" : " - 10 ETB Refunded!";
+                msg.style.color = "blue";
+            } else {
+                statusMsg = currentLang === 'am' ? " - እድል ለሌላ ጊዜ" : " - Try Again";
+                msg.style.color = "red";
+            }
         }
         
         let finalDisplay = res1 + " | " + res2 + statusMsg;
         lastResultMsg = finalDisplay;
         msg.innerText = finalDisplay;
 
+        // የ 4 ሰከንድ መጠበቂያ
         setTimeout(() => {
             isResetting = true;
-            gameRef.set(null); resultRef.set(null);
+            gameRef.set(null); 
+            resultRef.set(null);
             document.getElementById('round-val').innerText = ++round;
             isPlaying = false; 
             cell1.classList.remove('winner-cell');
             cell2.classList.remove('winner2-cell');
             resetGridColors();
-        }, 8000);
+            // የመጨረሻ ውጤቱ በ msg-box ላይ እንዲቆይ ይደረጋል
+            msg.innerText = lastResultMsg;
+        }, 4000);
     }
 
     function resetGridColors() {
