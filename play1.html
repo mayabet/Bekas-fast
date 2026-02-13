@@ -10,7 +10,7 @@
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #ffffff; font-family: sans-serif; }
         .app-container { width: 100%; max-width: 400px; height: 100%; border: 3px solid #002d4b; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
         .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
-        .game-title { font-weight: 900; font-size: 16px; color: #000; }
+        .game-title { font-weight: 900; font-size: 15px; color: #000; }
         .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
         .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
@@ -19,10 +19,15 @@
         .num-cell { border: 1px solid #002d4b; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
+        
+        /* አኒሜሽን እና የአሸናፊዎች ቀለም */
         .anim-active { background-color: #ff0000 !important; color: white !important; box-shadow: 0 0 15px #ff0000; z-index: 10; border: 2px solid #fff !important; }
-        .winner-cell { background-color: #ffcc00 !important; color: black !important; box-shadow: 0 0 25px #ffcc00; transform: scale(1.1); z-index: 15; border: 3px solid #002d4b !important; }
+        .rank-1 { background-color: #ffcc00 !important; color: black !important; box-shadow: 0 0 20px #ffcc00; transform: scale(1.1); z-index: 15; border: 3px solid #000 !important; }
+        .rank-2 { background-color: #00b050 !important; color: white !important; border: 2px solid #000 !important; }
+        .rank-3 { background-color: #ff6600 !important; color: white !important; border: 2px solid #000 !important; }
+
         .stats-table { width: 100%; border-collapse: collapse; margin-top: 5px; flex-shrink: 0; }
-        .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 14px; }
+        .stats-table td { border: 2px solid #002d4b; padding: 6px; font-weight: 900; text-align: center; font-size: 13px; }
         .bg-green { background: #00b050; color: white; }
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
         .selected-header { background: #ffcc00; text-align: center; font-weight: 900; padding: 6px; border-bottom: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
@@ -44,13 +49,13 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">1ኛ: 60ብር | 2ኛ: 20ብር | 3ኛ: 10ብር</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title" id="gt">1ኛ: 60 | 2ኛ: 20 | 3ኛ: 10</span><span class="plus18">18+</span></div>
     <div class="info-section"><div><span id="dt_txt">ቀን</span>: <span id="date-label"></span></div><div><span id="tm_txt">ሰዓት</span>: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900;">እንኳን ደህና መጡ!</td></tr>
+        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900; font-size: 12px;">እንኳን ደህና መጡ!</td></tr>
         <tr><td class="bg-green" id="rn">ዙር</td><td id="round-val">1</td><td class="bg-green" id="ls">ያለፈው</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
@@ -82,8 +87,8 @@
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false, lastResultMsg = "";
 
     const trans = {
-        'am': {gt:'1ኛ: 60 | 2ኛ: 20 | 3ኛ: 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'እንኳን ደስ አለዎት! {r} ወጥተው {p} ብር አሸነፉ!', lost:'ቁጥር {n} ወጣ! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ', promo: 'ለ 10 ተጫዋቾች ሦስት አሸናፊዎች', promoWin: '1ኛ: 60 | 2ኛ: 20 | 3ኛ: 10', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!'},
-        'en': {gt:'1st: 60 | 2nd: 20 | 3rd: 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', win:'Congrats! Rank {r} won {p} ETB!', lost:'Num {n} won! Try again', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: '3 Winners for 10 Players', promoWin: '60, 20, and 10 ETB Prizes', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!'}
+        'am': {gt:'1ኛ: 60 | 2ኛ: 20 | 3ኛ: 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'እንኳን ደስ አለዎት! {r} ወጥተው {p} ብር አሸነፉ!', lost:'አሸናፊዎች፡ 1ኛ:#{w1} 2ኛ:#{w2} 3ኛ:#{w3}', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ', promo: 'ለ 10 ተጫዋቾች ሦስት አሸናፊዎች', promoWin: '1ኛ: 60 | 2ኛ: 20 | 3ኛ: 10', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!'},
+        'en': {gt:'1st: 60 | 2nd: 20 | 3rd: 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', win:'Congrats! Rank {r} won {p} ETB!', lost:'Winners: 1st:#{w1} 2nd:#{w2} 3rd:#{w3}', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: '3 Winners for 10 Players', promoWin: '60, 20, and 10 ETB Prizes', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!'}
     };
 
     if (!userPhone) {
@@ -135,7 +140,6 @@
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 if (Object.keys(snap.val() || {}).length === 10 && !isPlaying) {
-                    // ሦስት አሸናፊዎችን መምረጥ
                     let nums = [1,2,3,4,5,6,7,8,9,10].sort(() => Math.random() - 0.5);
                     resultRef.set({ 
                         w1: nums[0], 
@@ -212,8 +216,10 @@
         document.getElementById('last-val').innerText = results.w1;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         
-        const w1Cell = document.getElementById(`c-${results.w1}`);
-        w1Cell.classList.add('winner-cell');
+        // ቀለሞቹን ማሳያ
+        document.getElementById(`c-${results.w1}`).classList.add('rank-1');
+        document.getElementById(`c-${results.w2}`).classList.add('rank-2');
+        document.getElementById(`c-${results.w3}`).classList.add('rank-3');
 
         let prize = 0;
         let rankText = "";
@@ -227,8 +233,8 @@
             lastResultMsg = trans[currentLang].win.replace('{r}', rankText).replace('{p}', prize);
             msg.style.color = "green";
         } else {
-            lastResultMsg = trans[currentLang].lost.replace('{n}', results.w1);
-            msg.style.color = "red";
+            lastResultMsg = trans[currentLang].lost.replace('{w1}', results.w1).replace('{w2}', results.w2).replace('{w3}', results.w3);
+            msg.style.color = "#002d4b";
         }
         msg.innerText = lastResultMsg;
 
@@ -236,9 +242,9 @@
             isResetting = true;
             gameRef.set(null); resultRef.set(null);
             document.getElementById('round-val').innerText = ++round;
-            isPlaying = false; w1Cell.classList.remove('winner-cell');
+            isPlaying = false;
             resetGridColors();
-        }, 6000);
+        }, 8000);
     }
 
     function resetGridColors() {
