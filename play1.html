@@ -10,7 +10,7 @@
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #ffffff; font-family: sans-serif; }
         .app-container { width: 100%; max-width: 400px; height: 100%; border: 3px solid #002d4b; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
         .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
-        .game-title { font-weight: 900; font-size: 18px; color: #000; }
+        .game-title { font-weight: 900; font-size: 16px; color: #000; }
         .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
         .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
@@ -37,14 +37,14 @@
         .lang-btn.active { color: #00b050; text-decoration: underline; }
 
         .promo-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 10px; }
-        .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
-        .promo-box .text { color: #002d4b; font-size: 16px; margin: 5px 0; font-weight: bold; }
-        .promo-box .win { color: #00b050; font-size: 28px; font-weight: 900; }
+        .promo-box .brand { color: #8b4513; font-size: 20px; font-weight: 900; }
+        .promo-box .text { color: #002d4b; font-size: 14px; margin: 5px 0; font-weight: bold; }
+        .promo-box .win { color: #00b050; font-size: 18px; font-weight: 900; }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">10 ብር ወደ 90 ብር</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title" id="gt">1ኛ: 60ብር | 2ኛ: 20ብር | 3ኛ: 10ብር</span><span class="plus18">18+</span></div>
     <div class="info-section"><div><span id="dt_txt">ቀን</span>: <span id="date-label"></span></div><div><span id="tm_txt">ሰዓት</span>: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ</div>
@@ -82,8 +82,8 @@
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false, lastResultMsg = "";
 
     const trans = {
-        'am': {gt:'10 ብር ወደ 90 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'ቁጥር {n} ወጥቷል! አሸንፈዋል!', lost:'ቁጥር {n} ወጥቷል! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን የመረጡት ቁጥር ከወጣ', promoWin: '90 ብር ያገኛሉ', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!'},
-        'en': {gt:'10 BIRR IN TO 90 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', win:'NUM {n} WON! YOU WON!', lost:'NUM {n} WON! TRY AGAIN', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 10 people. If your number is picked', promoWin: 'YOU GET 90 ETB', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!'}
+        'am': {gt:'1ኛ: 60 | 2ኛ: 20 | 3ኛ: 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ ', win:'እንኳን ደስ አለዎት! {r} ወጥተው {p} ብር አሸነፉ!', lost:'ቁጥር {n} ወጣ! እድል ለሌላ ጊዜ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ', promo: 'ለ 10 ተጫዋቾች ሦስት አሸናፊዎች', promoWin: '1ኛ: 60 | 2ኛ: 20 | 3ኛ: 10', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!'},
+        'en': {gt:'1st: 60 | 2nd: 20 | 3rd: 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now ', win:'Congrats! Rank {r} won {p} ETB!', lost:'Num {n} won! Try again', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: '3 Winners for 10 Players', promoWin: '60, 20, and 10 ETB Prizes', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!'}
     };
 
     if (!userPhone) {
@@ -135,8 +135,14 @@
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 if (Object.keys(snap.val() || {}).length === 10 && !isPlaying) {
-                    let win = Math.floor(Math.random() * 10) + 1;
-                    resultRef.set({ winningNum: win, status: "START_ANIMATION" });
+                    // ሦስት አሸናፊዎችን መምረጥ
+                    let nums = [1,2,3,4,5,6,7,8,9,10].sort(() => Math.random() - 0.5);
+                    resultRef.set({ 
+                        w1: nums[0], 
+                        w2: nums[1], 
+                        w3: nums[2], 
+                        status: "START_ANIMATION" 
+                    });
                 }
             });
         });
@@ -179,16 +185,16 @@
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) { isPlaying = true; runAnimation(data.winningNum); }
+        if (data && data.status === "START_ANIMATION" && !isPlaying) { isPlaying = true; runAnimation(data); }
     });
 
-    function runAnimation(win) {
+    function runAnimation(results) {
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
         let countdownInterval = setInterval(() => {
             msg.innerText = trans[currentLang].luck + timeLeft;
             timeLeft--;
-            if (timeLeft < 0) { clearInterval(countdownInterval); msg.innerText = ""; }
+            if (timeLeft < 0) { clearInterval(countdownInterval); }
         }, 1000);
 
         let counter = 0, speed = 100;
@@ -197,23 +203,31 @@
             let tempIdx = Math.floor(Math.random() * 10) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
-            if (counter >= 10000) { clearInterval(animationInterval); finishGame(win); }
+            if (counter >= 10000) { clearInterval(animationInterval); finishGame(results); }
         }, speed);
     }
 
-    function finishGame(win) {
+    function finishGame(results) {
         const msg = document.getElementById('msg-box');
-        document.getElementById('last-val').innerText = win;
+        document.getElementById('last-val').innerText = results.w1;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-        const winCell = document.getElementById(`c-${win}`);
-        winCell.classList.add('winner-cell');
+        
+        const w1Cell = document.getElementById(`c-${results.w1}`);
+        w1Cell.classList.add('winner-cell');
 
-        if(selections[win] === userName) {
-            database.ref('users/' + userPhone).update({ balance: balance + 90 });
-            lastResultMsg = trans[currentLang].win.replace('{n}', win);
+        let prize = 0;
+        let rankText = "";
+
+        if(selections[results.w1] === userName) { prize = 60; rankText = "1ኛ"; }
+        else if(selections[results.w2] === userName) { prize = 20; rankText = "2ኛ"; }
+        else if(selections[results.w3] === userName) { prize = 10; rankText = "3ኛ"; }
+
+        if(prize > 0) {
+            database.ref('users/' + userPhone).update({ balance: balance + prize });
+            lastResultMsg = trans[currentLang].win.replace('{r}', rankText).replace('{p}', prize);
             msg.style.color = "green";
         } else {
-            lastResultMsg = trans[currentLang].lost.replace('{n}', win);
+            lastResultMsg = trans[currentLang].lost.replace('{n}', results.w1);
             msg.style.color = "red";
         }
         msg.innerText = lastResultMsg;
@@ -222,9 +236,9 @@
             isResetting = true;
             gameRef.set(null); resultRef.set(null);
             document.getElementById('round-val').innerText = ++round;
-            isPlaying = false; winCell.classList.remove('winner-cell');
+            isPlaying = false; w1Cell.classList.remove('winner-cell');
             resetGridColors();
-        }, 5000);
+        }, 6000);
     }
 
     function resetGridColors() {
