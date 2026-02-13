@@ -102,7 +102,11 @@
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) { isResetting = false; isPlaying = false; resetGridColors(); }
+        if (Object.keys(selections).length === 0) { 
+            isResetting = false; 
+            isPlaying = false; 
+            resetGridColors(); 
+        }
         updateUI();
     });
 
@@ -111,16 +115,17 @@
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
         if (selections[n] && selections[n] !== userName) return;
 
+        const now = Date.now();
         if (selections[n] === userName) {
             const lastPickTime = localStorage.getItem('lastPickTime_p3_' + n);
-            if (lastPickTime && (Date.now() - lastPickTime < 20000)) {
+            if (lastPickTime && (now - lastPickTime < 20000)) {
                 database.ref('users/' + userPhone).update({ balance: balance + 20 });
                 gameRef.child(n).remove();
                 localStorage.removeItem('lastPickTime_p3_' + n);
                 msg.innerText = trans[currentLang].removed.replace('{n}', n);
                 return;
             } else {
-                msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Expired (20s)";
+                msg.innerText = "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)";
                 return;
             }
         }
@@ -128,20 +133,21 @@
         if (balance < 20) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
 
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
-        localStorage.setItem('lastPickTime_p3_' + n, Date.now());
+        localStorage.setItem('lastPickTime_p3_' + n, now);
         
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const currentData = snap.val() || {};
-                if (Object.keys(currentData).length === 20 && !isPlaying) {
+                if (Object.keys(currentData).length === 20 && !isPlaying && !isResetting) {
                     let win1 = Math.floor(Math.random() * 20) + 1;
                     let win2;
                     do { win2 = Math.floor(Math.random() * 20) + 1; } while (win2 === win1);
-                    resultRef.set({ winningNum: win1, winningNum2: win2, status: "START_ANIMATION" });
+                    resultRef.set({ winningNum: win1, winningNum2: win2, status: "START_ANIMATION", ts: now });
                 }
             });
         });
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
     }
 
     function updateUI() {
@@ -150,10 +156,11 @@
         const msg = document.getElementById('msg-box');
         const count = Object.keys(selections).length;
 
-        if (count === 0) {
+        if (count === 0 && !isPlaying) {
             header.innerText = trans[currentLang].sh;
             scrollArea.innerHTML = `<div class="promo-box"><div class="brand">${trans[currentLang].brand}</div><div class="text">${trans[currentLang].promo}</div><div class="win">${trans[currentLang].promoWin}</div></div>`;
             if(lastResultMsg !== "") msg.innerText = lastResultMsg;
+            resetGridColors();
             return;
         }
 
@@ -180,7 +187,7 @@
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
-        if (data && data.status === "START_ANIMATION" && !isPlaying) { 
+        if (data && data.status === "START_ANIMATION" && !isPlaying && !isResetting) { 
             isPlaying = true; 
             resultRef.update({ status: "RUNNING" }); 
             runAnimation(data.winningNum, data.winningNum2); 
@@ -193,7 +200,7 @@
         let countdownInterval = setInterval(() => {
             msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`;
             timeLeft--;
-            if (timeLeft < 0) { clearInterval(countdownInterval); msg.innerText = ""; }
+            if (timeLeft < 0) { clearInterval(countdownInterval); }
         }, 1000);
 
         let counter = 0, speed = 100;
@@ -202,8 +209,13 @@
             let tempIdx = Math.floor(Math.random() * 20) + 1;
             const target = document.getElementById(`c-${tempIdx}`);
             if (target) target.classList.add('anim-active');
+            
             counter += speed;
-            if (counter >= 11000) { clearInterval(animationInterval); finishGame(win1, win2); }
+            if (counter >= 11000) { 
+                clearInterval(animationInterval); 
+                clearInterval(countdownInterval);
+                finishGame(win1, win2); 
+            }
         }, speed);
     }
 
@@ -217,21 +229,21 @@
         if(cell1) cell1.classList.add('winner-cell');
         if(cell2) cell2.classList.add('winner2-cell');
 
-        let res1 = currentLang === 'am' ? `1ኛ: ቁጥር ${win1}` : `1st: Num ${win1}`;
-        let res2 = currentLang === 'am' ? `2ኛ: ቁጥር ${win2}` : `2nd: Num ${win2}`;
-        
+        let res1 = `1ኛ: ቁጥር ${win1}`;
+        let res2 = `2ኛ: ቁጥር ${win2}`;
         let statusMsg = "";
+        
         if (!isResetting) {
             if(selections[win1] === userName) {
                 database.ref('users/' + userPhone).update({ balance: balance + 330 });
-                statusMsg = currentLang === 'am' ? " - 330 ብር አሸንፈዋል!" : " - You won 330!";
+                statusMsg = " - 330 ብር አሸንፈዋል!";
                 msg.style.color = "green";
             } else if(selections[win2] === userName) {
                 database.ref('users/' + userPhone).update({ balance: balance + 20 });
-                statusMsg = currentLang === 'am' ? " - 20 ብር ተመላሽ!" : " - 20 ETB Refunded!";
+                statusMsg = " - 20 ብር ተመላሽ!";
                 msg.style.color = "blue";
             } else {
-                statusMsg = currentLang === 'am' ? " - እድል ለሌላ ጊዜ" : " - Try Again";
+                statusMsg = " - እድል ለሌላ ጊዜ";
                 msg.style.color = "red";
             }
         }
@@ -241,30 +253,30 @@
 
         setTimeout(() => {
             isResetting = true;
-            gameRef.set(null); 
-            resultRef.set(null);
+            const cleanup = {};
+            cleanup['live_game/play3'] = null;
+            cleanup['live_game/play3_result'] = null;
             
-            document.getElementById('round-val').innerText = ++round;
-            isPlaying = false; 
-            if(cell1) cell1.classList.remove('winner-cell');
-            if(cell2) cell2.classList.remove('winner2-cell');
-            resetGridColors();
-            msg.innerText = lastResultMsg;
-        }, 4000); 
+            database.ref().update(cleanup).then(() => {
+                document.getElementById('round-val').innerText = ++round;
+                isPlaying = false; 
+                isResetting = false;
+                if(cell1) cell1.classList.remove('winner-cell');
+                if(cell2) cell2.classList.remove('winner2-cell');
+                resetGridColors();
+                msg.innerText = lastResultMsg;
+            });
+        }, 5000); 
     }
 
     function resetGridColors() {
-        for(let i=1; i<=20; i++) {
-            const cell = document.getElementById(`c-${i}`);
-            if(cell) cell.className = "num-cell";
-        }
+        document.querySelectorAll('.num-cell').forEach(cell => {
+            cell.className = "num-cell";
+        });
     }
 
     function setLang(l) { 
         currentLang = l; 
-        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; }
-        document.getElementById('l-am').classList.toggle('active', l === 'am');
-        document.getElementById('l-en').classList.toggle('active', l === 'en');
         updateUI();
         updateDateTime(); 
     }
@@ -275,17 +287,12 @@
         let ethH = h >= 6 ? h - 6 : h + 6;
         if (ethH > 12) ethH -= 12;
         if (ethH === 0) ethH = 12;
-        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
+        let ampm = h >= 18 || h < 6 ? 'ማታ' : 'ቀን';
         document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
         
-        if (currentLang === 'am') {
-            const startOfYekatit = new Date(2026, 1, 8); 
-            const diffTime = now - startOfYekatit;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            document.getElementById('date-label').innerText = "የካቲት " + diffDays + ", 2018";
-        } else {
-            document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
-        }
+        const startOfYekatit = new Date(2026, 1, 8); 
+        const diffDays = Math.floor((now - startOfYekatit) / (1000 * 60 * 60 * 24)) + 1;
+        document.getElementById('date-label').innerText = "የካቲት " + diffDays + ", 2018";
     }
 
     setInterval(updateDateTime, 1000);
