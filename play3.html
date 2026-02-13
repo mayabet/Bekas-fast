@@ -37,7 +37,6 @@
         .lang-btn { cursor: pointer; color: #002d4b; }
         .lang-btn.active { color: #00b050; text-decoration: underline; }
         .count-span { color: #ff0000; font-weight: 900; font-size: 20px; }
-
         .promo-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 10px; }
         .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
         .promo-box .text { color: #002d4b; font-size: 16px; margin: 5px 0; font-weight: bold; }
@@ -77,6 +76,8 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    
+    // Play 3 Path
     const gameRef = database.ref('live_game/play3'); 
     const resultRef = database.ref('live_game/play3_result');
 
