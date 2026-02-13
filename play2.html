@@ -83,7 +83,8 @@
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false, lastResultMsg = "";
 
     const trans = {
-        'am': {gt:'10 ብር 1ኛ 170 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 170ብር | 2ኛ 10ብር', welcome: 'እንኳን ደህና መጡ!', low_balance: 'በቂ ሂሳብ የሎትም!'}
+        'am': {gt:'10 ብር 1ኛ 170 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 170ብር | 2ኛ 10ብር', welcome: 'እንኳን ደህና መጡ!', low_balance: 'በቂ ሂሳብ የሎትም!'},
+        'en': {gt:'10 ETB 1st 170 2nd 10', bl:'BALANCE', ins:'CHOOSE 1 TO 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED', bb:'BACK', ll:'LANG', luck:'DRAWING: ', pick:'NUM {n} PICKED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'WAIT...', brand: 'BUNAMAW PICKER', promo: '20 players game. 1st & 2nd Win', promoWin: '1st 170 | 2nd 10', welcome: 'Welcome!', low_balance: 'Low Balance!'}
     };
 
     if (!userPhone) window.location.replace("index.html");
@@ -101,7 +102,10 @@
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0) { isResetting = false; isPlaying = false; resetGridColors(); }
+        if (Object.keys(selections).length === 0 && !isPlaying) { 
+            isResetting = false; 
+            resetGridColors(); 
+        }
         updateUI();
     });
 
@@ -159,11 +163,6 @@
             return;
         }
 
-        if (count > 0 && !isPlaying) {
-            msg.innerText = trans[currentLang].welcome;
-            msg.style.color = "#002d4b";
-        }
-
         scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
         const table = document.getElementById('sel-table');
         for(let i=1; i<=20; i++) {
@@ -182,10 +181,15 @@
 
     resultRef.on('value', (snap) => {
         const data = snap.val();
+        const now = Date.now();
         if (data && data.status === "START_ANIMATION" && !isPlaying && !isResetting) { 
-            isPlaying = true; 
-            resultRef.update({ status: "RUNNING" }); 
-            runAnimation(data.winningNum, data.winningNum2); 
+            if (now - data.ts < 30000) {
+                isPlaying = true; 
+                resultRef.update({ status: "RUNNING" }); 
+                runAnimation(data.winningNum, data.winningNum2); 
+            } else {
+                resultRef.set(null); // ጊዜ ያለፈበትን አፅዳ
+            }
         }
     });
 
@@ -256,8 +260,6 @@
                 document.getElementById('round-val').innerText = ++round;
                 isPlaying = false; 
                 isResetting = false;
-                if(cell1) cell1.classList.remove('winner-cell');
-                if(cell2) cell2.classList.remove('winner2-cell');
                 resetGridColors();
                 msg.innerText = lastResultMsg;
             });
@@ -266,12 +268,16 @@
 
     function resetGridColors() {
         document.querySelectorAll('.num-cell').forEach(cell => {
+            cell.classList.remove('anim-active', 'winner-cell', 'winner2-cell', 'user-selected', 'taken-cell');
             cell.className = "num-cell";
         });
     }
 
     function setLang(l) { 
         currentLang = l; 
+        for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; }
+        document.getElementById('l-am').classList.toggle('active', l === 'am');
+        document.getElementById('l-en').classList.toggle('active', l === 'en');
         updateUI();
         updateDateTime(); 
     }
@@ -283,16 +289,27 @@
         if (ethH > 12) ethH -= 12;
         if (ethH === 0) ethH = 12;
         let ampm = h >= 18 || h < 6 ? 'ማታ' : 'ቀን';
-        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
+        const timeStr = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
+        document.getElementById('time-label').innerText = timeStr;
         
         const startOfYekatit = new Date(2026, 1, 8); 
-        const diffTime = now - startOfYekatit;
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        const diffDays = Math.floor((now - startOfYekatit) / (1000 * 60 * 60 * 24)) + 1;
         document.getElementById('date-label').innerText = "የካቲት " + diffDays + ", 2018";
     }
 
     setInterval(updateDateTime, 1000);
-    window.onload = function() { setLang('am'); updateDateTime(); };
+    window.onload = function() { 
+        setLang('am'); 
+        updateDateTime(); 
+        // Cleanup on load
+        resultRef.once('value', (snap) => {
+            const data = snap.val();
+            if (data && (data.status === "RUNNING" || (Date.now() - data.ts > 60000))) {
+                resultRef.set(null);
+                gameRef.set(null);
+            }
+        });
+    };
 </script>
 </body>
 </html>
