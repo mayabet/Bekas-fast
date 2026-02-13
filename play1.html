@@ -10,7 +10,7 @@
         html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #ffffff; font-family: sans-serif; }
         .app-container { width: 100%; max-width: 400px; height: 100%; border: 3px solid #002d4b; margin: 0 auto; display: flex; flex-direction: column; box-sizing: border-box; }
         .yellow-banner { background: #ffcc00; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #002d4b; flex-shrink: 0; }
-        .game-title { font-weight: 900; font-size: 18px; color: #000; }
+        .game-title { font-weight: 900; font-size: 16px; color: #000; }
         .plus18 { color: #ff0000; font-weight: 900; font-size: 24px; }
         .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
@@ -45,13 +45,13 @@
 </head>
 <body>
 <div class="app-container">
-    <div class="yellow-banner"><span class="game-title" id="gt">10 ብር ወደ 80 ብር</span><span class="plus18">18+</span></div>
+    <div class="yellow-banner"><span class="game-title" id="gt">10 ብር 1ኛ 80 2ኛ 10</span><span class="plus18">18+</span></div>
     <div class="info-section"><div><span id="dt_txt">ቀን</span>: <span id="date-label"></span></div><div><span id="tm_txt">ሰዓት</span>: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
     <div class="instruction" id="ins">ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900; font-size: 13px;">እንኳን ደህና መጡ!</td></tr>
+        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900; font-size: 12px;">እንኳን ደህና መጡ!</td></tr>
         <tr><td class="bg-green" id="rn">ዙር</td><td id="round-val">1</td><td class="bg-green" id="ls">ያለፈው</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
@@ -83,8 +83,8 @@
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false, lastResultMsg = "";
 
     const trans = {
-        'am': {gt:'10 ብር ወደ 80 ብር', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '80 ብር ያገኛሉ', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!'},
-        'en': {gt:'10 BIRR IN TO 80 BIRR', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 10 people. 1st & 2nd winner', promoWin: 'YOU GET 80 ETB', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!'}
+        'am': {gt:'10 ብር 1ኛ 80 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 80 | 2ኛ 10', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!'},
+        'en': {gt:'10 BIRR 1st 80 2nd 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 10 people. 1st & 2nd winner', promoWin: '1st 80 | 2nd 10', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!'}
     };
 
     if (!userPhone) {
@@ -213,8 +213,8 @@
         cell1.classList.add('winner-cell');
         cell2.classList.add('winner2-cell');
 
-        let res1 = currentLang === 'am' ? `1ኛ እጣ: ቁጥር ${win1}` : `1st: Num ${win1}`;
-        let res2 = currentLang === 'am' ? `2ኛ እጣ: ቁጥር ${win2}` : `2nd: Num ${win2}`;
+        let res1 = currentLang === 'am' ? `1ኛ: ቁጥር ${win1}` : `1st: Num ${win1}`;
+        let res2 = currentLang === 'am' ? `2ኛ: ቁጥር ${win2}` : `2nd: Num ${win2}`;
         
         let statusMsg = "";
         if(selections[win1] === userName) {
@@ -223,7 +223,7 @@
             msg.style.color = "green";
         } else if(selections[win2] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
-            statusMsg = currentLang === 'am' ? " - 10 ብር ተመላሽ!" : " - 10 ETB Refunded!";
+            statusMsg = currentLang === 'am' ? " - 10 ብር ተመላሽ!" : " - 10 ETB Refund!";
             msg.style.color = "blue";
         } else {
             statusMsg = currentLang === 'am' ? " - እድል ለሌላ ጊዜ" : " - Try Again";
