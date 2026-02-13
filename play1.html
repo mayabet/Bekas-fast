@@ -41,6 +41,7 @@
         .promo-box .brand { color: #8b4513; font-size: 22px; font-weight: 900; }
         .promo-box .text { color: #002d4b; font-size: 16px; margin: 5px 0; font-weight: bold; }
         .promo-box .win { color: #00b050; font-size: 28px; font-weight: 900; }
+        .count-span { color: #ff0000; font-weight: 900; font-size: 20px; }
     </style>
 </head>
 <body>
@@ -51,7 +52,7 @@
     <div class="instruction" id="ins">ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
-        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900; font-size: 12px;">እንኳን ደህና መጡ!</td></tr>
+        <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900; font-size: 14px; min-height: 25px;">እንኳን ደህና መጡ!</td></tr>
         <tr><td class="bg-green" id="rn">ዙር</td><td id="round-val">1</td><td class="bg-green" id="ls">ያለፈው</td><td id="last-val">0</td></tr>
     </table>
     <div class="list-container">
@@ -84,7 +85,7 @@
 
     const trans = {
         'am': {gt:'10 ብር 1ኛ 80 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 80 | 2ኛ 10', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!'},
-        'en': {gt:'10 BIRR 1st 80 2nd 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 10 people. 1st & 2nd winner', promoWin: '1st 80 | 2nd 10', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!'}
+        'en': {gt:'10 BIRR 1st 80 2nd 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 10 people. 1st & 2nd winners', promoWin: '1st 80 | 2nd 10', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!'}
     };
 
     if (!userPhone) {
@@ -188,7 +189,8 @@
         let timeLeft = 10;
         const msg = document.getElementById('msg-box');
         let countdownInterval = setInterval(() => {
-            msg.innerText = trans[currentLang].luck + timeLeft;
+            // የሰከንድ ቆጣሪው በቀይ እና በደማቅ እንዲወጣ
+            msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`;
             timeLeft--;
             if (timeLeft < 0) { clearInterval(countdownInterval); msg.innerText = ""; }
         }, 1000);
@@ -223,7 +225,7 @@
             msg.style.color = "green";
         } else if(selections[win2] === userName) {
             database.ref('users/' + userPhone).update({ balance: balance + 10 });
-            statusMsg = currentLang === 'am' ? " - 10 ብር ተመላሽ!" : " - 10 ETB Refund!";
+            statusMsg = currentLang === 'am' ? " - 10 ብር ተመላሽ!" : " - 10 ETB Refunded!";
             msg.style.color = "blue";
         } else {
             statusMsg = currentLang === 'am' ? " - እድል ለሌላ ጊዜ" : " - Try Again";
