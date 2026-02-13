@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bunamaw - Play 4</title>
+    <title>Bunamaw - Play 4 (20 Birr)</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -15,7 +15,7 @@
         .info-section { padding: 6px 12px; color: #002d4b; font-weight: 900; font-size: 14px; flex-shrink: 0; border-bottom: 2px solid #002d4b; }
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
-        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
+        .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; overflow-y: auto; max-height: 200px; }
         .num-cell { border: 1px solid #002d4b; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
@@ -48,7 +48,7 @@
     <div class="yellow-banner"><span class="game-title" id="gt">20 ብር 1ኛ 880 2ኛ 20</span><span class="plus18">18+</span></div>
     <div class="info-section"><div>ቀን: <span id="date-label"></span></div><div>ሰዓት: <span id="time-label"></span></div></div>
     <div class="balance-bar"><span id="bl">ቀሪ ሂሳብ</span><span><span id="cash">0.00</span> <small>ETB</small></span></div>
-    <div class="instruction" id="ins">ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ</div>
+    <div class="instruction" id="ins">ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ</div>
     <div class="number-grid" id="grid-container"></div>
     <table class="stats-table">
         <tr><td class="bg-green" id="ms">መልዕክት</td><td colspan="3" id="msg-box" style="font-weight: 900; font-size: 14px;">እንኳን ደህና መጡ!</td></tr>
@@ -76,29 +76,27 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-    
-    // Play 4 Path
     const gameRef = database.ref('live_game/play4'); 
     const resultRef = database.ref('live_game/play4_result');
 
-    const loggedUser = localStorage.getItem('loggedUser'); 
+    const userPhone = localStorage.getItem('loggedUser'); 
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false, lastResultMsg = "";
 
     const trans = {
-        'am': {gt:'20 ብር 1ኛ 880 2ኛ 20', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 880 | 2ኛ 20', welcome: 'እንኳን ደህና መጡ!'},
-        'en': {gt:'20 BIRR 1st 880 2nd 20', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. 1st & 2nd winners', promoWin: '1st 880 | 2nd 20', welcome: 'Welcome!'}
+        'am': {gt:'20 ብር 1ኛ 880 2ኛ 20', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 50 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 50 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 880 | 2ኛ 20', welcome: 'እንኳን ደህና መጡ!'},
+        'en': {gt:'20 BIRR 1st 880 2nd 20', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 50', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 50 people. 1st & 2nd winners', promoWin: '1st 880 | 2nd 20', welcome: 'Welcome!'}
     };
 
-    if (!loggedUser) window.location.replace("index.html");
+    if (!userPhone) window.location.replace("index.html");
     else {
-        database.ref('users/' + loggedUser).on('value', (snapshot) => {
+        database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
         });
     }
 
     const grid = document.getElementById('grid-container');
-    for(let i=1; i<=20; i++) {
+    for(let i=1; i<=50; i++) {
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
@@ -117,7 +115,7 @@
         if (selections[n] === userName) {
             const lastPickTime = localStorage.getItem('lastPickTime_p4_' + n);
             if (lastPickTime && (now - lastPickTime < 20000)) {
-                database.ref('users/' + loggedUser).update({ balance: balance + 20 });
+                database.ref('users/' + userPhone).update({ balance: balance + 20 });
                 gameRef.child(n).remove();
                 localStorage.removeItem('lastPickTime_p4_' + n);
                 msg.innerText = trans[currentLang].removed.replace('{n}', n);
@@ -130,15 +128,16 @@
 
         if (balance < 20) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
 
-        database.ref('users/' + loggedUser).update({ balance: balance - 20 });
+        database.ref('users/' + userPhone).update({ balance: balance - 20 });
         localStorage.setItem('lastPickTime_p4_' + n, Date.now());
         
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
-                if (Object.keys(snap.val() || {}).length === 20 && !isPlaying) {
-                    let win1 = Math.floor(Math.random() * 20) + 1;
+                // ለ 50 ሰው የተዘጋጀ
+                if (Object.keys(snap.val() || {}).length === 50 && !isPlaying) {
+                    let win1 = Math.floor(Math.random() * 50) + 1;
                     let win2;
-                    do { win2 = Math.floor(Math.random() * 20) + 1; } while (win2 === win1);
+                    do { win2 = Math.floor(Math.random() * 50) + 1; } while (win2 === win1);
                     resultRef.set({ winningNum: win1, winningNum2: win2, status: "START_ANIMATION" });
                 }
             });
@@ -166,7 +165,7 @@
 
         scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
         const table = document.getElementById('sel-table');
-        for(let i=1; i<=20; i++) {
+        for(let i=1; i<=50; i++) {
             const cell = document.getElementById(`c-${i}`);
             let occupant = selections[i] || "";
             if (occupant === userName) cell.className = "num-cell user-selected";
@@ -194,10 +193,10 @@
             if (timeLeft < 0) { clearInterval(countdownInterval); msg.innerText = ""; }
         }, 1000);
 
-        let counter = 0, speed = 100;
+        let counter = 0, speed = 80;
         let animationInterval = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-            let tempIdx = Math.floor(Math.random() * 20) + 1;
+            let tempIdx = Math.floor(Math.random() * 50) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
             if (counter >= 11000) { clearInterval(animationInterval); finishGame(win1, win2); }
@@ -219,11 +218,11 @@
         
         let statusMsg = "";
         if(selections[win1] === userName) {
-            database.ref('users/' + loggedUser).update({ balance: balance + 880 });
+            database.ref('users/' + userPhone).update({ balance: balance + 880 });
             statusMsg = currentLang === 'am' ? " - 880 ብር አሸንፈዋል!" : " - You won 880!";
             msg.style.color = "green";
         } else if(selections[win2] === userName) {
-            database.ref('users/' + loggedUser).update({ balance: balance + 20 });
+            database.ref('users/' + userPhone).update({ balance: balance + 20 });
             statusMsg = currentLang === 'am' ? " - 20 ብር ተመላሽ!" : " - 20 ETB Refunded!";
             msg.style.color = "blue";
         } else {
@@ -247,7 +246,7 @@
     }
 
     function resetGridColors() {
-        for(let i=1; i<=20; i++) {
+        for(let i=1; i<=50; i++) {
             const cell = document.getElementById(`c-${i}`);
             if(cell) cell.className = "num-cell";
         }
@@ -275,7 +274,7 @@
             const startOfYekatit = new Date(2026, 1, 8); 
             const diffTime = now - startOfYekatit;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            document.getElementById('date-label').innerText = "የካቲት " + diffDays + " ቀን 2018";
+            document.getElementById('date-label').innerText = "የካቲት " + diffDays + ", 2018";
         } else {
             document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
         }
