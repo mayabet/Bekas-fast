@@ -22,15 +22,12 @@
         .winner-cell { background-color: #ffcc00 !important; color: #000 !important; border: 2px solid #002d4b; }
         .winner2-cell { background-color: #00b050 !important; color: #fff !important; }
         
-        /* ውጤቶች ዝርዝር */
         .list-container { margin: 5px; border: 2px solid #002d4b; flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
         .selected-header { background: #002d4b; color: #ffcc00; text-align: center; font-weight: 900; padding: 6px; font-size: 14px; }
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .history-table { width: 100%; border-collapse: collapse; }
         .history-table td { border-bottom: 1px solid #ddd; padding: 6px 10px; font-weight: 900; font-size: 12px; }
         .round-head { background: #eee; color: #002d4b; font-size: 11px; padding: 3px 10px !important; border-bottom: 2px solid #002d4b !important; }
-        .win1-tag { color: #d4a017; } /* 1st Gold */
-        .win2-tag { color: #00b050; } /* 2nd Green */
         
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 10px; text-align: center; color: white; font-weight: bold; text-decoration: none; background: #002d4b; border-radius: 4px; }
@@ -54,7 +51,7 @@
     </div>
 
     <div class="list-container">
-        <div class="selected-header" id="list-title">የተመረጡ ቁጥሮች</div>
+        <div class="selected-header">የተመረጡ እና ያለፉ ውጤቶች</div>
         <div class="scroll-area" id="scroll-ui">
             <table class="history-table" id="main-table"></table>
         </div>
@@ -86,7 +83,6 @@
         if(snap.val()){ userName = snap.val().username; balance = snap.val().balance; document.getElementById('cash').innerText = balance.toFixed(2); }
     });
 
-    // Grid መፍጠሪያ
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=10; i++) {
         let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i;
@@ -110,38 +106,38 @@
         }
     }
 
-    // ዋናው የUI ማደሻ ፈንክሽን
     function updateUI() {
         const table = document.getElementById('main-table');
-        const title = document.getElementById('list-title');
-        const count = Object.keys(selections).length;
+        let html = "";
 
-        // 1. ጨዋታው ገና ከሆነ እና ሰዎች እየመረጡ ከሆነ
-        if (count > 0 || isPlaying) {
-            title.innerText = "የተመረጡ ቁጥሮች (" + count + ")";
-            let html = "";
+        // 1. የተመረጡ ቁጥሮች (ካሉ)
+        const selectedCount = Object.keys(selections).length;
+        if (selectedCount > 0) {
+            html += `<tr><td colspan="2" class="round-head" style="background:#00b050; color:#fff; text-align:center;">የአሁኑ ተመራጮች (${selectedCount})</td></tr>`;
             for(let i=1; i<=10; i++) {
                 const cell = document.getElementById(`c-${i}`);
-                cell.className = "num-cell";
+                if(!isPlaying) cell.className = "num-cell";
                 if(selections[i]) {
-                    cell.classList.add(selections[i] === userName ? "user-selected" : "taken-cell");
+                    if(!isPlaying) cell.classList.add(selections[i] === userName ? "user-selected" : "taken-cell");
                     html += `<tr><td style="width:30px; text-align:center; background:#eee;">${i}</td><td>${selections[i]}</td></tr>`;
                 }
             }
-            table.innerHTML = html;
-        } 
-        // 2. ጨዋታው ካልተጀመረ ያለፉትን 5 ዙር አሳይ
-        else {
-            title.innerText = "ያለፉት 5 ዙር ውጤቶች";
-            resetGrid();
-            let html = "";
+        }
+
+        // 2. ያለፉት 5 ውጤቶች (ሁልጊዜ ይታያሉ)
+        if (history.length > 0) {
+            html += `<tr><td colspan="2" class="round-head" style="background:#ffcc00; color:#000; text-align:center;">ያለፉት 5 ውጤቶች</td></tr>`;
             history.forEach(res => {
                 html += `<tr><td colspan="2" class="round-head">ዙር ${res.r}</td></tr>`;
-                html += `<tr><td style="color:#d4a017; font-weight:bold;">${res.n1}</td><td>${res.u1} (1ኛ እጣ 80 ብር)</td></tr>`;
-                html += `<tr><td style="color:#00b050; font-weight:bold;">${res.n2}</td><td>${res.u2} (2ኛ እጣ እራሱን ችሏል)</td></tr>`;
+                html += `<tr><td style="color:#d4a017; font-weight:bold; width:30px; text-align:center;">${res.n1}</td><td>${res.u1} (1ኛ እጣ 80 ብር)</td></tr>`;
+                html += `<tr><td style="color:#00b050; font-weight:bold; width:30px; text-align:center;">${res.n2}</td><td>${res.u2} (2ኛ እጣ እራሱን ችሏል)</td></tr>`;
             });
-            table.innerHTML = html || "<tr><td style='text-align:center; padding:20px;'>ምንም የተመዘገበ ውጤት የለም</td></tr>";
+        } else if (selectedCount === 0) {
+            html = "<tr><td style='text-align:center; padding:20px;'>ምንም የተመዘገበ ውጤት የለም</td></tr>";
         }
+
+        table.innerHTML = html;
+        if (selectedCount === 0 && !isPlaying) resetGrid();
     }
 
     resultRef.on('value', snap => {
@@ -169,12 +165,11 @@
     }
 
     function showWinner(w1, w2) {
-        document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
+        document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active', 'user-selected', 'taken-cell'));
         document.getElementById(`c-${w1}`).classList.add('winner-cell');
         document.getElementById(`c-${w2}`).classList.add('winner2-cell');
         document.getElementById('last-val').innerText = w1;
 
-        // ውጤቱን መዝግብ
         const res = { r: round, n1: w1, u1: selections[w1] || "---", n2: w2, u2: selections[w2] || "---" };
         history.unshift(res);
         if(history.length > 5) history.pop();
@@ -195,7 +190,11 @@
     }
 
     function resetGrid() {
-        document.querySelectorAll('.num-cell').forEach(c => c.className = "num-cell");
+        document.querySelectorAll('.num-cell').forEach(c => {
+            if (!c.classList.contains('winner-cell') && !c.classList.contains('winner2-cell')) {
+                c.className = "num-cell";
+            }
+        });
     }
 
     function updateTime() {
