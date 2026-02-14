@@ -30,11 +30,9 @@
             border: 1px solid #cfe0eb; 
             display: flex;
             flex-direction: column;
-            /* የካርዱ ቁመት ከ home.html ጋር እንዲመሳሰል ተደርጓል */
             height: 85vh; 
         }
 
-        /* Top Bar */
         .top-bar { 
             background: #002d4b; 
             padding: 12px 15px; 
@@ -47,7 +45,6 @@
         .plus18 { color: #ff8c00; font-size: 24px; font-weight: 900; }
         .header-line { height: 3px; background: #ff8c00; width: 100%; }
 
-        /* Rules Content Area */
         .content { 
             padding: 15px; 
             overflow-y: auto; 
@@ -64,12 +61,31 @@
         .rule-number { color: #ff8c00; font-weight: 900; margin-right: 10px; }
         .rule-text { font-weight: 700; color: #002d4b; font-size: 13.5px; line-height: 1.5; }
 
-        /* Contact Section */
-        .contact-box { background: #f9f9f9; padding: 10px 15px; border-top: 1px solid #ddd; }
-        .contact-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 5px 0; font-size: 13px; font-weight: 800; color: #002d4b; }
-        .c-val { color: #ff0000; }
+        /* Highlight Styles for Rules */
+        .red-text { color: #ff0000; font-weight: 900; }
+        .brown-text { color: #8B4513; font-weight: 900; }
 
-        /* Bottom Action: Back Button Only */
+        /* Contact Section Styling */
+        .contact-box { background: #f9f9f9; padding: 10px 15px; border-top: 1px solid #ddd; }
+        .contact-row { 
+            display: flex; 
+            justify-content: space-between; 
+            border-bottom: 1px solid #eee; 
+            padding: 5px 0; 
+            font-size: 13px; 
+            font-weight: 800; 
+        }
+        .contact-link { 
+            text-decoration: none; 
+            display: flex; 
+            justify-content: space-between; 
+            width: 100%; 
+        }
+        
+        /* አረንጓዴ ቀለሞች እዚህ ጋር ተስተካክለዋል */
+        .c-label { color: #006400; } /* Dark Green for Labels */
+        .c-val-green { color: #008000; } /* Green for Values/Numbers */
+
         .bottom-action {
             padding: 12px 15px;
             background: #fff;
@@ -82,7 +98,7 @@
             color: white; 
             border: none; 
             border-radius: 8px; 
-            width: 100%; /* ሙሉ ስፋት እንዲይዝ */
+            width: 100%; 
             padding: 12px 0; 
             font-weight: 800; 
             font-size: 16px; 
@@ -91,7 +107,6 @@
             text-align: center;
         }
 
-        /* Footer Language */
         .footer { 
             padding: 10px 15px; 
             border-top: 2px solid #002d4b; 
@@ -120,8 +135,21 @@
     <div class="content" id="rules-container"></div>
 
     <div class="contact-box">
-        <div class="contact-row"><span>TELEBIRR:</span> <span class="c-val">0978272061</span></div>
-        <div class="contact-row"><span>TELEGRAM:</span> <span style="color:#0088cc">@bekasfastbot</span></div>
+        <div class="contact-row">
+            <a href="tel:+251978272061" class="contact-link">
+                <span class="c-label">TELEBIRR:</span> <span class="c-val-green">+251978272061</span>
+            </a>
+        </div>
+        <div class="contact-row">
+            <a href="tel:+251911121212" class="contact-link">
+                <span class="c-label">LINE 2:</span> <span class="c-val-green">+251911121212</span>
+            </a>
+        </div>
+        <div class="contact-row">
+            <a href="https://t.me/Bunamawbot" class="contact-link">
+                <span class="c-label">TELEGRAM:</span> <span class="c-val-green">@Bunamawbot</span>
+            </a>
+        </div>
     </div>
 
     <div class="bottom-action">
@@ -142,28 +170,28 @@
 
     const rulesData = {
         am: [
-            "የቴሌ ብር መቀበያ ቁጥራችን 0978272061 ነው፤ ገንዘብ ሲልኩ የትራንዛክሽን ቁጥር እና የገንዘቡን መጠን አብረው ማስገባትዎን አይዘንጉ።",
+            "የቴሌ ብር መቀበያ ቁጥራችን <span class='red-text'>0978272061</span> ነዉ ገንዘቡን ከላኩ በኋላ ከቴሌ የገባሎትን sms በ ገንዘብ ማስገቢያዉ ላይ ባለዉ የመልክት ማስገቢያ ይለጥፉ ሲስተሙ ከላኩት ገንዘብ ጋር አስተያይቶ ገቢ ይሆናል።",
             "ጨዋታዎች ሁሉ በ10 ብር እና በ10 ብዜቶች ስለሆኑ ድፍን ቁጥሮችን ብቻ ይጠቀሙ።",
             "ማንኛውም ጨዋታ ጨዋታው ከመካሄዱ በፊት መሆን አለበት።",
-            "በ Mita Betting ከ10 ብር በታች ምንም ዓይነት የጨዋታ ዓይነት የለም።",
+            "በ <span class='brown-text'>ቡናማው</span> ፈጣን ከ10 ብር በታች ምንም ዓይነት የጨዋታ ዓይነት የለም።",
             "ተጫዋቾች የጠየቁት ገንዘብ በ10 ደቂቃ ባልሞላ ጊዜ ውስጥ ገቢ ይሆናል።",
             "የአሸናፊነት ገንዘብ የሚላከው አካውንቱ በተከፈተበት ስልክ ቁጥር ነው።",
             "ቁጥሮች ተይዘው እስካልተለቀቁ ድረስ እንደተያዙ ነው የሚቆጠረው።",
             "በዚህ ጨዋታ በጊዜያዊነት የሚከፈለው 900 ETB ሲሆን፣ በቀጣይ እስከ 20,000 ETB የሚያደርሱ አማራጮች ይጠብቁዎታል።",
-            "ተጫዋቾች ለሚገጥማቸው ችግር Mita Betting ሙሉ ኃላፊነቱን ይወስዳል።",
+            "ተጫዋቾች ለሚገጥማቸው ችግር <span class='brown-text'>ቡናማው</span> ፈጣን ምላሽ እና ሙሉ ኃላፊነቱን ይወስዳል።",
             "ጥያቄዎትን በማንኛውም ሰዓት እናስተናግዳለን።",
             "በኃላፊነት ይጫወቱ። መልካም ዕድል!"
         ],
         en: [
-            "Our Telebirr receiver number is 0978272061; don't forget to include the transaction number.",
+            "Our Telebirr receiver number is <span class='red-text'>0978272061</span>. After sending the money, paste the SMS you received from Telebirr into the message input field. The system will verify and deposit it.",
             "All games are in 10 ETB and multiples of 10, use round numbers only.",
             "Any play must be made before the game takes place.",
-            "In Mita Betting, there is no type of game below 10 ETB.",
+            "In <span class='brown-text'>Bunamaw</span> Fast, there is no type of game below 10 ETB.",
             "Requested withdrawals will be processed within less than 10 minutes.",
             "Winnings will be sent to the registered phone number.",
             "Numbers are considered held until they are released.",
             "The temporary payout is 900 ETB, with future options up to 20,000 ETB.",
-            "Mita Betting takes full responsibility for any game errors.",
+            "<span class='brown-text'>Bunamaw</span> Fast takes full responsibility and provides quick responses for any issues.",
             "We are available 24/7 to address your questions.",
             "Play responsibly. Good luck!"
         ]
