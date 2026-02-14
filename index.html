@@ -46,7 +46,7 @@
 <body>
 <div class="card">
     <div class="yellow-bar">
-        <span id="promo-tag">የቁጥር ጨዋታ ማጫወቻ</span>
+        <span id="promo-tag">የቁጥር እጣ ጨዋታ ማጫወቻ እጣ</span>
         <span style="color:#ff8c00; font-size:26px; font-weight: 1000;">18+</span>
     </div>
     <div class="header-line"></div>
@@ -128,8 +128,6 @@
             if (ethHours > 12) ethHours -= 12;
             if (ethHours === 0) ethHours = 12;
 
-            // የካቲት 4 2018 (በየቀኑ ራሱ እንዲቀየር የተሰራ)
-            // ዛሬ Feb 11 (GC) ከሆነ የካቲት 4 (EC) እንዲሆን የቀን ልዩነቱን እንጠቀም
             const startGC = new Date(2026, 1, 11); 
             const diffTime = n - startGC;
             const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
@@ -167,7 +165,7 @@
         document.getElementById('motto').innerHTML = isAm ? 
             "በቡናማዉ ትርፍ እንጂ ኪሳራ የለም!<br>የጨዋታ ፍላጎትዎን ለማርካት ዝግጁ ነን!" : 
             "WITH BUNAMAW THERE IS ONLY PROFIT!";
-        document.getElementById('promo-tag').innerText = isAm ? "የቁጥር ጨዋታ ማጫወቻ" : "NUMBER GAME PLAYER";
+        document.getElementById('promo-tag').innerText = isAm ? "የቁጥር እጣ ጨዋታ ማጫወቻ እጣ" : "NUMBER LOTTERY GAME PLAYER";
         const onlineText = isAm ? 'ሰዎች አሁን እየተጫወቱ ነው' : 'PEOPLE ARE PLAYING NOW';
         const currentCount = document.getElementById('online-count').innerText;
         document.getElementById('online-area').innerHTML = `<span class="live-dot"></span> <span id="online-count">${currentCount}</span> ${onlineText}`;
