@@ -156,11 +156,13 @@
             });
         });
         msg.innerText = trans[currentLang].pick.replace('{n}', n);
+        msg.style.color = "#002d4b";
     }
 
     function updateUI() {
         const scrollArea = document.getElementById('scroll-ui');
         const header = document.getElementById('sh');
+        const msg = document.getElementById('msg-box');
         const count = Object.keys(selections).length;
 
         if (count === 0 && !isPlaying) {
@@ -176,6 +178,8 @@
                 header.innerText = trans[currentLang].sh;
                 scrollArea.innerHTML = `<div class="promo-box"><div style="color:#8b4513; font-size:22px; font-weight:900;">${trans[currentLang].brand}</div><div style="color:#002d4b; font-size:16px; margin:5px 0; font-weight:bold;">${trans[currentLang].promo}</div><div style="color:#00b050; font-size:28px; font-weight:900;">${trans[currentLang].promoWin}</div></div>`;
             }
+            if(lastResultMsg !== "") msg.innerText = lastResultMsg;
+            resetGridColors();
             return;
         }
 
@@ -251,22 +255,28 @@
 
         lastWinners = { n1: win1, u1: selections[win1] || "---", n2: win2, u2: selections[win2] || "---" };
 
+        let res1 = currentLang === 'am' ? `1ኛ: ቁጥር ${win1}` : `1st: Num ${win1}`;
+        let res2 = currentLang === 'am' ? `2ኛ: ቁጥር ${win2}` : `2nd: Num ${win2}`;
         let statusMsg = "";
+        
         const currentRoundId = win1 + "_" + win2 + "_" + Date.now().toString().slice(0,7);
         if (localStorage.getItem('lastChecked_p4') !== currentRoundId) {
             if(selections[win1] === userName) {
                 database.ref('users/' + userPhone).update({ balance: balance + 880 });
-                statusMsg = " - 880 ብር አሸንፈዋል!"; msg.style.color = "green";
+                statusMsg = currentLang === 'am' ? " - 880 ብር አሸንፈዋል!" : " - You won 880!";
+                msg.style.color = "green";
             } else if(selections[win2] === userName) {
                 database.ref('users/' + userPhone).update({ balance: balance + 20 });
-                statusMsg = " - 20 ብር ተመላሽ!"; msg.style.color = "blue";
+                statusMsg = currentLang === 'am' ? " - 20 ብር ተመላሽ!" : " - 20 Refunded!";
+                msg.style.color = "blue";
             } else {
-                statusMsg = " - እድል ለሌላ ጊዜ"; msg.style.color = "red";
+                statusMsg = currentLang === 'am' ? " - እድል ለሌላ ጊዜ" : " - Try Again";
+                msg.style.color = "red";
             }
             localStorage.setItem('lastChecked_p4', currentRoundId);
         }
         
-        lastResultMsg = (currentLang === 'am' ? `1ኛ: ቁጥር ${win1}` : `1st: Num ${win1}`) + statusMsg;
+        lastResultMsg = res1 + " | " + res2 + statusMsg;
         msg.innerText = lastResultMsg;
 
         setTimeout(() => {
