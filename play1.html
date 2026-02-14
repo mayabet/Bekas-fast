@@ -142,7 +142,8 @@
                     let win1 = Math.floor(Math.random() * 10) + 1;
                     let win2;
                     do { win2 = Math.floor(Math.random() * 10) + 1; } while (win2 === win1);
-                    resultRef.set({ winningNum: win1, winningNum2: win2, status: "START_ANIMATION", timestamp: Date.now() });
+                    // እዚህ ጋር startTime እንጨምራለን ለ Sync እንዲረዳ
+                    resultRef.set({ winningNum: win1, winningNum2: win2, status: "START_ANIMATION", timestamp: Date.now(), startTime: Date.now() });
                 }
             });
         });
@@ -180,25 +181,34 @@
         }
     }
 
+    // ከዳታቤዝ ጋር Sync የሚያደርግ ክፍል
     resultRef.on('value', (snap) => {
         const data = snap.val();
+        if (!data) return;
+
         const now = Date.now();
-        // አሮጌ ዳታ ከሆነ (timestamp ከ 30 ሰከንድ በላይ ከሆነ) አይጀምር
-        if (data && data.status === "START_ANIMATION" && !isPlaying && !isResetting) { 
-            if (now - data.timestamp < 30000) {
-                isPlaying = true; 
-                resultRef.update({ status: "RUNNING" }); 
-                runAnimation(data.winningNum, data.winningNum2); 
-            } else {
-                // ጊዜው ያለፈበትን ዳታ ያጽዳ
-                resultRef.set(null);
+        const animDuration = 11000; // አጠቃላይ አኒሜሽን 11 ሰከንድ
+        const elapsed = now - (data.startTime || data.timestamp);
+
+        if (data.status === "START_ANIMATION" || data.status === "RUNNING") {
+            if (elapsed < animDuration && !isPlaying && !isResetting) {
+                // አኒሜሽኑ ገና ከሆነ ካለበት እንዲጀምር
+                isPlaying = true;
+                let remainingMs = animDuration - elapsed;
+                runAnimation(data.winningNum, data.winningNum2, remainingMs);
+            } else if (elapsed >= animDuration && !isPlaying && !isResetting) {
+                // አኒሜሽኑ አልቆ ተጠቃሚው ከገባ በቀጥታ ውጤት አሳይ
+                isPlaying = true;
+                finishGame(data.winningNum, data.winningNum2);
             }
         }
     });
 
-    function runAnimation(win1, win2) {
-        let timeLeft = 10;
+    function runAnimation(win1, win2, durationMs = 11000) {
+        let timeLeft = Math.floor(durationMs / 1000);
         const msg = document.getElementById('msg-box');
+        
+        // ካውንትዳውን ሰዓት
         let countdownInterval = setInterval(() => {
             msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`;
             timeLeft--;
@@ -211,7 +221,8 @@
             let tempIdx = Math.floor(Math.random() * 10) + 1;
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
-            if (counter >= 11000) { 
+            
+            if (counter >= durationMs) { 
                 clearInterval(animationInterval); 
                 clearInterval(countdownInterval);
                 finishGame(win1, win2); 
@@ -233,7 +244,12 @@
         let res2 = currentLang === 'am' ? `2ኛ: ቁጥር ${win2}` : `2nd: Num ${win2}`;
         let statusMsg = "";
         
-        if (!isResetting) {
+        // ተጠቃሚው አሸንፎ ከሆነ ብር መደመር (አንድ ጊዜ ብቻ እንዲደመር በዙር ማረጋገጥ ይመከራል)
+        // እዚህ ጋር በ LocalStorage ዙሩን መመዝገብ ለደህንነት ጥሩ ነው
+        const lastCheckedRound = localStorage.getItem('lastCheckedRound');
+        const currentRoundId = win1 + "_" + win2; // ለጊዜው በቁጥሮቹ አይደንቲፋየር እንስራ
+
+        if (lastCheckedRound !== currentRoundId) {
             if(selections[win1] === userName) {
                 database.ref('users/' + userPhone).update({ balance: balance + 80 });
                 statusMsg = currentLang === 'am' ? " - 80 ብር አሸንፈዋል!" : " - You won 80!";
@@ -246,24 +262,38 @@
                 statusMsg = currentLang === 'am' ? " - እድል ለሌላ ጊዜ" : " - Try Again";
                 msg.style.color = "red";
             }
+            localStorage.setItem('lastCheckedRound', currentRoundId);
         }
         
         lastResultMsg = res1 + " | " + res2 + statusMsg;
         msg.innerText = lastResultMsg;
 
+        // ዳታውን ለማጽዳት 5 ሰከንድ ይጠብቃል
         setTimeout(() => {
-            isResetting = true;
-            const updates = {};
-            updates['live_game/play1'] = null;
-            updates['live_game/play1_result'] = null;
-            
-            database.ref().update(updates).then(() => {
-                document.getElementById('round-val').innerText = ++round;
-                isPlaying = false; 
-                isResetting = false;
-                resetGridColors();
-                msg.innerText = lastResultMsg;
-            });
+            // ዳታውን የሚያጸዳው የመጀመሪያው አሸናፊ ብቻ እንዲሆን ማድረግ ይቻላል
+            // ነገር ግን ለPlay1 ቀላል እንዲሆን አንድ ሰው ቢሊት ያድርገው
+            if (selections[win1] === userName || Object.keys(selections)[0] == userName) {
+                isResetting = true;
+                const updates = {};
+                updates['live_game/play1'] = null;
+                updates['live_game/play1_result'] = null;
+                
+                database.ref().update(updates).then(() => {
+                    document.getElementById('round-val').innerText = ++round;
+                    isPlaying = false; 
+                    isResetting = false;
+                    resetGridColors();
+                    msg.innerText = lastResultMsg;
+                });
+            } else {
+                // ሌሎቹ ተጠቃሚዎች ዝም ብለው UI ያፅዱ
+                setTimeout(() => {
+                    if (!isPlaying) {
+                        document.getElementById('round-val').innerText = ++round;
+                        resetGridColors();
+                    }
+                }, 2000);
+            }
         }, 5000);
     }
 
@@ -310,15 +340,6 @@
     window.onload = function() {
         setLang('am');
         updateDateTime();
-        
-        // በድንገት ተዘግቶ ከሆነ የቀረ ዳታ ካለ ያፅዳ
-        resultRef.once('value', (snap) => {
-            const data = snap.val();
-            if (data && (data.status === "RUNNING" || (Date.now() - data.timestamp > 60000))) {
-                resultRef.set(null);
-                gameRef.set(null);
-            }
-        });
     };
 </script>
 </body>
