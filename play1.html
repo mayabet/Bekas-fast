@@ -157,6 +157,7 @@
         const msg = document.getElementById('msg-box');
         const count = Object.keys(selections).length;
 
+        // አሸናፊዎችን ለማሳየት
         if (count === 0 && !isPlaying) {
             if (lastWinners) {
                 header.innerText = trans[currentLang].win_list;
@@ -169,7 +170,7 @@
                 let win1Sub = currentLang === 'am' ? "(1ኛ እጣ 80 ብር)" : "(1st Prize 80 ETB)";
                 row1.innerHTML = `<td class="id-col" style="background:#ffcc00">${lastWinners.n1}</td><td>${lastWinners.u1} ${win1Sub}</td>`;
                 
-                // 2ኛ አሸናፊ
+                // 2ኛ አሸናፊ - "እጣ እራሱን ችሏል" የሚለው እዚህ ተካቷል
                 let row2 = table.insertRow();
                 row2.className = "win-row";
                 let win2Sub = currentLang === 'am' ? "(2ኛ እጣ እራሱን ችሏል)" : "(2nd Prize Refunded)";
