@@ -30,7 +30,7 @@
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; padding: 8px 10px; font-weight: 900; font-size: 13px; }
-        .id-col { width: 85px; border-right: 2px solid #002d4b; text-align: center; background: #eee; } /* ግራጫው ተመልሷል */
+        .id-col { width: 85px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
@@ -80,7 +80,7 @@
     const resultRef = database.ref('live_game/play1_result');
 
     const userPhone = localStorage.getItem('loggedUser');
-    let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false, lastResultMsg = "";
+    let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
     let gameHistory = []; 
 
     const trans = {
@@ -167,8 +167,8 @@
                     row.innerHTML = `
                         <td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
                         <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
-                            <span style="color:#ffcc00;">${label1} ${res.n1} ${birr}</span>: ${res.u1}<br>
-                            <span style="color:#00b050;">${label2} ${res.n2}</span>: ${res.u2}
+                            <div style="color:#5D4037; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 3px;">${label1} ${res.n1} ${birr}: ${res.u1}</div>
+                            <div style="color:#00b050;">${label2} ${res.n2} እራሱን ችሏል: ${res.u2}</div>
                         </td>`;
                 });
             } else {
@@ -280,8 +280,7 @@
             }
             localStorage.setItem('lastCheckedRound', currentRoundId);
         }
-        lastResultMsg = res1 + " | " + res2 + statusMsg;
-        msg.innerText = lastResultMsg;
+        msg.innerText = res1 + " | " + res2 + statusMsg;
 
         setTimeout(() => {
             if (selections[win1] === userName || Object.keys(selections)[0] === userName) {
