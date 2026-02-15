@@ -30,7 +30,7 @@
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; padding: 8px 10px; font-weight: 900; font-size: 13px; }
-        .id-col { width: 85px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
+        .id-col { width: 85px; border-right: 2px solid #002d4b; text-align: center; background: #eee; } /* ግራጫው ተመልሷል */
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
@@ -162,12 +162,13 @@
                     
                     const label1 = currentLang === 'am' ? "1ኛ ቁጥር" : "1st Num";
                     const label2 = currentLang === 'am' ? "2ኛ ቁጥር" : "2nd Num";
+                    const birr = currentLang === 'am' ? "80ብር" : "80ETB";
 
                     row.innerHTML = `
-                        <td class="id-col" style="font-size:14px; background:#eee; font-weight:900;">${res.time}</td>
-                        <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px;">
-                            <span style="background:#ffcc00; color:#000; padding:2px 6px; border-radius:3px; display:inline-block; margin-bottom:4px;">${label1} ${res.n1}: ${res.u1}</span><br>
-                            <span style="background:#00b050; color:#fff; padding:2px 6px; border-radius:3px; display:inline-block;">${label2} ${res.n2}: ${res.u2}</span>
+                        <td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
+                        <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
+                            <span style="color:#ffcc00;">${label1} ${res.n1} ${birr}</span>: ${res.u1}<br>
+                            <span style="color:#00b050;">${label2} ${res.n2}</span>: ${res.u2}
                         </td>`;
                 });
             } else {
