@@ -159,11 +159,15 @@
                 gameHistory.forEach((res) => {
                     let row = table.insertRow();
                     row.style.borderBottom = "2px solid #002d4b";
+                    
+                    const label1 = currentLang === 'am' ? "1ኛ ቁጥር" : "1st Num";
+                    const label2 = currentLang === 'am' ? "2ኛ ቁጥር" : "2nd Num";
+
                     row.innerHTML = `
                         <td class="id-col" style="font-size:14px; background:#eee; font-weight:900;">${res.time}</td>
-                        <td style="line-height:1.6; font-size:14px; font-weight:900;">
-                            <span style="color:#002d4b;">1ኛ(#${res.n1}):</span> ${res.u1}<br>
-                            <span style="color:#00b050;">2ኛ(#${res.n2}):</span> ${res.u2}
+                        <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px;">
+                            <span style="background:#ffcc00; color:#000; padding:2px 6px; border-radius:3px; display:inline-block; margin-bottom:4px;">${label1} ${res.n1}: ${res.u1}</span><br>
+                            <span style="background:#00b050; color:#fff; padding:2px 6px; border-radius:3px; display:inline-block;">${label2} ${res.n2}: ${res.u2}</span>
                         </td>`;
                 });
             } else {
