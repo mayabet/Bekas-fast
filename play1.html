@@ -30,7 +30,7 @@
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; padding: 8px 10px; font-weight: 900; font-size: 13px; }
-        .id-col { width: 60px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
+        .id-col { width: 75px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
@@ -81,7 +81,7 @@
 
     const userPhone = localStorage.getItem('loggedUser');
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false, lastResultMsg = "";
-    let gameHistory = []; // ያለፉ 5 ጨዋታዎችን ለመያዝ
+    let gameHistory = []; 
 
     const trans = {
         'am': {gt:'10 ብር 1ኛ 80 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 80ብር | 2ኛ 10ብር', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!', win_list: 'ያለፉ 5 ጨዋታዎች ውጤት'},
@@ -149,7 +149,6 @@
     function updateUI() {
         const scrollArea = document.getElementById('scroll-ui');
         const header = document.getElementById('sh');
-        const msg = document.getElementById('msg-box');
         const count = Object.keys(selections).length;
 
         if (count === 0 && !isPlaying) {
@@ -161,17 +160,16 @@
                     let row = table.insertRow();
                     row.style.borderBottom = "2px solid #002d4b";
                     row.innerHTML = `
-                        <td class="id-col" style="font-size:10px; background:#eee;">${res.time}</td>
-                        <td style="line-height:1.4;">
-                            <span style="color:#002d4b">1ኛ(#${res.n1}):</span> ${res.u1}<br>
-                            <span style="color:#00b050">2ኛ(#${res.n2}):</span> ${res.u2}
+                        <td class="id-col" style="font-size:12px; background:#eee; font-weight:900;">${res.time}</td>
+                        <td style="line-height:1.5; font-size:12px; font-weight:900;">
+                            <span style="color:#002d4b; font-weight:bold;">1ኛ(#${res.n1}):</span> ${res.u1}<br>
+                            <span style="color:#00b050; font-weight:bold;">2ኛ(#${res.n2}):</span> ${res.u2}
                         </td>`;
                 });
             } else {
                 header.innerText = trans[currentLang].sh;
                 scrollArea.innerHTML = `<div class="promo-box"><div class="brand">${trans[currentLang].brand}</div><div class="text">${trans[currentLang].promo}</div><div class="win">${trans[currentLang].promoWin}</div></div>`;
             }
-            if(lastResultMsg !== "") msg.innerText = lastResultMsg;
             resetGridColors(); 
             return;
         }
@@ -187,7 +185,7 @@
             else if (!isPlaying) cell.className = "num-cell";
             if (occupant !== "") {
                 let row = table.insertRow();
-                row.innerHTML = `<td class="id-col">${i}</td><td>${occupant}</td>`;
+                row.innerHTML = `<td class="id-col" style="font-size:13px;">${i}</td><td style="font-size:13px;">${occupant}</td>`;
             }
         }
     }
@@ -240,8 +238,14 @@
         if(cell1) cell1.classList.add('winner-cell');
         if(cell2) cell2.classList.add('winner2-cell');
 
-        // አዲሱን ውጤት በሰዓት መመዝገብ
-        const nowTime = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const now = new Date();
+        let h = now.getHours();
+        let ethH = h >= 6 ? h - 6 : h + 6;
+        if (ethH > 12) ethH -= 12;
+        if (ethH === 0) ethH = 12;
+        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'PM') : (currentLang === 'am' ? 'ቀን' : 'AM');
+        const nowTime = `${ethH}:${now.getMinutes().toString().padStart(2, '0')} ${ampm}`;
+
         const newResult = {
             n1: win1, u1: selections[win1] || "---",
             n2: win2, u2: selections[win2] || "---",
