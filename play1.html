@@ -84,7 +84,6 @@
     let serverOffset = 0;
     let gameHistory = [];
 
-    // 1. የሰዓት ማመሳሰያ (Server Time Offset)
     database.ref(".info/serverTimeOffset").on("value", (snap) => {
         serverOffset = snap.val() || 0;
     });
@@ -99,73 +98,47 @@
     } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) { 
-                userName = data.username; 
-                balance = parseFloat(data.balance || 0); 
-                document.getElementById('cash').innerText = balance.toFixed(2); 
-            }
+            if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
         });
     }
 
-    // Grid መፍጠር
     const grid = document.getElementById('grid-container');
     for(let i=1; i<=10; i++) {
-        let cell = document.createElement('div'); 
-        cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; 
-        cell.onclick = () => pick(i); grid.appendChild(cell);
+        let cell = document.createElement('div'); cell.className = 'num-cell'; cell.id = `c-${i}`; cell.innerText = i; cell.onclick = () => pick(i); grid.appendChild(cell);
     }
 
     gameRef.on('value', (snapshot) => {
         selections = snapshot.val() || {};
-        if (Object.keys(selections).length === 0 && !isPlaying) { 
-            isResetting = false; 
-            resetGridColors(); 
-        }
+        if (Object.keys(selections).length === 0 && !isPlaying) { isResetting = false; resetGridColors(); }
         updateUI();
     });
 
     async function pick(n) {
         const msg = document.getElementById('msg-box');
         const nowServer = Date.now() + serverOffset;
-
-        // Auto-Clean logic
         const rSnap = await resultRef.get();
         const rData = rSnap.val();
-        if (rData && (nowServer - rData.startTime > 30000)) { 
-            await gameRef.remove(); await resultRef.remove();
-            isPlaying = false; isResetting = false;
-        }
-
+        if (rData && (nowServer - rData.startTime > 30000)) { await gameRef.remove(); await resultRef.remove(); isPlaying = false; isResetting = false; }
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
         if (selections[n] && selections[n] !== userName) return;
-        
         if (selections[n] === userName) {
             const lastPickTime = localStorage.getItem('lastPickTime_' + n);
             if (lastPickTime && (nowServer - parseInt(lastPickTime) < 20000)) {
                 database.ref('users/' + userPhone).update({ balance: balance + 10 });
-                gameRef.child(n).remove();
-                localStorage.removeItem('lastPickTime_' + n);
-                msg.innerText = trans[currentLang].removed.replace('{n}', n);
-                return;
+                gameRef.child(n).remove(); localStorage.removeItem('lastPickTime_' + n);
+                msg.innerText = trans[currentLang].removed.replace('{n}', n); return;
             } else { msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Expired (20s)"; return; }
         }
-
         if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
-        
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
         localStorage.setItem('lastPickTime_' + n, nowServer.toString());
-        
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const currentSelections = snap.val() || {};
                 if (Object.keys(currentSelections).length === 10 && !isPlaying && !isResetting) {
                     let win1 = Math.floor(Math.random() * 10) + 1;
                     let win2; do { win2 = Math.floor(Math.random() * 10) + 1; } while (win2 === win1);
-                    resultRef.set({ 
-                        winningNum: win1, 
-                        winningNum2: win2, 
-                        startTime: firebase.database.ServerValue.TIMESTAMP 
-                    });
+                    resultRef.set({ winningNum: win1, winningNum2: win2, startTime: firebase.database.ServerValue.TIMESTAMP });
                 }
             });
         });
@@ -174,7 +147,6 @@
     function updateUI() {
         const scrollArea = document.getElementById('scroll-ui');
         const header = document.getElementById('sh');
-        
         if (Object.keys(selections).length === 0 && !isPlaying) {
             if (gameHistory.length > 0) {
                 header.innerText = trans[currentLang].win_list;
@@ -182,10 +154,11 @@
                 const table = document.getElementById('sel-table');
                 gameHistory.forEach((res) => {
                     let row = table.insertRow();
-                    row.innerHTML = `<td class="id-col">${res.time}</td>
-                        <td style="padding:10px; color:#002d4b;">
-                            <div>1ኛ ቁጥር ${res.n1}: ${res.u1}</div>
-                            <div style="color:#00b050;">2ኛ ቁጥር ${res.n2}: ${res.u2}</div>
+                    row.style.borderBottom = "2px solid #002d4b";
+                    row.innerHTML = `<td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
+                        <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
+                            <div style="color:#5D4037; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 3px;">${trans[currentLang].n1_lbl} ${res.n1} 80 ${trans[currentLang].birr_lbl}: ${res.u1}</div>
+                            <div style="color:#00b050;">${trans[currentLang].n2_lbl} ${res.n2} ${trans[currentLang].self}: ${res.u2}</div>
                         </td>`;
                 });
             } else {
@@ -194,7 +167,6 @@
             }
             return;
         }
-
         header.innerText = trans[currentLang].sh;
         scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
         const table = document.getElementById('sel-table');
@@ -204,109 +176,63 @@
             if (occupant === userName) cell.className = "num-cell user-selected";
             else if (occupant !== "") cell.className = "num-cell taken-cell";
             else if (!isPlaying) cell.className = "num-cell";
-            
             if (occupant !== "") {
                 let row = table.insertRow();
-                row.innerHTML = `<td class="id-col">${i}</td><td>${occupant}</td>`;
+                row.innerHTML = `<td class="id-col" style="font-size:13px;">${i}</td><td style="font-size:13px;">${occupant}</td>`;
             }
         }
     }
 
-    // 2. የተስተካከለ አኒሜሽን Logic
     resultRef.on('value', (snap) => {
         const data = snap.val(); if (!data) return;
-        
         const nowServer = Date.now() + serverOffset;
-        const animDuration = 10000; // 10 ሰከንድ አኒሜሽን
+        const animDuration = 10000;
         const elapsed = nowServer - data.startTime;
-
-        if (elapsed < animDuration) {
-            if (!isPlaying) { 
-                isPlaying = true; 
-                runAnimation(data.winningNum, data.winningNum2, animDuration - elapsed); 
-            }
-        } else if (elapsed >= animDuration && elapsed < 25000) {
-            if (!isPlaying) finishGame(data.winningNum, data.winningNum2);
-        }
+        if (elapsed < animDuration) { if (!isPlaying) { isPlaying = true; runAnimation(data.winningNum, data.winningNum2, animDuration - elapsed); } }
+        else if (elapsed >= animDuration && elapsed < 25000) { if (!isPlaying) finishGame(data.winningNum, data.winningNum2); }
     });
 
     function runAnimation(win1, win2, durationMs) {
         const msg = document.getElementById('msg-box');
         let timeLeft = Math.floor(durationMs / 1000);
-        
-        let cd = setInterval(() => { 
-            msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`; 
-            timeLeft--; 
-            if (timeLeft < 0) clearInterval(cd); 
-        }, 1000);
-
+        let cd = setInterval(() => { msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`; timeLeft--; if (timeLeft < 0) clearInterval(cd); }, 1000);
         let anim = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
             document.getElementById(`c-${Math.floor(Math.random()*10)+1}`).classList.add('anim-active');
         }, 100);
-
-        setTimeout(() => { 
-            clearInterval(anim); clearInterval(cd); 
-            finishGame(win1, win2); 
-        }, durationMs);
+        setTimeout(() => { clearInterval(anim); clearInterval(cd); finishGame(win1, win2); }, durationMs);
     }
 
     function finishGame(win1, win2) {
-        isPlaying = true;
-        document.getElementById('last-val').innerText = win1;
+        isPlaying = true; document.getElementById('last-val').innerText = win1;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         document.getElementById(`c-${win1}`).classList.add('winner-cell');
         document.getElementById(`c-${win2}`).classList.add('winner2-cell');
-
-        // History መመዝገብ
-        const now = new Date();
-        const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
+        const now = new Date(); const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
         if (!gameHistory.some(h => h.roundId === win1 + "_" + win2 + "_" + timeStr)) {
             gameHistory.unshift({ n1: win1, u1: selections[win1]||"---", n2: win2, u2: selections[win2]||"---", time: timeStr, roundId: win1 + "_" + win2 + "_" + timeStr });
             if(gameHistory.length > 5) gameHistory.pop();
         }
-
         document.getElementById('msg-box').innerText = `1ኛ: ቁጥር ${win1} | 2ኛ: ቁጥር ${win2}`;
-
-        // ማጽጃ (Reset) - 10ኛው ቁጥር የሞላው ሰው ብቻ እንዲያጸዳው
         setTimeout(() => {
             const keys = Object.keys(selections);
             if (selections[keys[9]] === userName) {
                 isResetting = true;
                 database.ref().update({ 'live_game/play1': null, 'live_game/play1_result': null }).then(() => {
                     document.getElementById('round-val').innerText = ++round;
-                    isPlaying = false; isResetting = false; 
-                    resetGridColors(); updateUI();
+                    isPlaying = false; isResetting = false; resetGridColors(); updateUI();
                 });
-            } else {
-                setTimeout(() => { 
-                    if(!isResetting) {
-                        document.getElementById('round-val').innerText = ++round;
-                        isPlaying = false; resetGridColors(); updateUI();
-                    }
-                }, 2000);
-            }
+            } else { setTimeout(() => { if(!isResetting) { document.getElementById('round-val').innerText = ++round; isPlaying = false; resetGridColors(); updateUI(); } }, 2000); }
         }, 5000);
     }
 
-    function resetGridColors() { 
-        document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); 
-    }
-
-    function setLang(l) { 
-        currentLang = l; 
-        for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; }
-        updateDateTime(); updateUI();
-    }
-
+    function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); }
+    function setLang(l) { currentLang = l; for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; } updateDateTime(); updateUI(); }
     function updateDateTime() {
-        const now = new Date();
-        document.getElementById('time-label').innerText = now.toLocaleTimeString();
+        const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString();
         document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 2018" : now.toDateString();
     }
-
-    setInterval(updateDateTime, 1000);
-    window.onload = () => { setLang('am'); };
+    setInterval(updateDateTime, 1000); window.onload = () => { setLang('am'); };
 </script>
 </body>
 </html>
