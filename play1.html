@@ -30,7 +30,7 @@
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; padding: 8px 10px; font-weight: 900; font-size: 13px; }
-        .id-col { width: 75px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
+        .id-col { width: 85px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
@@ -160,10 +160,10 @@
                     let row = table.insertRow();
                     row.style.borderBottom = "2px solid #002d4b";
                     row.innerHTML = `
-                        <td class="id-col" style="font-size:12px; background:#eee; font-weight:900;">${res.time}</td>
-                        <td style="line-height:1.5; font-size:12px; font-weight:900;">
-                            <span style="color:#002d4b; font-weight:bold;">1ኛ(#${res.n1}):</span> ${res.u1}<br>
-                            <span style="color:#00b050; font-weight:bold;">2ኛ(#${res.n2}):</span> ${res.u2}
+                        <td class="id-col" style="font-size:14px; background:#eee; font-weight:900;">${res.time}</td>
+                        <td style="line-height:1.6; font-size:14px; font-weight:900;">
+                            <span style="color:#002d4b;">1ኛ(#${res.n1}):</span> ${res.u1}<br>
+                            <span style="color:#00b050;">2ኛ(#${res.n2}):</span> ${res.u2}
                         </td>`;
                 });
             } else {
