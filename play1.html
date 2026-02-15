@@ -30,7 +30,7 @@
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; padding: 8px 10px; font-weight: 900; font-size: 13px; }
-        .id-col { width: 85px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
+        .id-col { width: 95px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
@@ -155,7 +155,9 @@
                 gameHistory.forEach((res) => {
                     let row = table.insertRow();
                     row.style.borderBottom = "2px solid #002d4b";
-                    row.innerHTML = `<td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
+                    // History ላይ የሚታየዉ ሰዓት በቋንቋዉ እንዲቀያየር
+                    let historyTime = formatHistoryTime(res.rawDate);
+                    row.innerHTML = `<td class="id-col" style="font-size:13px; font-weight:900;">${historyTime}</td>
                         <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
                             <div style="color:#5D4037; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 3px;">${trans[currentLang].n1_lbl} ${res.n1} 80 ${trans[currentLang].birr_lbl}: ${res.u1}</div>
                             <div style="color:#00b050;">${trans[currentLang].n2_lbl} ${res.n2} ${trans[currentLang].self}: ${res.u2}</div>
@@ -208,9 +210,17 @@
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         document.getElementById(`c-${win1}`).classList.add('winner-cell');
         document.getElementById(`c-${win2}`).classList.add('winner2-cell');
-        const now = new Date(); const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
-        if (!gameHistory.some(h => h.roundId === win1 + "_" + win2 + "_" + timeStr)) {
-            gameHistory.unshift({ n1: win1, u1: selections[win1]||"---", n2: win2, u2: selections[win2]||"---", time: timeStr, roundId: win1 + "_" + win2 + "_" + timeStr });
+        
+        const now = new Date();
+        const gameId = win1 + "_" + win2 + "_" + now.getTime();
+
+        if (!gameHistory.some(h => h.roundId === gameId)) {
+            gameHistory.unshift({ 
+                n1: win1, u1: selections[win1]||"---", 
+                n2: win2, u2: selections[win2]||"---", 
+                rawDate: now, 
+                roundId: gameId 
+            });
             if(gameHistory.length > 5) gameHistory.pop();
         }
         document.getElementById('msg-box').innerText = `1ኛ: ቁጥር ${win1} | 2ኛ: ቁጥር ${win2}`;
@@ -227,12 +237,46 @@
     }
 
     function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); }
-    function setLang(l) { currentLang = l; for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; } updateDateTime(); updateUI(); }
-    function updateDateTime() {
-        const now = new Date(); document.getElementById('time-label').innerText = now.toLocaleTimeString();
-        document.getElementById('date-label').innerText = currentLang === 'am' ? "የካቲት 2018" : now.toDateString();
+    
+    // የሰዓት ፎርማት (ቀን/ማታ)
+    function getTimeFormatted(date) {
+        let h = date.getHours();
+        let m = date.getMinutes().toString().padStart(2, '0');
+        let displayH = h % 12 || 12;
+        if (currentLang === 'am') {
+            let suffix = (h >= 6 && h < 18) ? " ቀን" : " ማታ";
+            return displayH + ":" + m + suffix;
+        } else {
+            let suffix = (h >= 12) ? " PM" : " AM";
+            return displayH + ":" + m + suffix;
+        }
     }
-    setInterval(updateDateTime, 1000); window.onload = () => { setLang('am'); };
+
+    // History ላይ ላለዉ ሰዓት ብቻ
+    function formatHistoryTime(date) {
+        if(!date) return "";
+        return getTimeFormatted(new Date(date));
+    }
+
+    function updateDateTime() {
+        const now = new Date();
+        document.getElementById('time-label').innerText = getTimeFormatted(now);
+        if (currentLang === 'am') {
+            document.getElementById('date-label').innerText = "የካቲት 8 ቀን 2018";
+        } else {
+            document.getElementById('date-label').innerText = "Feb 15, 2026";
+        }
+    }
+
+    function setLang(l) { 
+        currentLang = l; 
+        for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; } 
+        updateDateTime(); 
+        updateUI(); // ቋንቋ ሲቀየር History ዝርዝሩም አብሮ እንዲቀየር
+    }
+
+    setInterval(updateDateTime, 1000); 
+    window.onload = () => { setLang('am'); };
 </script>
 </body>
 </html>
