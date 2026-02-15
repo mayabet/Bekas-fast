@@ -107,10 +107,20 @@
         updateUI();
     });
 
-    function pick(n) {
+    async function pick(n) {
         const msg = document.getElementById('msg-box');
+        
+        // Auto-Clean Stuck Data
+        const rSnap = await resultRef.get();
+        const rData = rSnap.val();
+        if (rData && (Date.now() - rData.startTime > 25000)) { 
+            await gameRef.remove(); await resultRef.remove();
+            isPlaying = false; isResetting = false;
+        }
+
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
         if (selections[n] && selections[n] !== userName) return;
+        
         const now = Date.now();
         if (selections[n] === userName) {
             const lastPickTime = localStorage.getItem('lastPickTime_p3_' + n);
@@ -122,16 +132,23 @@
                 return;
             } else { msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Expired (20s)"; return; }
         }
+
         if (balance < 20) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         localStorage.setItem('lastPickTime_p3_' + n, Date.now());
+        
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const currentSelections = snap.val() || {};
                 if (Object.keys(currentSelections).length === 20 && !isPlaying && !isResetting) {
                     let win1 = Math.floor(Math.random() * 20) + 1;
                     let win2; do { win2 = Math.floor(Math.random() * 20) + 1; } while (win2 === win1);
-                    resultRef.set({ winningNum: win1, winningNum2: win2, status: "START_ANIMATION", timestamp: Date.now(), startTime: Date.now() });
+                    resultRef.set({ 
+                        winningNum: win1, 
+                        winningNum2: win2, 
+                        status: "START_ANIMATION", 
+                        startTime: firebase.database.ServerValue.TIMESTAMP 
+                    });
                 }
             });
         });
@@ -148,16 +165,14 @@
                 const table = document.getElementById('sel-table');
                 gameHistory.forEach((res) => {
                     let row = table.insertRow();
-                    row.style.borderBottom = "2px solid #002d4b";
-                    row.innerHTML = `<td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
-                        <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
-                            <div style="color:#5D4037; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 3px;">${trans[currentLang].n1_lbl} ${res.n1} 330${trans[currentLang].birr_lbl}: ${res.u1}</div>
+                    row.innerHTML = `<td class="id-col" style="font-size:14px;">${res.time}</td>
+                        <td style="padding: 10px; font-weight:900;">
+                            <div style="color:#5D4037; border-bottom: 1px solid #ddd;">${trans[currentLang].n1_lbl} ${res.n1} 330${trans[currentLang].birr_lbl}: ${res.u1}</div>
                             <div style="color:#00b050;">${trans[currentLang].n2_lbl} ${res.n2} ${trans[currentLang].self}: ${res.u2}</div>
                         </td>`;
                 });
             } else {
-                header.innerText = trans[currentLang].sh;
-                scrollArea.innerHTML = `<div class="promo-box"><div class="brand">${trans[currentLang].brand}</div><div class="text">${trans[currentLang].promo}</div><div class="win">${trans[currentLang].promoWin}</div></div>`;
+                scrollArea.innerHTML = `<div class="promo-box"><div class="brand">${trans[currentLang].brand}</div><div class="win">${trans[currentLang].promoWin}</div></div>`;
             }
             resetGridColors(); return;
         }
@@ -172,71 +187,73 @@
             else if (!isPlaying) cell.className = "num-cell";
             if (occupant !== "") {
                 let row = table.insertRow();
-                row.innerHTML = `<td class="id-col" style="font-size:13px;">${i}</td><td style="font-size:13px;">${occupant}</td>`;
+                row.innerHTML = `<td class="id-col">${i}</td><td>${occupant}</td>`;
             }
         }
     }
 
     resultRef.on('value', (snap) => {
         const data = snap.val(); if (!data) return;
-        const now = Date.now(); const animDuration = 11000; const elapsed = now - (data.startTime || data.timestamp);
-        if (data.status === "START_ANIMATION" || data.status === "RUNNING") {
-            if (elapsed < animDuration && !isPlaying && !isResetting) { isPlaying = true; runAnimation(data.winningNum, data.winningNum2, animDuration - elapsed); }
-            else if (elapsed >= animDuration && !isPlaying && !isResetting) { isPlaying = true; finishGame(data.winningNum, data.winningNum2); }
+        
+        const syncId = data.winningNum + "_" + data.winningNum2 + "_" + data.startTime;
+        if (localStorage.getItem('lastCheckedRound_p3') !== syncId) {
+            if (selections[data.winningNum] === userName) database.ref('users/' + userPhone).update({ balance: balance + 330 });
+            else if (selections[data.winningNum2] === userName) database.ref('users/' + userPhone).update({ balance: balance + 20 });
+            localStorage.setItem('lastCheckedRound_p3', syncId);
+        }
+
+        const now = Date.now(); const animDuration = 11000; const elapsed = now - data.startTime;
+        if (elapsed < animDuration) {
+            if (!isPlaying && !isResetting) { isPlaying = true; runAnimation(data.winningNum, data.winningNum2, animDuration - elapsed); }
+        } else if (elapsed >= animDuration && elapsed < 20000) {
+            if (!isPlaying && !isResetting) finishGame(data.winningNum, data.winningNum2);
         }
     });
 
     function runAnimation(win1, win2, durationMs) {
         let timeLeft = Math.floor(durationMs / 1000);
         const msg = document.getElementById('msg-box');
-        let countdownInterval = setInterval(() => { msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`; timeLeft--; if (timeLeft < 0) clearInterval(countdownInterval); }, 1000);
-        let counter = 0, speed = 100;
-        let animationInterval = setInterval(() => {
+        let cd = setInterval(() => { msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`; timeLeft--; if (timeLeft < 0) clearInterval(cd); }, 1000);
+        let anim = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-            let tempIdx = Math.floor(Math.random() * 20) + 1; document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
-            counter += speed; if (counter >= durationMs) { clearInterval(animationInterval); clearInterval(countdownInterval); finishGame(win1, win2); }
-        }, speed);
+            document.getElementById(`c-${Math.floor(Math.random()*20)+1}`).classList.add('anim-active');
+        }, 100);
+        setTimeout(() => { clearInterval(anim); clearInterval(cd); finishGame(win1, win2); }, durationMs);
     }
 
     function finishGame(win1, win2) {
-        const msg = document.getElementById('msg-box'); document.getElementById('last-val').innerText = win1;
+        isPlaying = true; document.getElementById('last-val').innerText = win1;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-        const cell1 = document.getElementById(`c-${win1}`); const cell2 = document.getElementById(`c-${win2}`);
-        if(cell1) cell1.classList.add('winner-cell'); if(cell2) cell2.classList.add('winner2-cell');
+        document.getElementById(`c-${win1}`).classList.add('winner-cell');
+        document.getElementById(`c-${win2}`).classList.add('winner2-cell');
 
         const now = new Date(); let h = now.getHours(); let ethH = h >= 6 ? h - 6 : h + 6; if (ethH > 12) ethH -= 12; if (ethH === 0) ethH = 12;
         let ampm = h >= 18 || h < 6 ? trans[currentLang].night_p : trans[currentLang].day_p;
         const nowTime = `${ethH}:${now.getMinutes().toString().padStart(2, '0')} ${ampm}`;
 
-        const newResult = { n1: win1, u1: selections[win1] || "---", n2: win2, u2: selections[win2] || "---", time: nowTime };
-        gameHistory.unshift(newResult); if (gameHistory.length > 5) gameHistory.pop();
-
-        let statusMsg = ""; const currentRoundId = win1 + "_" + win2 + "_" + Date.now().toString().slice(0,7);
-        if (localStorage.getItem('lastCheckedRound_p3') !== currentRoundId) {
-            if(selections[win1] === userName) { database.ref('users/' + userPhone).update({ balance: balance + 330 }); statusMsg = currentLang === 'am' ? " - 330 ብር አሸንፈዋል!" : " - You won 330!"; }
-            else if(selections[win2] === userName) { database.ref('users/' + userPhone).update({ balance: balance + 20 }); statusMsg = currentLang === 'am' ? " - 20 ብር ተመላሽ!" : " - 20 ETB Refunded!"; }
-            localStorage.setItem('lastCheckedRound_p3', currentRoundId);
+        if (!gameHistory.some(g => g.time === nowTime && g.n1 === win1)) {
+            const newRes = { n1: win1, u1: selections[win1] || "---", n2: win2, u2: selections[win2] || "---", time: nowTime };
+            gameHistory.unshift(newRes); if (gameHistory.length > 5) gameHistory.pop();
         }
-        msg.innerText = (currentLang === 'am' ? `1ኛ: ቁጥር ${win1} | 2ኛ: ቁጥር ${win2}` : `1st: Num ${win1} | 2nd: Num ${win2}`) + statusMsg;
+
+        document.getElementById('msg-box').innerText = `1ኛ: ቁጥር ${win1} | 2ኛ: ቁጥር ${win2}`;
 
         setTimeout(() => {
-            if (selections[win1] === userName || Object.keys(selections)[0] === userName) {
+            if (Object.values(selections)[0] === userName || selections[win1] === userName) {
                 isResetting = true;
                 database.ref().update({ 'live_game/play3': null, 'live_game/play3_result': null }).then(() => {
                     document.getElementById('round-val').innerText = ++round;
                     isPlaying = false; isResetting = false; resetGridColors(); updateUI();
                 });
-            } else { setTimeout(() => { if (!isPlaying) { document.getElementById('round-val').innerText = ++round; resetGridColors(); updateUI(); } }, 1000); }
+            } else { setTimeout(() => { if(!isPlaying){ document.getElementById('round-val').innerText = ++round; resetGridColors(); updateUI(); } }, 1500); }
         }, 5000);
     }
 
-    function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.classList.remove('anim-active', 'winner-cell', 'winner2-cell', 'user-selected', 'taken-cell'); cell.className = "num-cell"; }); }
+    function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); }
 
     function setLang(l) { 
         currentLang = l; 
         for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; }
-        document.getElementById('l-am').classList.toggle('active', l === 'am');
-        document.getElementById('l-en').classList.toggle('active', l === 'en');
         updateDateTime(); updateUI();
     }
 
@@ -251,7 +268,7 @@
     }
 
     setInterval(updateDateTime, 1000);
-    window.onload = () => { setLang('am'); updateDateTime(); };
+    window.onload = () => { setLang('am'); };
 </script>
 </body>
 </html>
