@@ -16,7 +16,7 @@
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
         .number-grid { display: grid; grid-template-columns: repeat(5, 1fr); border: 2px solid #002d4b; margin: 0 5px; flex-shrink: 0; }
-        .num-cell { border: 1px solid #002d4b; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
+        .num-cell { border: 1px solid #002d4b; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: #002d4b; cursor: pointer; transition: all 0.1s; position: relative; }
         .user-selected { background: #002d4b !important; color: #fff !important; }
         .taken-cell { background: #ccc !important; color: #666 !important; cursor: not-allowed; }
         .anim-active { background-color: #ff0000 !important; color: white !important; box-shadow: 0 0 15px #ff0000; z-index: 10; border: 2px solid #fff !important; }
@@ -30,7 +30,7 @@
         .scroll-area { overflow-y: auto; flex-grow: 1; }
         .selected-list { width: 100%; border-collapse: collapse; }
         .selected-list td { border-bottom: 1px solid #002d4b; padding: 8px 10px; font-weight: 900; font-size: 13px; }
-        .id-col { width: 45px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
+        .id-col { width: 95px; border-right: 2px solid #002d4b; text-align: center; background: #eee; }
         .footer-nav { padding: 5px; border-top: 2px solid #002d4b; flex-shrink: 0; }
         .nav-btn { display: block; padding: 12px; text-align: center; color: white; font-weight: bold; text-decoration: none; font-size: 14px; border-radius: 4px; background: #002d4b; }
         .lang-bar { background: #fff; padding: 8px; display: flex; justify-content: space-between; font-weight: 900; border-top: 2px solid #002d4b; font-size: 14px; flex-shrink: 0; }
@@ -81,15 +81,21 @@
 
     const userPhone = localStorage.getItem('loggedUser');
     let userName = "", balance = 0, currentLang = 'am', round = 1, selections = {}, isPlaying = false, isResetting = false;
-    let gameHistory = []; 
+    let serverOffset = 0;
+    let gameHistory = [];
+
+    database.ref(".info/serverTimeOffset").on("value", (snap) => {
+        serverOffset = snap.val() || 0;
+    });
 
     const trans = {
-        'am': {gt:'10 ብር 1ኛ 170 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 170ብር | 2ኛ 10ብር', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!', win_list: 'ያለፉ ዙሮች ውጤት', self: 'እራሱን ችሏል', day_p: 'ቀን', night_p: 'ማታ', n1_lbl: '1ኛ ቁጥር', n2_lbl: '2ኛ ቁጥር', birr_lbl: 'ብር'},
-        'en': {gt:'10 BIRR 1st 170 2nd 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 20 people. 1st & 2nd winners', promoWin: '1st 170 ETB | 2nd 10 ETB', dt_txt: 'Day', tm_txt: 'Time', welcome: 'Welcome!', win_list: 'LAST RESULTS', self: 'Return', day_p: 'Day', night_p: 'Night', n1_lbl: '1st Num', n2_lbl: '2nd Num', birr_lbl: 'ETB'}
+        'am': {gt:'10 ብር 1ኛ 170 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 20 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ', promo: 'ጨዋታዉ ከ 20 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 170ብር | 2ኛ 10ብር', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!', win_list: 'ያለፉ ዙሮች ውጤት', self: 'እራሱን ችሏል', day_p: 'ቀን', night_p: 'ማታ', n1_lbl: '1ኛ ቁጥር', n2_lbl: '2ኛ ቁጥር', birr_lbl: 'ብር'},
+        'en': {gt:'10 BIRR 1st 170 2nd 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 20', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW PICKER', promo: '20 Players needed. 1st & 2nd Win', promoWin: '1st 170 ETB | 2nd 10 ETB', dt_txt: 'Day', tm_txt: 'Time', welcome: 'Welcome!', win_list: 'LAST RESULTS', self: 'Return', day_p: 'Day', night_p: 'Night', n1_lbl: '1st Num', n2_lbl: '2nd Num', birr_lbl: 'ETB'}
     };
 
-    if (!userPhone) window.location.replace("index.html");
-    else {
+    if (!userPhone) {
+        window.location.replace("index.html");
+    } else {
         database.ref('users/' + userPhone).on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) { userName = data.username; balance = parseFloat(data.balance || 0); document.getElementById('cash').innerText = balance.toFixed(2); }
@@ -109,50 +115,33 @@
 
     async function pick(n) {
         const msg = document.getElementById('msg-box');
-        
-        // --- Auto-Clean ---
+        const nowServer = Date.now() + serverOffset;
         const rSnap = await resultRef.get();
         const rData = rSnap.val();
-        if (rData && (Date.now() - rData.startTime > 25000)) { 
-            await gameRef.remove(); await resultRef.remove();
-            isPlaying = false; isResetting = false;
-        }
-
+        if (rData && (nowServer - rData.startTime > 30000)) { await gameRef.remove(); await resultRef.remove(); isPlaying = false; isResetting = false; }
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
         if (selections[n] && selections[n] !== userName) return;
-        
-        const now = Date.now();
         if (selections[n] === userName) {
             const lastPickTime = localStorage.getItem('lastPickTime_p2_' + n);
-            if (lastPickTime && (now - lastPickTime < 20000)) {
+            if (lastPickTime && (nowServer - parseInt(lastPickTime) < 20000)) {
                 database.ref('users/' + userPhone).update({ balance: balance + 10 });
-                gameRef.child(n).remove();
-                localStorage.removeItem('lastPickTime_p2_' + n);
-                msg.innerText = trans[currentLang].removed.replace('{n}', n);
-                return;
+                gameRef.child(n).remove(); localStorage.removeItem('lastPickTime_p2_' + n);
+                msg.innerText = trans[currentLang].removed.replace('{n}', n); return;
             } else { msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Expired (20s)"; return; }
         }
-
         if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
         database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        localStorage.setItem('lastPickTime_p2_' + n, Date.now());
-        
+        localStorage.setItem('lastPickTime_p2_' + n, nowServer.toString());
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const currentSelections = snap.val() || {};
                 if (Object.keys(currentSelections).length === 20 && !isPlaying && !isResetting) {
                     let win1 = Math.floor(Math.random() * 20) + 1;
                     let win2; do { win2 = Math.floor(Math.random() * 20) + 1; } while (win2 === win1);
-                    resultRef.set({ 
-                        winningNum: win1, 
-                        winningNum2: win2, 
-                        status: "START_ANIMATION", 
-                        startTime: firebase.database.ServerValue.TIMESTAMP 
-                    });
+                    resultRef.set({ winningNum: win1, winningNum2: win2, startTime: firebase.database.ServerValue.TIMESTAMP });
                 }
             });
         });
-        msg.innerText = trans[currentLang].pick.replace('{n}', n);
     }
 
     function updateUI() {
@@ -166,9 +155,10 @@
                 gameHistory.forEach((res) => {
                     let row = table.insertRow();
                     row.style.borderBottom = "2px solid #002d4b";
-                    row.innerHTML = `<td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
+                    let historyTime = formatHistoryTime(res.rawDate);
+                    row.innerHTML = `<td class="id-col" style="font-size:13px; font-weight:900;">${historyTime}</td>
                         <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
-                            <div style="color:#5D4037; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 3px;">${trans[currentLang].n1_lbl} ${res.n1} 170${trans[currentLang].birr_lbl}: ${res.u1}</div>
+                            <div style="color:#5D4037; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 3px;">${trans[currentLang].n1_lbl} ${res.n1} 170 ${trans[currentLang].birr_lbl}: ${res.u1}</div>
                             <div style="color:#00b050;">${trans[currentLang].n2_lbl} ${res.n2} ${trans[currentLang].self}: ${res.u2}</div>
                         </td>`;
                 });
@@ -176,7 +166,7 @@
                 header.innerText = trans[currentLang].sh;
                 scrollArea.innerHTML = `<div class="promo-box"><div class="brand">${trans[currentLang].brand}</div><div class="text">${trans[currentLang].promo}</div><div class="win">${trans[currentLang].promoWin}</div></div>`;
             }
-            resetGridColors(); return;
+            return;
         }
         header.innerText = trans[currentLang].sh;
         scrollArea.innerHTML = '<table class="selected-list" id="sel-table"></table>';
@@ -196,25 +186,16 @@
 
     resultRef.on('value', (snap) => {
         const data = snap.val(); if (!data) return;
-        
-        const syncId = data.winningNum + "_" + data.winningNum2 + "_" + data.startTime;
-        if (localStorage.getItem('lastCheckedRound_p2') !== syncId) {
-            if (selections[data.winningNum] === userName) database.ref('users/' + userPhone).update({ balance: balance + 170 });
-            else if (selections[data.winningNum2] === userName) database.ref('users/' + userPhone).update({ balance: balance + 10 });
-            localStorage.setItem('lastCheckedRound_p2', syncId);
-        }
-
-        const now = Date.now(); const animDuration = 11000; const elapsed = now - data.startTime;
-        if (elapsed < animDuration) {
-            if (!isPlaying && !isResetting) { isPlaying = true; runAnimation(data.winningNum, data.winningNum2, animDuration - elapsed); }
-        } else if (elapsed >= animDuration && elapsed < 20000) {
-            if (!isPlaying && !isResetting) finishGame(data.winningNum, data.winningNum2);
-        }
+        const nowServer = Date.now() + serverOffset;
+        const animDuration = 10000;
+        const elapsed = nowServer - data.startTime;
+        if (elapsed < animDuration) { if (!isPlaying) { isPlaying = true; runAnimation(data.winningNum, data.winningNum2, animDuration - elapsed); } }
+        else if (elapsed >= animDuration && elapsed < 25000) { if (!isPlaying) finishGame(data.winningNum, data.winningNum2); }
     });
 
     function runAnimation(win1, win2, durationMs) {
-        let timeLeft = Math.floor(durationMs / 1000);
         const msg = document.getElementById('msg-box');
+        let timeLeft = Math.floor(durationMs / 1000);
         let cd = setInterval(() => { msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`; timeLeft--; if (timeLeft < 0) clearInterval(cd); }, 1000);
         let anim = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
@@ -228,48 +209,64 @@
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         document.getElementById(`c-${win1}`).classList.add('winner-cell');
         document.getElementById(`c-${win2}`).classList.add('winner2-cell');
+        
+        const now = new Date();
+        const gameId = win1 + "_" + win2 + "_" + now.getTime();
 
-        const now = new Date(); let h = now.getHours(); let ethH = h >= 6 ? h - 6 : h + 6; if (ethH > 12) ethH -= 12; if (ethH === 0) ethH = 12;
-        let ampm = h >= 18 || h < 6 ? trans[currentLang].night_p : trans[currentLang].day_p;
-        const nowTime = `${ethH}:${now.getMinutes().toString().padStart(2, '0')} ${ampm}`;
-
-        if (!gameHistory.some(g => g.time === nowTime && g.n1 === win1)) {
-            const newRes = { n1: win1, u1: selections[win1] || "---", n2: win2, u2: selections[win2] || "---", time: nowTime };
-            gameHistory.unshift(newRes); if (gameHistory.length > 5) gameHistory.pop();
+        if (!gameHistory.some(h => h.roundId === gameId)) {
+            gameHistory.unshift({ n1: win1, u1: selections[win1]||"---", n2: win2, u2: selections[win2]||"---", rawDate: now, roundId: gameId });
+            if(gameHistory.length > 5) gameHistory.pop();
         }
-
         document.getElementById('msg-box').innerText = `1ኛ: ቁጥር ${win1} | 2ኛ: ቁጥር ${win2}`;
-
         setTimeout(() => {
-            if (Object.values(selections)[0] === userName || selections[win1] === userName) {
+            const keys = Object.keys(selections);
+            if (selections[keys[19]] === userName) {
                 isResetting = true;
                 database.ref().update({ 'live_game/play2': null, 'live_game/play2_result': null }).then(() => {
                     document.getElementById('round-val').innerText = ++round;
                     isPlaying = false; isResetting = false; resetGridColors(); updateUI();
                 });
-            } else { setTimeout(() => { if(!isPlaying){ document.getElementById('round-val').innerText = ++round; resetGridColors(); updateUI(); } }, 1500); }
+            } else { setTimeout(() => { if(!isResetting) { document.getElementById('round-val').innerText = ++round; isPlaying = false; resetGridColors(); updateUI(); } }, 2000); }
         }, 5000);
     }
 
     function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); }
+    
+    function getTimeFormatted(date) {
+        let h = date.getHours();
+        let m = date.getMinutes().toString().padStart(2, '0');
+        let displayH = h % 12 || 12;
+        if (currentLang === 'am') {
+            let suffix = (h >= 6 && h < 18) ? " ቀን" : " ማታ";
+            return displayH + ":" + m + suffix;
+        } else {
+            let suffix = (h >= 12) ? " PM" : " AM";
+            return displayH + ":" + m + suffix;
+        }
+    }
 
-    function setLang(l) { 
-        currentLang = l; 
-        for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; }
-        updateDateTime(); updateUI();
+    function formatHistoryTime(date) {
+        if(!date) return "";
+        return getTimeFormatted(new Date(date));
     }
 
     function updateDateTime() {
-        const now = new Date(); let h = now.getHours(); let ethH = h >= 6 ? h - 6 : h + 6; if (ethH > 12) ethH -= 12; if (ethH === 0) ethH = 12;
-        let ampm = h >= 18 || h < 6 ? trans[currentLang].night_p : trans[currentLang].day_p;
-        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
+        const now = new Date();
+        document.getElementById('time-label').innerText = getTimeFormatted(now);
         if (currentLang === 'am') {
-            const startOfYekatit = new Date(2026, 1, 8); const diffDays = Math.floor((now - startOfYekatit) / (1000 * 60 * 60 * 24)) + 1;
-            document.getElementById('date-label').innerText = "የካቲት " + diffDays + ", 2018";
-        } else { document.getElementById('date-label').innerText = now.toDateString().toUpperCase(); }
+            document.getElementById('date-label').innerText = "የካቲት 8 ቀን 2018";
+        } else {
+            document.getElementById('date-label').innerText = "Feb 15, 2026";
+        }
     }
 
-    setInterval(updateDateTime, 1000);
+    function setLang(l) { 
+        currentLang = l; 
+        for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; } 
+        updateDateTime(); updateUI();
+    }
+
+    setInterval(updateDateTime, 1000); 
     window.onload = () => { setLang('am'); };
 </script>
 </body>
