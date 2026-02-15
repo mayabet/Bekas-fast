@@ -84,8 +84,8 @@
     let gameHistory = []; 
 
     const trans = {
-        'am': {gt:'10 ብር 1ኛ 80 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 80ብር | 2ኛ 10ብር', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!', win_list: 'ያለፉ 5 ጨዋታዎች ውጤት', self: 'እራሱን ችሏል'},
-        'en': {gt:'10 BIRR 1st 80 2nd 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 10 people. 1st & 2nd winners', promoWin: '1st 80 ETB | 2nd 10 ETB', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!', win_list: 'LAST 5 RESULTS', self: 'Return'}
+        'am': {gt:'10 ብር 1ኛ 80 2ኛ 10', bl:'ቀሪ ሂሳብ', ins:'ከ 1 እስከ 10 ያለውን ቁጥር ይምረጡ', ms:'መልዕክት', rn:'ዙር', ls:'ያለፈው', sh:'የተመረጡ ቁጥሮች', bb:'ተመለስ', ll:'ቋንቋ', luck:'እጣዉ እየወጣ ነዉ: ', pick:'ቁጥር {n} ተመርጧል', low:'በቂ ሂሳብ የሎትም', removed: 'ቁጥር {n} ተሰርዟል', wait: 'እባክዎ ይጠብቁ...', brand: 'ቡናማዉ የቁጥር ጨዋታ ማጫወቻ', promo: 'ጨዋታዉ ከ 10 ሰዎች ጋር ሲሆን 1ኛ እና 2ኛ እጣ ይወጣል', promoWin: '1ኛ 80ብር | 2ኛ 10ብር', dt_txt: 'ቀን', tm_txt: 'ሰዓት', welcome: 'እንኳን ደህና መጡ!', win_list: 'ያለፉ 5 ጨዋታዎች ውጤት', self: 'እራሱን ችሏል', day_p: 'ቀን', night_p: 'ማታ'},
+        'en': {gt:'10 BIRR 1st 80 2nd 10', bl:'BALANCE', ins:'SELECT NUMBER 1 UP 10', ms:'MESSAGE', rn:'ROUND', ls:'LAST', sh:'SELECTED NUMBERS', bb:'BACK', ll:'LANGUAGE', luck:'Drawing now: ', pick:'NUM {n} SELECTED', low:'LOW BALANCE', removed: 'NUM {n} REMOVED', wait: 'PLEASE WAIT...', brand: 'BUNAMAW NUMBER PICKER', promo: 'Game with 10 people. 1st & 2nd winners', promoWin: '1st 80 ETB | 2nd 10 ETB', dt_txt: 'Date', tm_txt: 'Time', welcome: 'Welcome!', win_list: 'LAST 5 RESULTS', self: 'Return', day_p: 'Day', night_p: 'Night'}
     };
 
     if (!userPhone) {
@@ -159,14 +159,11 @@
                 gameHistory.forEach((res) => {
                     let row = table.insertRow();
                     row.style.borderBottom = "2px solid #002d4b";
-                    
                     const label1 = currentLang === 'am' ? "1ኛ ቁጥር" : "1st Num";
                     const label2 = currentLang === 'am' ? "2ኛ ቁጥር" : "2nd Num";
                     const birr = currentLang === 'am' ? "80ብር" : "80ETB";
                     const selfTxt = trans[currentLang].self;
-
-                    row.innerHTML = `
-                        <td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
+                    row.innerHTML = `<td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
                         <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
                             <div style="color:#5D4037; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 3px;">${label1} ${res.n1} ${birr}: ${res.u1}</div>
                             <div style="color:#00b050;">${label2} ${res.n2} ${selfTxt}: ${res.u2}</div>
@@ -228,9 +225,7 @@
             document.getElementById(`c-${tempIdx}`).classList.add('anim-active');
             counter += speed;
             if (counter >= durationMs) { 
-                clearInterval(animationInterval); 
-                clearInterval(countdownInterval);
-                finishGame(win1, win2); 
+                clearInterval(animationInterval); clearInterval(countdownInterval); finishGame(win1, win2); 
             }
         }, speed);
     }
@@ -249,56 +244,38 @@
         let ethH = h >= 6 ? h - 6 : h + 6;
         if (ethH > 12) ethH -= 12;
         if (ethH === 0) ethH = 12;
-        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'PM') : (currentLang === 'am' ? 'ቀን' : 'AM');
+        let ampm = h >= 18 || h < 6 ? trans[currentLang].night_p : trans[currentLang].day_p;
         const nowTime = `${ethH}:${now.getMinutes().toString().padStart(2, '0')} ${ampm}`;
 
-        const newResult = {
-            n1: win1, u1: selections[win1] || "---",
-            n2: win2, u2: selections[win2] || "---",
-            time: nowTime
-        };
+        const newResult = { n1: win1, u1: selections[win1] || "---", n2: win2, u2: selections[win2] || "---", time: nowTime };
         gameHistory.unshift(newResult);
         if (gameHistory.length > 5) gameHistory.pop();
 
-        let res1 = currentLang === 'am' ? `1ኛ: ቁጥር ${win1}` : `1st: Num ${win1}`;
-        let res2 = currentLang === 'am' ? `2ኛ: ቁጥር ${win2}` : `2nd: Num ${win2}`;
         let statusMsg = "";
         const lastCheckedRound = localStorage.getItem('lastCheckedRound');
         const currentRoundId = win1 + "_" + win2 + "_" + Date.now().toString().slice(0,7);
-
         if (lastCheckedRound !== currentRoundId) {
             if(selections[win1] === userName) {
                 database.ref('users/' + userPhone).update({ balance: balance + 80 });
                 statusMsg = currentLang === 'am' ? " - 80 ብር አሸንፈዋል!" : " - You won 80!";
-                msg.style.color = "green";
             } else if(selections[win2] === userName) {
                 database.ref('users/' + userPhone).update({ balance: balance + 10 });
                 statusMsg = currentLang === 'am' ? " - 10 ብር ተመላሽ!" : " - 10 ETB Refunded!";
-                msg.style.color = "blue";
-            } else {
-                statusMsg = currentLang === 'am' ? " - እድል ለሌላ ጊዜ" : " - Try Again";
-                msg.style.color = "red";
             }
             localStorage.setItem('lastCheckedRound', currentRoundId);
         }
-        msg.innerText = res1 + " | " + res2 + statusMsg;
+        msg.innerText = (currentLang === 'am' ? `1ኛ: ቁጥር ${win1} | 2ኛ: ቁጥር ${win2}` : `1st: Num ${win1} | 2nd: Num ${win2}`) + statusMsg;
 
         setTimeout(() => {
             if (selections[win1] === userName || Object.keys(selections)[0] === userName) {
                 isResetting = true;
                 database.ref().update({ 'live_game/play1': null, 'live_game/play1_result': null }).then(() => {
                     document.getElementById('round-val').innerText = ++round;
-                    isPlaying = false; isResetting = false;
-                    resetGridColors();
-                    updateUI();
+                    isPlaying = false; isResetting = false; resetGridColors(); updateUI();
                 });
             } else {
                 setTimeout(() => {
-                    if (!isPlaying) {
-                        document.getElementById('round-val').innerText = ++round;
-                        resetGridColors();
-                        updateUI();
-                    }
+                    if (!isPlaying) { document.getElementById('round-val').innerText = ++round; resetGridColors(); updateUI(); }
                 }, 1000);
             }
         }, 5000);
@@ -316,6 +293,7 @@
         for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; }
         document.getElementById('l-am').classList.toggle('active', l === 'am');
         document.getElementById('l-en').classList.toggle('active', l === 'en');
+        updateDateTime();
         updateUI();
     }
 
@@ -325,7 +303,7 @@
         let ethH = h >= 6 ? h - 6 : h + 6;
         if (ethH > 12) ethH -= 12;
         if (ethH === 0) ethH = 12;
-        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
+        let ampm = h >= 18 || h < 6 ? trans[currentLang].night_p : trans[currentLang].day_p;
         const timeStr = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
         document.getElementById('time-label').innerText = timeStr;
         if (currentLang === 'am') {
