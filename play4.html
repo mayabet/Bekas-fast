@@ -16,14 +16,13 @@
         .balance-bar { background: #002d4b; color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; flex-shrink: 0; }
         .instruction { color: #00b050; font-weight: 900; text-align: center; padding: 6px 0; font-size: 16px; text-transform: uppercase; flex-shrink: 0; }
         
-        /* Fixed height grid with scroll for 50 numbers */
         .number-grid { 
             display: grid; 
             grid-template-columns: repeat(5, 1fr); 
             border: 2px solid #002d4b; 
             margin: 0 5px; 
             flex-shrink: 0; 
-            overflow-y: auto; 
+            overflow-y: scroll; 
             height: 165px; 
             background: #f9f9f9;
         }
@@ -121,10 +120,10 @@
     async function pick(n) {
         const msg = document.getElementById('msg-box');
         
-        // Auto-clean stuck logic
+        // Safety Clean: If stuck more than 30s
         const rSnap = await resultRef.get();
-        if (rSnap.val() && (Date.now() - rSnap.val().startTime > 25000)) {
-            await gameRef.remove(); await resultRef.remove();
+        if (rSnap.val() && (Date.now() - rSnap.val().startTime > 30000)) {
+            await resultRef.remove(); await gameRef.remove();
             isPlaying = false; isResetting = false;
         }
 
@@ -142,14 +141,14 @@
                 return;
             } else { msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Expired (20s)"; return; }
         }
-
         if (balance < 20) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
+        
         database.ref('users/' + userPhone).update({ balance: balance - 20 });
         localStorage.setItem('lastPickTime_p4_' + n, now);
-        
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
-                if (Object.keys(snap.val() || {}).length === 50 && !isPlaying && !isResetting) {
+                const count = Object.keys(snap.val() || {}).length;
+                if (count === 50 && !isPlaying && !isResetting) {
                     let win1 = Math.floor(Math.random() * 50) + 1;
                     let win2; do { win2 = Math.floor(Math.random() * 50) + 1; } while (win2 === win1);
                     resultRef.set({ 
@@ -174,8 +173,9 @@
                 const table = document.getElementById('sel-table');
                 gameHistory.forEach(res => {
                     let row = table.insertRow();
-                    row.innerHTML = `<td class="id-col" style="font-size:14px;">${res.time}</td>
-                        <td style="padding: 10px; font-weight:900;">
+                    row.style.borderBottom = "2px solid #002d4b";
+                    row.innerHTML = `<td class="id-col" style="font-size:14px; font-weight:900;">${res.time}</td>
+                        <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
                             <div style="color:#5D4037; border-bottom: 1px solid #ddd;">${trans[currentLang].n1_lbl} ${res.n1} 880${trans[currentLang].birr_lbl}: ${res.u1}</div>
                             <div style="color:#00b050;">${trans[currentLang].n2_lbl} ${res.n2} ${trans[currentLang].self}: ${res.u2}</div>
                         </td>`;
@@ -196,26 +196,19 @@
             else if (!isPlaying) cell.className = "num-cell";
             if (occupant !== "") {
                 let row = table.insertRow();
-                row.innerHTML = `<td class="id-col" style="font-size:13px;">${i}</td><td>${occupant}</td>`;
+                row.innerHTML = `<td class="id-col" style="font-size:13px;">${i}</td><td style="font-size:13px;">${occupant}</td>`;
             }
         }
     }
 
     resultRef.on('value', (snap) => {
         const data = snap.val(); if (!data) return;
+        const now = Date.now(); const animDuration = 11000; 
+        const elapsed = now - data.startTime;
         
-        // Sync win check
-        const syncId = data.winningNum + "_" + data.winningNum2 + "_" + data.startTime;
-        if (localStorage.getItem('lastChecked_p4') !== syncId) {
-            if (selections[data.winningNum] === userName) database.ref('users/' + userPhone).update({ balance: balance + 880 });
-            else if (selections[data.winningNum2] === userName) database.ref('users/' + userPhone).update({ balance: balance + 20 });
-            localStorage.setItem('lastChecked_p4', syncId);
-        }
-
-        const now = Date.now(); const animDuration = 11000; const elapsed = now - data.startTime;
         if (elapsed < animDuration) {
             if (!isPlaying && !isResetting) { isPlaying = true; runAnimation(data.winningNum, data.winningNum2, animDuration - elapsed); }
-        } else if (elapsed >= animDuration && elapsed < 20000) {
+        } else if (elapsed >= animDuration && elapsed < 25000) {
             if (!isPlaying && !isResetting) finishGame(data.winningNum, data.winningNum2);
         }
     });
@@ -226,9 +219,9 @@
         let cd = setInterval(() => { msg.innerHTML = `${trans[currentLang].luck} <span class="count-span">${timeLeft}</span>`; timeLeft--; if (timeLeft < 0) clearInterval(cd); }, 1000);
         let anim = setInterval(() => {
             document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-            let r = Math.floor(Math.random()*50)+1;
-            let target = document.getElementById(`c-${r}`);
-            if(target) { target.classList.add('anim-active'); target.scrollIntoView({ behavior: 'auto', block: 'nearest' }); }
+            let rnd = Math.floor(Math.random() * 50) + 1;
+            const target = document.getElementById(`c-${rnd}`);
+            if (target) { target.classList.add('anim-active'); target.scrollIntoView({ behavior: 'auto', block: 'nearest' }); }
         }, 80);
         setTimeout(() => { clearInterval(anim); clearInterval(cd); finishGame(win1, win2); }, durationMs);
     }
@@ -236,15 +229,19 @@
     function finishGame(win1, win2) {
         isPlaying = true; document.getElementById('last-val').innerText = win1;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
-        const c1 = document.getElementById(`c-${win1}`); const c2 = document.getElementById(`c-${win2}`);
-        if(c1) { c1.classList.add('winner-cell'); c1.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-        if(c2) c2.classList.add('winner2-cell');
+        const cell1 = document.getElementById(`c-${win1}`); const cell2 = document.getElementById(`c-${win2}`);
+        if(cell1) { cell1.classList.add('winner-cell'); cell1.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        if(cell2) cell2.classList.add('winner2-cell');
 
         const now = new Date(); let h = now.getHours(); let ethH = h >= 6 ? h - 6 : h + 6; if (ethH > 12) ethH -= 12; if (ethH === 0) ethH = 12;
         let ampm = h >= 18 || h < 6 ? trans[currentLang].night_p : trans[currentLang].day_p;
         const nowTime = `${ethH}:${now.getMinutes().toString().padStart(2, '0')} ${ampm}`;
 
-        if (!gameHistory.some(g => g.time === nowTime && g.n1 === win1)) {
+        const syncKey = win1 + "_" + win2 + "_" + nowTime;
+        if (localStorage.getItem('lastChecked_p4') !== syncKey) {
+            if(selections[win1] === userName) database.ref('users/' + userPhone).update({ balance: balance + 880 });
+            else if(selections[win2] === userName) database.ref('users/' + userPhone).update({ balance: balance + 20 });
+            localStorage.setItem('lastChecked_p4', syncKey);
             gameHistory.unshift({ n1: win1, u1: selections[win1] || "---", n2: win2, u2: selections[win2] || "---", time: nowTime });
             if (gameHistory.length > 5) gameHistory.pop();
         }
@@ -256,10 +253,10 @@
                 isResetting = true;
                 database.ref().update({'live_game/play4': null, 'live_game/play4_result': null}).then(() => {
                     document.getElementById('round-val').innerText = ++round;
-                    isPlaying = false; isResetting = false; grid.scrollTo({top:0}); resetGridColors(); updateUI();
+                    isPlaying = false; isResetting = false; grid.scrollTo({ top: 0 }); resetGridColors(); updateUI();
                 });
-            } else { setTimeout(() => { if(!isPlaying){ document.getElementById('round-val').innerText = ++round; resetGridColors(); updateUI(); } }, 1500); }
-        }, 5000);
+            } else { setTimeout(() => { if (!isPlaying) { document.getElementById('round-val').innerText = ++round; resetGridColors(); updateUI(); } }, 1500); }
+        }, 5000); 
     }
 
     function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); }
