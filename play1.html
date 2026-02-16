@@ -116,30 +116,30 @@
     async function pick(n) {
         const msg = document.getElementById('msg-box');
         const nowServer = Date.now() + serverOffset;
-        const rSnap = await resultRef.get();
-        const rData = rSnap.val();
-        if (rData && (nowServer - rData.startTime > 30000)) { await gameRef.remove(); await resultRef.remove(); isPlaying = false; isResetting = false; }
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
         if (selections[n] && selections[n] !== userName) return;
         if (selections[n] === userName) {
             const lastPickTime = localStorage.getItem('lastPickTime_' + n);
             if (lastPickTime && (nowServer - parseInt(lastPickTime) < 20000)) {
-                database.ref('users/' + userPhone).update({ balance: balance + 10 });
+                database.ref('users/' + userPhone + '/balance').transaction(c => (c || 0) + 10);
                 gameRef.child(n).remove(); localStorage.removeItem('lastPickTime_' + n);
                 msg.innerText = trans[currentLang].removed.replace('{n}', n); return;
             } else { msg.innerText = currentLang === 'am' ? "መሰረዝ አይቻልም (20 ሰከንድ አልፏል)" : "Expired (20s)"; return; }
         }
         if (balance < 10) { msg.innerText = trans[currentLang].low; msg.style.color = "red"; return; }
-        database.ref('users/' + userPhone).update({ balance: balance - 10 });
-        localStorage.setItem('lastPickTime_' + n, nowServer.toString());
-        gameRef.child(n).set(userName).then(() => {
-            gameRef.once('value', (snap) => {
-                const currentSelections = snap.val() || {};
-                if (Object.keys(currentSelections).length === 10 && !isPlaying && !isResetting) {
-                    let win1 = Math.floor(Math.random() * 10) + 1;
-                    let win2; do { win2 = Math.floor(Math.random() * 10) + 1; } while (win2 === win1);
-                    resultRef.set({ winningNum: win1, winningNum2: win2, startTime: firebase.database.ServerValue.TIMESTAMP });
-                }
+        
+        // ብር መቀነስ
+        database.ref('users/' + userPhone + '/balance').transaction(c => (c || 0) - 10).then(() => {
+            localStorage.setItem('lastPickTime_' + n, nowServer.toString());
+            gameRef.child(n).set(userName).then(() => {
+                gameRef.once('value', (snap) => {
+                    const currentSelections = snap.val() || {};
+                    if (Object.keys(currentSelections).length === 10 && !isPlaying && !isResetting) {
+                        let win1 = Math.floor(Math.random() * 10) + 1;
+                        let win2; do { win2 = Math.floor(Math.random() * 10) + 1; } while (win2 === win1);
+                        resultRef.set({ winningNum: win1, winningNum2: win2, startTime: firebase.database.ServerValue.TIMESTAMP });
+                    }
+                });
             });
         });
     }
@@ -154,12 +154,10 @@
                 const table = document.getElementById('sel-table');
                 gameHistory.forEach((res) => {
                     let row = table.insertRow();
-                    row.style.borderBottom = "2px solid #002d4b";
-                    let historyTime = formatHistoryTime(res.rawDate);
-                    row.innerHTML = `<td class="id-col" style="font-size:13px; font-weight:900;">${historyTime}</td>
-                        <td style="line-height:1.7; font-size:14px; font-weight:900; padding: 10px; color:#002d4b;">
-                            <div style="color:#5D4037; border-bottom: 1px solid #ddd; padding-bottom: 3px; margin-bottom: 3px;">${trans[currentLang].n1_lbl} ${res.n1} 80 ${trans[currentLang].birr_lbl}: ${res.u1}</div>
-                            <div style="color:#00b050;">${trans[currentLang].n2_lbl} ${res.n2} ${trans[currentLang].self}: ${res.u2}</div>
+                    row.innerHTML = `<td class="id-col">${formatHistoryTime(res.rawDate)}</td>
+                        <td style="padding: 10px;">
+                            <div style="color:#5D4037;">${trans[currentLang].n1_lbl} ${res.n1} : ${res.u1}</div>
+                            <div style="color:#00b050;">${trans[currentLang].n2_lbl} ${res.n2} : ${res.u2}</div>
                         </td>`;
                 });
             } else {
@@ -179,7 +177,7 @@
             else if (!isPlaying) cell.className = "num-cell";
             if (occupant !== "") {
                 let row = table.insertRow();
-                row.innerHTML = `<td class="id-col" style="font-size:13px;">${i}</td><td style="font-size:13px;">${occupant}</td>`;
+                row.innerHTML = `<td class="id-col">${i}</td><td>${occupant}</td>`;
             }
         }
     }
@@ -205,87 +203,90 @@
     }
 
     function finishGame(win1, win2) {
-        isPlaying = true; document.getElementById('last-val').innerText = win1;
+        isPlaying = true; 
+        document.getElementById('last-val').innerText = win1;
         document.querySelectorAll('.num-cell').forEach(c => c.classList.remove('anim-active'));
         document.getElementById(`c-${win1}`).classList.add('winner-cell');
         document.getElementById(`c-${win2}`).classList.add('winner2-cell');
         
-        const now = new Date();
-        const gameId = win1 + "_" + win2 + "_" + now.getTime();
+        // አሸናፊዎችን መፈለግ
+        const winner1Name = selections[win1];
+        const winner2Name = selections[win2];
 
-        if (!gameHistory.some(h => h.roundId === gameId)) {
-            gameHistory.unshift({ 
-                n1: win1, u1: selections[win1]||"---", 
-                n2: win2, u2: selections[win2]||"---", 
-                rawDate: now, 
-                roundId: gameId 
+        // ክፍያ መፈጸም (ብቻ አንድ ጊዜ እንዲሆን በ winner ስም phone መፈለግ አለበት)
+        // እዚህ ጋር ስሙን ወደ ስልክ ቁጥር ለመቀየር ተጠቃሚዎችን ፈልጎ መክፈል
+        database.ref('users').once('value', (snap) => {
+            snap.forEach(userSnap => {
+                const u = userSnap.val();
+                if (u.username === winner1Name) {
+                    database.ref('users/' + userSnap.key + '/balance').transaction(c => (c || 0) + 80);
+                }
+                if (u.username === winner2Name) {
+                    database.ref('users/' + userSnap.key + '/balance').transaction(c => (c || 0) + 10);
+                }
             });
-            if(gameHistory.length > 5) gameHistory.pop();
-        }
+        });
+
+        // ለAdmin ትርፍ መመዝገብ
+        database.ref('games').push({
+            gameType: 'play1',
+            time: firebase.database.ServerValue.TIMESTAMP
+        });
+
+        const now = new Date();
+        gameHistory.unshift({ n1: win1, u1: winner1Name||"---", n2: win2, u2: winner2Name||"---", rawDate: now });
+        if(gameHistory.length > 5) gameHistory.pop();
+
         document.getElementById('msg-box').innerText = `1ኛ: ቁጥር ${win1} | 2ኛ: ቁጥር ${win2}`;
+
+        // ዳታ ማጽዳት (ከ 5 ሰከንድ በኋላ)
         setTimeout(() => {
-            const keys = Object.keys(selections);
-            if (selections[keys[9]] === userName) {
+            if (selections[Object.keys(selections)[0]] === userName || Object.keys(selections).length === 10) {
                 isResetting = true;
-                database.ref().update({ 'live_game/play1': null, 'live_game/play1_result': null }).then(() => {
-                    document.getElementById('round-val').innerText = ++round;
-                    isPlaying = false; isResetting = false; resetGridColors(); updateUI();
-                });
-            } else { setTimeout(() => { if(!isResetting) { document.getElementById('round-val').innerText = ++round; isPlaying = false; resetGridColors(); updateUI(); } }, 2000); }
+                database.ref('live_game/play1').remove();
+                database.ref('live_game/play1_result').remove();
+                document.getElementById('round-val').innerText = ++round;
+                isPlaying = false; isResetting = false; resetGridColors(); updateUI();
+            }
         }, 5000);
     }
 
     function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); }
     
-    // የሰዓት እና የቀን አቆጣጠር ከ Home ገጽ የተወሰደ
     function updateDateTime() {
         const now = new Date();
-        
-        // የሰዓት አቆጣጠር (የ6 ሰዓት ልዩነት)
         let h = now.getHours();
         let ethH = h >= 6 ? h - 6 : h + 6;
-        if (ethH > 12) ethH -= 12;
-        if (ethH === 0) ethH = 12;
-        
+        if (ethH > 12) ethH -= 12; if (ethH === 0) ethH = 12;
         let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
-        
         document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
-        
-        // የቀን አቆጣጠር
         if (currentLang === 'am') {
-            const startGC = new Date(2026, 1, 11); // Feb 11
+            const startGC = new Date(2026, 1, 11);
             const diffDays = Math.floor((now - startGC) / (1000 * 60 * 60 * 24));
-            let currentEthDay = 4 + diffDays;
-            document.getElementById('date-label').innerText = "የካቲት " + currentEthDay + ", 2018";
+            document.getElementById('date-label').innerText = "የካቲት " + (4 + diffDays) + ", 2018";
         } else {
             document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
         }
     }
 
-    // History ላይ ላለዉ ሰዓት ብቻ
     function formatHistoryTime(date) {
-        if(!date) return "";
         const d = new Date(date);
         let h = d.getHours();
         let ethH = h >= 6 ? h - 6 : h + 6;
         if (ethH > 12) ethH -= 12;
-        if (ethH === 0) ethH = 12;
-        let m = d.getMinutes().toString().padStart(2, '0');
-        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
-        return `${ethH}:${m} ${ampm}`;
+        return `${ethH}:${d.getMinutes().toString().padStart(2, '0')}`;
     }
 
     function setLang(l) { 
         currentLang = l; 
-        for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; } 
-        updateDateTime(); 
+        for(let k in trans[l]) { if(document.getElementById(k)) document.getElementById(k).innerText = trans[l][k]; } 
         updateUI();
         document.getElementById('l-am').classList.toggle('active', l === 'am');
         document.getElementById('l-en').classList.toggle('active', l === 'en');
     }
 
     setInterval(updateDateTime, 1000); 
-    window.onload = () => { setLang('am'); };
+    window.onload = () => { setLang('am'); updateDateTime(); };
 </script>
 </body>
 </html>
