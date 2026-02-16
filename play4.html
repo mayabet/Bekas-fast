@@ -119,7 +119,6 @@
         const rSnap = await resultRef.get();
         const rData = rSnap.val();
         
-        // Stuck እንዳይሆን ማጽጃ
         if (rData && (nowServer - rData.startTime > 35000)) { await gameRef.remove(); await resultRef.remove(); isPlaying = false; isResetting = false; }
         
         if(isPlaying || isResetting) { msg.innerText = trans[currentLang].wait; return; }
@@ -141,7 +140,6 @@
         gameRef.child(n).set(userName).then(() => {
             gameRef.once('value', (snap) => {
                 const currentSelections = snap.val() || {};
-                // Play 4 ስለሆነ 50 ሲሞላ
                 if (Object.keys(currentSelections).length === 50 && !isPlaying && !isResetting) {
                     let win1 = Math.floor(Math.random() * 50) + 1;
                     let win2; do { win2 = Math.floor(Math.random() * 50) + 1; } while (win2 === win1);
@@ -231,7 +229,6 @@
             if(gameHistory.length > 5) gameHistory.pop();
         }
         
-        // Win Calculation (Play 4 rules)
         if (localStorage.getItem('lastChecked_p4') !== gameId) {
             if(selections[win1] === userName) database.ref('users/' + userPhone).update({ balance: balance + 880 });
             else if(selections[win2] === userName) database.ref('users/' + userPhone).update({ balance: balance + 20 });
@@ -241,7 +238,6 @@
         document.getElementById('msg-box').innerText = `1ኛ: ቁጥር ${win1} | 2ኛ: ቁጥር ${win2}`;
         setTimeout(() => {
             const keys = Object.keys(selections);
-            // 50ኛው ሰው ዙሩን ያጽዳው
             if (selections[keys[49]] === userName) {
                 isResetting = true;
                 database.ref().update({ 'live_game/play4': null, 'live_game/play4_result': null }).then(() => {
@@ -254,38 +250,47 @@
 
     function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); }
     
-    function getTimeFormatted(date) {
-        let h = date.getHours();
-        let m = date.getMinutes().toString().padStart(2, '0');
-        let displayH = h % 12 || 12;
+    // --- የቀን እና ሰዓት አቆጣጠር ከ Home ፋይል የተወሰደ ---
+    function updateDateTime() {
+        const now = new Date();
+        
+        let h = now.getHours();
+        let ethH = h >= 6 ? h - 6 : h + 6;
+        if (ethH > 12) ethH -= 12;
+        if (ethH === 0) ethH = 12;
+        
+        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
+        
+        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
+        
         if (currentLang === 'am') {
-            let suffix = (h >= 6 && h < 18) ? " ቀን" : " ማታ";
-            return displayH + ":" + m + suffix;
+            const startGC = new Date(2026, 1, 11); 
+            const diffDays = Math.floor((now - startGC) / (1000 * 60 * 60 * 24));
+            let currentEthDay = 4 + diffDays;
+            document.getElementById('date-label').innerText = "የካቲት " + currentEthDay + ", 2018";
         } else {
-            let suffix = (h >= 12) ? " PM" : " AM";
-            return displayH + ":" + m + suffix;
+            document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
         }
     }
 
     function formatHistoryTime(date) {
         if(!date) return "";
-        return getTimeFormatted(new Date(date));
-    }
-
-    function updateDateTime() {
-        const now = new Date();
-        document.getElementById('time-label').innerText = getTimeFormatted(now);
-        if (currentLang === 'am') {
-            document.getElementById('date-label').innerText = "የካቲት 9 ቀን 2018";
-        } else {
-            document.getElementById('date-label').innerText = "Feb 16, 2026";
-        }
+        const d = new Date(date);
+        let h = d.getHours();
+        let ethH = h >= 6 ? h - 6 : h + 6;
+        if (ethH > 12) ethH -= 12;
+        if (ethH === 0) ethH = 12;
+        let m = d.getMinutes().toString().padStart(2, '0');
+        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
+        return `${ethH}:${m} ${ampm}`;
     }
 
     function setLang(l) { 
         currentLang = l; 
         for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; } 
         updateDateTime(); updateUI();
+        document.getElementById('l-am').classList.toggle('active', l === 'am');
+        document.getElementById('l-en').classList.toggle('active', l === 'en');
     }
 
     setInterval(updateDateTime, 1000); 
