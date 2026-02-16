@@ -232,38 +232,47 @@
 
     function resetGridColors() { document.querySelectorAll('.num-cell').forEach(cell => { cell.className = "num-cell"; }); }
     
-    function getTimeFormatted(date) {
-        let h = date.getHours();
-        let m = date.getMinutes().toString().padStart(2, '0');
-        let displayH = h % 12 || 12;
+    // --- የቀን እና ሰዓት አቆጣጠር ከ Home ፋይል የተወሰደ ---
+    function updateDateTime() {
+        const now = new Date();
+        
+        let h = now.getHours();
+        let ethH = h >= 6 ? h - 6 : h + 6;
+        if (ethH > 12) ethH -= 12;
+        if (ethH === 0) ethH = 12;
+        
+        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
+        
+        document.getElementById('time-label').innerText = `${ethH}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')} ${ampm}`;
+        
         if (currentLang === 'am') {
-            let suffix = (h >= 6 && h < 18) ? " ቀን" : " ማታ";
-            return displayH + ":" + m + suffix;
+            const startGC = new Date(2026, 1, 11); 
+            const diffDays = Math.floor((now - startGC) / (1000 * 60 * 60 * 24));
+            let currentEthDay = 4 + diffDays;
+            document.getElementById('date-label').innerText = "የካቲት " + currentEthDay + ", 2018";
         } else {
-            let suffix = (h >= 12) ? " PM" : " AM";
-            return displayH + ":" + m + suffix;
+            document.getElementById('date-label').innerText = now.toDateString().toUpperCase();
         }
     }
 
     function formatHistoryTime(date) {
         if(!date) return "";
-        return getTimeFormatted(new Date(date));
-    }
-
-    function updateDateTime() {
-        const now = new Date();
-        document.getElementById('time-label').innerText = getTimeFormatted(now);
-        if (currentLang === 'am') {
-            document.getElementById('date-label').innerText = "የካቲት 8 ቀን 2018";
-        } else {
-            document.getElementById('date-label').innerText = "Feb 15, 2026";
-        }
+        const d = new Date(date);
+        let h = d.getHours();
+        let ethH = h >= 6 ? h - 6 : h + 6;
+        if (ethH > 12) ethH -= 12;
+        if (ethH === 0) ethH = 12;
+        let m = d.getMinutes().toString().padStart(2, '0');
+        let ampm = h >= 18 || h < 6 ? (currentLang === 'am' ? 'ማታ' : 'Night') : (currentLang === 'am' ? 'ቀን' : 'Day');
+        return `${ethH}:${m} ${ampm}`;
     }
 
     function setLang(l) { 
         currentLang = l; 
         for(let k in trans[l]) { let el = document.getElementById(k); if(el) el.innerText = trans[l][k]; } 
         updateDateTime(); updateUI();
+        document.getElementById('l-am').classList.toggle('active', l === 'am');
+        document.getElementById('l-en').classList.toggle('active', l === 'en');
     }
 
     setInterval(updateDateTime, 1000); 
