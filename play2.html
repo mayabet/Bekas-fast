@@ -139,6 +139,13 @@
                     let win1 = Math.floor(Math.random() * 20) + 1;
                     let win2; do { win2 = Math.floor(Math.random() * 20) + 1; } while (win2 === win1);
                     resultRef.set({ winningNum: win1, winningNum2: win2, startTime: firebase.database.ServerValue.TIMESTAMP });
+                    
+                    // Added for 24h stats tracking
+                    database.ref('games').push({
+                        gameType: 'play2',
+                        phone: userPhone,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
                 }
             });
         });
