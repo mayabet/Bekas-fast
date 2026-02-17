@@ -154,24 +154,23 @@
                 const updatedBalance = snapshot.val().balance;
                 const timeStamp = new Date().toLocaleString();
 
-                // ጥያቄውን መመዝገብ
+                // Admin Panel ላይ እንዲታይ መረጃውን በትክክል መመዝገብ
                 database.ref('withdraw_requests').push({
                     phone: userPhone,
                     username: fetchedUserName, 
                     amount: amount,
                     status: "pending",
-                    site: "Mita Betting",
                     time: timeStamp
-                });
-
-                // በ History ላይ መመዝገብ
-                database.ref('transaction_history').push({
-                    phone: userPhone,
-                    type: "Withdrawal Requested",
-                    amount: amount,
-                    time: timeStamp,
-                    remBal: updatedBalance.toFixed(2)
                 }).then(() => {
+                    // በ Transaction History ላይ መመዝገብ
+                    database.ref('transaction_history').push({
+                        phone: userPhone,
+                        type: "Withdrawal Requested",
+                        amount: amount,
+                        time: timeStamp,
+                        remBal: updatedBalance.toFixed(2)
+                    });
+
                     showMsg(currentLang === 'am' ? "ተልኳል! ከሂሳብዎ ላይ ተቀንሷል" : "SENT! DEDUCTED FROM BALANCE", "#2e7d32");
                     amountInput.value = "";
                 });
