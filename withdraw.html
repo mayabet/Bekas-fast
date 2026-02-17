@@ -90,7 +90,6 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // እዚህ ጋር 'loggedUser' በሚለው ተቀይሯል (ከሌሎቹ ገጾች ጋር እንዲመሳሰል)
     const userPhone = localStorage.getItem('loggedUser');
     let currentBalance = 0;
     let currentLang = 'am';
@@ -146,19 +145,32 @@
                 return currentData;
             }
             return; 
-        }, (error, committed) => {
+        }, (error, committed, snapshot) => {
             if (error) {
                 showMsg("Error! Try again", "red");
             } else if (!committed) {
                 showMsg(currentLang === 'am' ? "በቂ ቀሪ ሂሳብ የለዎትም" : "INSUFFICIENT BALANCE", "red");
             } else {
+                const updatedBalance = snapshot.val().balance;
+                const timeStamp = new Date().toLocaleString();
+
+                // ጥያቄውን መመዝገብ
                 database.ref('withdraw_requests').push({
                     phone: userPhone,
                     username: fetchedUserName, 
                     amount: amount,
                     status: "pending",
                     site: "Mita Betting",
-                    time: new Date().toLocaleString()
+                    time: timeStamp
+                });
+
+                // በ History ላይ መመዝገብ
+                database.ref('transaction_history').push({
+                    phone: userPhone,
+                    type: "Withdrawal Requested",
+                    amount: amount,
+                    time: timeStamp,
+                    remBal: updatedBalance.toFixed(2)
                 }).then(() => {
                     showMsg(currentLang === 'am' ? "ተልኳል! ከሂሳብዎ ላይ ተቀንሷል" : "SENT! DEDUCTED FROM BALANCE", "#2e7d32");
                     amountInput.value = "";
