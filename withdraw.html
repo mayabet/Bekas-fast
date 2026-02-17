@@ -151,10 +151,9 @@
             } else if (!committed) {
                 showMsg(currentLang === 'am' ? "በቂ ቀሪ ሂሳብ የለዎትም" : "INSUFFICIENT BALANCE", "red");
             } else {
-                const updatedBalance = snapshot.val().balance;
                 const timeStamp = new Date().toLocaleString();
 
-                // Admin Panel ላይ እንዲታይ መረጃውን በትክክል መመዝገብ
+                // Admin Panel ላይ እንዲታይ መረጃውን መመዝገብ (ጥያቄው ብቻ)
                 database.ref('withdraw_requests').push({
                     phone: userPhone,
                     username: fetchedUserName, 
@@ -162,15 +161,7 @@
                     status: "pending",
                     time: timeStamp
                 }).then(() => {
-                    // በ Transaction History ላይ መመዝገብ
-                    database.ref('transaction_history').push({
-                        phone: userPhone,
-                        type: "Withdrawal Requested",
-                        amount: amount,
-                        time: timeStamp,
-                        remBal: updatedBalance.toFixed(2)
-                    });
-
+                    // የታሪክ መመዝገቢያ ኮድ ከዚህ ተወግዷል
                     showMsg(currentLang === 'am' ? "ተልኳል! ከሂሳብዎ ላይ ተቀንሷል" : "SENT! DEDUCTED FROM BALANCE", "#2e7d32");
                     amountInput.value = "";
                 });
